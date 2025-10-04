@@ -3,7 +3,7 @@ import { VercelRequest, VercelResponse } from '@vercel/node';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Dynamically import the compiled app
-  const { app } = require('../dist/app');
+  const { app } = require('../dist/src/app');
 
   // Handle the request with Express app
   return new Promise((resolve, reject) => {
