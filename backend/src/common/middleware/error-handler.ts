@@ -3,8 +3,8 @@
 import { Request, Response, NextFunction } from 'express';
 import { Prisma } from '@prisma/client';
 import { ZodError } from 'zod';
-import { logger } from '@/config/logger';
-import { env } from '@/config/env';
+import { logger } from '../../config/logger';
+import { env } from '../../config/env';
 
 export class AppError extends Error {
   constructor(
