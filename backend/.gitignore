@@ -49,3 +49,5 @@ prisma/migrations/*/migration.sql.bak
 *.db
 *.sqlite
 *.sqlite3
+dist/
+api/**/*.js
