@@ -1,0 +1,705 @@
+// Prisma Schema for Literacy Assessment System
+// Database: PostgreSQL
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ===== User Management =====
+
+model User {
+  id                Int      @id @default(autoincrement())
+  username          String   @unique @db.VarChar(50)
+  email             String   @unique @db.VarChar(100)
+  passwordHash      String   @map("password_hash") @db.VarChar(255)
+  role              UserRole
+  fullName          String   @map("full_name") @db.VarChar(100)
+  phone             String?  @db.VarChar(20)
+  avatarUrl         String?  @map("avatar_url") @db.VarChar(500)
+  isActive          Boolean  @default(true) @map("is_active")
+  isEmailVerified   Boolean  @default(false) @map("is_email_verified")
+  lastLoginAt       DateTime? @map("last_login_at")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+  deletedAt         DateTime? @map("deleted_at")
+
+  student           Student?
+  teacher           Teacher?
+  parent            Parent?
+  refreshTokens     RefreshToken[]
+  createdQuestions  Question[] @relation("CreatedQuestions")
+  reviewedQuestions Question[] @relation("ReviewedQuestions")
+  assignedAssessments Assessment[] @relation("AssignedAssessments")
+  gradedResponses   Response[] @relation("GradedResponses")
+  auditLogs         AuditLog[]
+
+  @@map("users")
+}
+
+enum UserRole {
+  student
+  teacher
+  parent
+  admin
+}
+
+model Student {
+  id                  Int      @id @default(autoincrement())
+  userId              Int      @unique @map("user_id")
+  studentNumber       String?  @unique @map("student_number") @db.VarChar(20)
+  gradeLevel          Int      @map("grade_level")
+  classId             Int?     @map("class_id")
+  birthDate           DateTime? @map("birth_date") @db.Date
+  gender              String?  @db.VarChar(10)
+  schoolName          String?  @map("school_name") @db.VarChar(100)
+
+  preferredDifficulty Float    @default(0.5) @map("preferred_difficulty") @db.Real
+  learningStyle       String?  @map("learning_style") @db.VarChar(20)
+  accessibilityNeeds  String[] @map("accessibility_needs")
+
+  totalAssessments    Int      @default(0) @map("total_assessments")
+  totalStudyTime      Int      @default(0) @map("total_study_time")
+  averageScore        Float?   @map("average_score") @db.Real
+  currentAbility      Float    @default(0.5) @map("current_ability") @db.Real
+
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  class               Class?   @relation(fields: [classId], references: [id])
+  assessments         Assessment[]
+  responses           Response[]
+  scores              Score[]
+  progress            StudentProgress?
+  abilityHistory      AbilityHistory[]
+  domainStatistics    DomainStatistics[]
+  studySessions       StudySession[]
+  recommendations     LearningRecommendation[]
+  relationships       UserRelationship[]
+
+  @@map("students")
+}
+
+model Teacher {
+  id                  Int      @id @default(autoincrement())
+  userId              Int      @unique @map("user_id")
+  teacherNumber       String?  @unique @map("teacher_number") @db.VarChar(20)
+  subject             String?  @db.VarChar(50)
+  schoolName          String?  @map("school_name") @db.VarChar(100)
+  department          String?  @db.VarChar(50)
+
+  canCreateQuestions  Boolean  @default(true) @map("can_create_questions")
+  canManageStudents   Boolean  @default(true) @map("can_manage_students")
+  canViewAllClasses   Boolean  @default(false) @map("can_view_all_classes")
+
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  classes             Class[]
+
+  @@map("teachers")
+}
+
+model Parent {
+  id           Int      @id @default(autoincrement())
+  userId       Int      @unique @map("user_id")
+  relationship String   @db.VarChar(20)
+  occupation   String?  @db.VarChar(50)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("parents")
+}
+
+model Class {
+  id          Int      @id @default(autoincrement())
+  name        String   @db.VarChar(100)
+  gradeLevel  Int      @map("grade_level")
+  schoolYear  Int      @map("school_year")
+  semester    Int?
+  teacherId   Int?     @map("teacher_id")
+  schoolName  String?  @map("school_name") @db.VarChar(100)
+  maxStudents Int      @default(30) @map("max_students")
+  description String?  @db.Text
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  teacher     Teacher? @relation(fields: [teacherId], references: [id])
+  students    Student[]
+  assessments Assessment[]
+  statistics  ClassStatistics[]
+
+  @@map("classes")
+}
+
+model UserRelationship {
+  id               Int      @id @default(autoincrement())
+  studentId        Int      @map("student_id")
+  relatedUserId    Int      @map("related_user_id")
+  relationshipType String   @map("relationship_type") @db.VarChar(20)
+  isPrimary        Boolean  @default(false) @map("is_primary")
+  permissionLevel  String   @default("view") @map("permission_level") @db.VarChar(20)
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  student          Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, relatedUserId, relationshipType])
+  @@map("user_relationships")
+}
+
+// ===== Question Bank =====
+
+model Question {
+  id                  Int      @id @default(autoincrement())
+  title               String?  @db.VarChar(200)
+  content             String   @db.Text
+  type                QuestionType
+
+  domain              String   @db.VarChar(50)
+  subDomain           String?  @map("sub_domain") @db.VarChar(50)
+  gradeLevel          Int      @map("grade_level")
+  difficulty          Float    @db.Real
+
+  irtDiscrimination   Float    @default(1.0) @map("irt_discrimination") @db.Real
+  irtDifficulty       Float    @default(0.0) @map("irt_difficulty") @db.Real
+  irtGuessing         Float    @default(0.25) @map("irt_guessing") @db.Real
+
+  curriculumStandardId Int?    @map("curriculum_standard_id")
+  learningObjectives  String[] @map("learning_objectives")
+
+  points              Int      @default(1)
+  timeLimit           Int?     @map("time_limit")
+
+  answer              Json
+  explanation         String?  @db.Text
+  hint                String?  @db.Text
+
+  createdBy           Int?     @map("created_by")
+  reviewedBy          Int?     @map("reviewed_by")
+  reviewStatus        ReviewStatus @default(draft) @map("review_status")
+
+  usageCount          Int      @default(0) @map("usage_count")
+  correctCount        Int      @default(0) @map("correct_count")
+  incorrectCount      Int      @default(0) @map("incorrect_count")
+  averageTimeSpent    Int?     @map("average_time_spent")
+
+  isActive            Boolean  @default(true) @map("is_active")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+  deletedAt           DateTime? @map("deleted_at")
+
+  creator             User?    @relation("CreatedQuestions", fields: [createdBy], references: [id])
+  reviewer            User?    @relation("ReviewedQuestions", fields: [reviewedBy], references: [id])
+  curriculumStandard  CurriculumStandard? @relation(fields: [curriculumStandardId], references: [id])
+  passages            QuestionPassage[]
+  options             QuestionOption[]
+  tags                QuestionTag[]
+  assessmentQuestions AssessmentQuestion[]
+  responses           Response[]
+  calibration         DifficultyCalibration?
+
+  @@map("questions")
+}
+
+enum QuestionType {
+  multiple_choice
+  multiple_select
+  short_answer
+  essay
+  fill_blank
+  true_false
+  matching
+  ordering
+}
+
+enum ReviewStatus {
+  draft
+  pending
+  approved
+  rejected
+}
+
+model QuestionPassage {
+  id           Int      @id @default(autoincrement())
+  questionId   Int      @map("question_id")
+  passageText  String   @map("passage_text") @db.Text
+  passageTitle String?  @map("passage_title") @db.VarChar(200)
+  source       String?  @db.VarChar(200)
+  author       String?  @db.VarChar(100)
+  genre        String?  @db.VarChar(50)
+  wordCount    Int?     @map("word_count")
+  readingLevel Float?   @map("reading_level") @db.Real
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  question     Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@map("question_passages")
+}
+
+model QuestionOption {
+  id          Int      @id @default(autoincrement())
+  questionId  Int      @map("question_id")
+  optionOrder Int      @map("option_order")
+  optionText  String   @map("option_text") @db.Text
+  isCorrect   Boolean  @default(false) @map("is_correct")
+  explanation String?  @db.Text
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  question    Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([questionId, optionOrder])
+  @@map("question_options")
+}
+
+model QuestionTag {
+  id         Int      @id @default(autoincrement())
+  questionId Int      @map("question_id")
+  tag        String   @db.VarChar(50)
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([questionId, tag])
+  @@map("question_tags")
+}
+
+model CurriculumStandard {
+  id               Int      @id @default(autoincrement())
+  code             String   @unique @db.VarChar(50)
+  gradeLevel       Int      @map("grade_level")
+  subject          String   @db.VarChar(50)
+  category         String   @db.VarChar(100)
+  description      String   @db.Text
+  achievementLevel String[] @map("achievement_level")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  questions        Question[]
+
+  @@map("curriculum_standards")
+}
+
+// ===== Assessment System =====
+
+model Assessment {
+  id                  Int      @id @default(autoincrement())
+  studentId           Int      @map("student_id")
+  title               String?  @db.VarChar(200)
+  type                AssessmentType
+
+  gradeLevel          Int      @map("grade_level")
+  isAdaptive          Boolean  @default(true) @map("is_adaptive")
+  timeLimit           Int?     @map("time_limit")
+
+  initialDifficulty   Float    @default(0.5) @map("initial_difficulty") @db.Real
+  currentDifficulty   Float?   @map("current_difficulty") @db.Real
+  minDifficulty       Float    @default(0.0) @map("min_difficulty") @db.Real
+  maxDifficulty       Float    @default(1.0) @map("max_difficulty") @db.Real
+
+  targetQuestionCount Int      @default(30) @map("target_question_count")
+  targetDomains       Json?    @map("target_domains")
+
+  status              AssessmentStatus @default(created)
+
+  startedAt           DateTime? @map("started_at")
+  pausedAt            DateTime? @map("paused_at")
+  resumedAt           DateTime? @map("resumed_at")
+  completedAt         DateTime? @map("completed_at")
+  timeSpent           Int      @default(0) @map("time_spent")
+
+  assignedBy          Int?     @map("assigned_by")
+  classId             Int?     @map("class_id")
+  settings            Json?
+
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  student             Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  assignedByUser      User?    @relation("AssignedAssessments", fields: [assignedBy], references: [id])
+  class               Class?   @relation(fields: [classId], references: [id])
+  questions           AssessmentQuestion[]
+  responses           Response[]
+  score               Score?
+  analytics           AssessmentAnalytics?
+
+  @@map("assessments")
+}
+
+enum AssessmentType {
+  diagnostic
+  formative
+  summative
+  practice
+  mock
+}
+
+enum AssessmentStatus {
+  created
+  in_progress
+  paused
+  completed
+  expired
+  abandoned
+}
+
+model AssessmentQuestion {
+  id                      Int      @id @default(autoincrement())
+  assessmentId            Int      @map("assessment_id")
+  questionId              Int      @map("question_id")
+  questionOrder           Int      @map("question_order")
+  difficultyAtAssignment  Float?   @map("difficulty_at_assignment") @db.Real
+  points                  Int      @default(1)
+  timeLimit               Int?     @map("time_limit")
+  createdAt               DateTime @default(now()) @map("created_at")
+
+  assessment              Assessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  question                Question   @relation(fields: [questionId], references: [id])
+
+  @@unique([assessmentId, questionId])
+  @@unique([assessmentId, questionOrder])
+  @@map("assessment_questions")
+}
+
+model Response {
+  id                    Int      @id @default(autoincrement())
+  assessmentId          Int      @map("assessment_id")
+  questionId            Int      @map("question_id")
+  studentId             Int      @map("student_id")
+
+  answer                Json
+  isCorrect             Boolean? @map("is_correct")
+  isPartial             Boolean  @default(false) @map("is_partial")
+  pointsEarned          Float?   @map("points_earned") @db.Real
+  maxPoints             Int?     @map("max_points")
+
+  timeSpent             Int?     @map("time_spent")
+  startedAt             DateTime? @map("started_at")
+  submittedAt           DateTime? @map("submitted_at")
+
+  difficultyAtResponse  Float?   @map("difficulty_at_response") @db.Real
+  abilityBefore         Float?   @map("ability_before") @db.Real
+  abilityAfter          Float?   @map("ability_after") @db.Real
+
+  gradingMethod         GradingMethod @map("grading_method")
+  gradedBy              Int?     @map("graded_by")
+  gradedAt              DateTime? @map("graded_at")
+  gradingNotes          String?  @map("grading_notes") @db.Text
+
+  answerChanges         Int      @default(0) @map("answer_changes")
+  confidenceLevel       String?  @map("confidence_level") @db.VarChar(20)
+
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+
+  assessment            Assessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  question              Question   @relation(fields: [questionId], references: [id])
+  student               Student    @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  gradedByUser          User?      @relation("GradedResponses", fields: [gradedBy], references: [id])
+
+  @@unique([assessmentId, questionId, studentId])
+  @@map("responses")
+}
+
+enum GradingMethod {
+  auto
+  ai
+  manual
+}
+
+model Score {
+  id                      Int      @id @default(autoincrement())
+  assessmentId            Int      @unique @map("assessment_id")
+  studentId               Int      @map("student_id")
+
+  totalScore              Float    @map("total_score") @db.Real
+  maxScore                Float    @map("max_score") @db.Real
+  percentage              Float    @db.Real
+
+  domainScores            Json     @map("domain_scores")
+  subDomainScores         Json?    @map("sub_domain_scores")
+
+  correctCount            Int      @map("correct_count")
+  incorrectCount          Int      @map("incorrect_count")
+  partialCount            Int      @map("partial_count")
+  skippedCount            Int      @map("skipped_count")
+  totalQuestions          Int      @map("total_questions")
+
+  abilityEstimate         Float?   @map("ability_estimate") @db.Real
+  abilitySe               Float?   @map("ability_se") @db.Real
+  theta                   Float?   @db.Real
+
+  percentile              Int?
+  grade                   String?  @db.VarChar(5)
+  levelEstimate           Int?     @map("level_estimate")
+
+  totalTimeSpent          Int      @map("total_time_spent")
+  averageTimePerQuestion  Float    @map("average_time_per_question") @db.Real
+
+  strengths               String[] @map("strengths")
+  weaknesses              String[] @map("weaknesses")
+  recommendations         String[] @map("recommendations")
+
+  createdAt               DateTime @default(now()) @map("created_at")
+  updatedAt               DateTime @updatedAt @map("updated_at")
+
+  assessment              Assessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  student                 Student    @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@map("scores")
+}
+
+// ===== Learning Data =====
+
+model StudentProgress {
+  id                      Int      @id @default(autoincrement())
+  studentId               Int      @unique @map("student_id")
+
+  totalAssessments        Int      @default(0) @map("total_assessments")
+  completedAssessments    Int      @default(0) @map("completed_assessments")
+  totalQuestionsAttempted Int      @default(0) @map("total_questions_attempted")
+  totalCorrect            Int      @default(0) @map("total_correct")
+  totalStudyTime          Int      @default(0) @map("total_study_time")
+
+  averageScore            Float?   @map("average_score") @db.Real
+  averageAccuracy         Float?   @map("average_accuracy") @db.Real
+  currentAbility          Float    @default(0.5) @map("current_ability") @db.Real
+
+  domainStrengths         Json     @map("domain_strengths")
+  domainWeaknesses        Json     @map("domain_weaknesses")
+  recommendedDomains      String[] @map("recommended_domains")
+
+  growthRate              Float?   @map("growth_rate") @db.Real
+  consistencyScore        Float?   @map("consistency_score") @db.Real
+  effortScore             Float?   @map("effort_score") @db.Real
+
+  preferredQuestionTypes  String[] @map("preferred_question_types")
+  optimalStudyTime        String?  @map("optimal_study_time") @db.VarChar(20)
+  averageSessionDuration  Int?     @map("average_session_duration")
+
+  lastAssessmentDate      DateTime? @map("last_assessment_date") @db.Date
+  lastStudyDate           DateTime? @map("last_study_date") @db.Date
+  currentStreak           Int      @default(0) @map("current_streak")
+  longestStreak           Int      @default(0) @map("longest_streak")
+
+  weeklyGoal              Int?     @map("weekly_goal")
+  monthlyGoal             Int?     @map("monthly_goal")
+  targetLevel             Int?     @map("target_level")
+
+  updatedAt               DateTime @updatedAt @map("updated_at")
+
+  student                 Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@map("student_progress")
+}
+
+model AbilityHistory {
+  id                 Int      @id @default(autoincrement())
+  studentId          Int      @map("student_id")
+  assessmentId       Int?     @map("assessment_id")
+  abilityValue       Float    @map("ability_value") @db.Real
+  abilitySe          Float?   @map("ability_se") @db.Real
+  measurementMethod  String   @map("measurement_method") @db.VarChar(20)
+  domain             String?  @db.VarChar(50)
+  gradeLevel         Int?     @map("grade_level")
+  recordedAt         DateTime @default(now()) @map("recorded_at")
+
+  student            Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId, recordedAt])
+  @@map("ability_history")
+}
+
+model DomainStatistics {
+  id                    Int      @id @default(autoincrement())
+  studentId             Int      @map("student_id")
+  domain                String   @db.VarChar(50)
+  subDomain             String?  @map("sub_domain") @db.VarChar(50)
+
+  totalQuestions        Int      @default(0) @map("total_questions")
+  correctCount          Int      @default(0) @map("correct_count")
+  incorrectCount        Int      @default(0) @map("incorrect_count")
+  accuracy              Float    @db.Real
+
+  averageScore          Float    @map("average_score") @db.Real
+  averageTime           Float    @map("average_time") @db.Real
+
+  abilityEstimate       Float?   @map("ability_estimate") @db.Real
+
+  difficultyDistribution Json    @map("difficulty_distribution")
+
+  lastPracticed         DateTime? @map("last_practiced") @db.Date
+  practiceCount         Int      @default(0) @map("practice_count")
+
+  updatedAt             DateTime @updatedAt @map("updated_at")
+
+  student               Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, domain, subDomain])
+  @@map("domain_statistics")
+}
+
+model StudySession {
+  id                 Int      @id @default(autoincrement())
+  studentId          Int      @map("student_id")
+  startedAt          DateTime @map("started_at")
+  endedAt            DateTime? @map("ended_at")
+  duration           Int?
+  activities         Json?
+  questionsCompleted Int      @default(0) @map("questions_completed")
+  createdAt          DateTime @default(now()) @map("created_at")
+
+  student            Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@map("study_sessions")
+}
+
+model LearningRecommendation {
+  id                  Int      @id @default(autoincrement())
+  studentId           Int      @map("student_id")
+  recommendationType  String   @map("recommendation_type") @db.VarChar(30)
+  priority            Int      @default(1)
+  title               String   @db.VarChar(200)
+  description         String?  @db.Text
+  targetDomain        String?  @map("target_domain") @db.VarChar(50)
+  targetSubDomain     String?  @map("target_sub_domain") @db.VarChar(50)
+  recommendedQuestions Int[]   @map("recommended_questions")
+  estimatedDuration   Int?     @map("estimated_duration")
+  status              RecommendationStatus @default(pending)
+  generatedAt         DateTime @default(now()) @map("generated_at")
+  expiresAt           DateTime? @map("expires_at")
+  completedAt         DateTime? @map("completed_at")
+
+  student             Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@map("learning_recommendations")
+}
+
+enum RecommendationStatus {
+  pending
+  accepted
+  completed
+  dismissed
+}
+
+// ===== System & Analytics =====
+
+model DifficultyCalibration {
+  id                      Int      @id @default(autoincrement())
+  questionId              Int      @unique @map("question_id")
+  estimatedDifficulty     Float    @map("estimated_difficulty") @db.Real
+  estimatedDiscrimination Float    @map("estimated_discrimination") @db.Real
+  estimatedGuessing       Float    @map("estimated_guessing") @db.Real
+  sampleSize              Int      @map("sample_size")
+  meanScore               Float    @map("mean_score") @db.Real
+  standardDeviation       Float    @map("standard_deviation") @db.Real
+  confidenceLevel         Float    @map("confidence_level") @db.Real
+  needsRecalibration      Boolean  @default(false) @map("needs_recalibration")
+  calibratedAt            DateTime @default(now()) @map("calibrated_at")
+
+  question                Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@index([questionId])
+  @@map("difficulty_calibration")
+}
+
+model AssessmentAnalytics {
+  id                     Int      @id @default(autoincrement())
+  assessmentId           Int      @unique @map("assessment_id")
+  completionRate         Float    @map("completion_rate") @db.Real
+  averageScore           Float    @map("average_score") @db.Real
+  medianScore            Float    @map("median_score") @db.Real
+  scoreDistribution      Json     @map("score_distribution")
+  difficultyDistribution Json     @map("difficulty_distribution")
+  adaptiveEfficiency     Float?   @map("adaptive_efficiency") @db.Real
+  averageCompletionTime  Int      @map("average_completion_time")
+  timeDistribution       Json     @map("time_distribution")
+  mostDifficultQuestions Int[]    @map("most_difficult_questions")
+  mostEasyQuestions      Int[]    @map("most_easy_questions")
+  discriminationQuality  Float?   @map("discrimination_quality") @db.Real
+  highPerformers         Int[]    @map("high_performers")
+  strugglingStudents     Int[]    @map("struggling_students")
+  analyzedAt             DateTime @default(now()) @map("analyzed_at")
+
+  assessment             Assessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+
+  @@map("assessment_analytics")
+}
+
+model ClassStatistics {
+  id                 Int      @id @default(autoincrement())
+  classId            Int      @map("class_id")
+  periodType         String   @map("period_type") @db.VarChar(20)
+  periodStart        DateTime @map("period_start") @db.Date
+  periodEnd          DateTime @map("period_end") @db.Date
+  totalStudents      Int      @map("total_students")
+  activeStudents     Int      @map("active_students")
+  totalAssessments   Int      @map("total_assessments")
+  completionRate     Float    @map("completion_rate") @db.Real
+  averageScore       Float    @map("average_score") @db.Real
+  medianScore        Float    @map("median_score") @db.Real
+  topScore           Float    @map("top_score") @db.Real
+  domainAverages     Json     @map("domain_averages")
+  averageGrowthRate  Float    @map("average_growth_rate") @db.Real
+  improvementTrend   String   @map("improvement_trend") @db.VarChar(20)
+  calculatedAt       DateTime @default(now()) @map("calculated_at")
+
+  class              Class    @relation(fields: [classId], references: [id], onDelete: Cascade)
+
+  @@unique([classId, periodType, periodStart])
+  @@map("class_statistics")
+}
+
+model SystemSettings {
+  id          Int      @id @default(autoincrement())
+  key         String   @unique @db.VarChar(100)
+  value       Json
+  description String?  @db.Text
+  category    String?  @db.VarChar(50)
+  updatedBy   Int?     @map("updated_by")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("system_settings")
+}
+
+model RefreshToken {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  token     String   @unique @db.VarChar(500)
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  revokedAt DateTime? @map("revoked_at")
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+  @@map("refresh_tokens")
+}
+
+model AuditLog {
+  id         BigInt   @id @default(autoincrement())
+  userId     Int?     @map("user_id")
+  action     String   @db.VarChar(50)
+  entityType String   @map("entity_type") @db.VarChar(50)
+  entityId   Int?     @map("entity_id")
+  oldValues  Json?    @map("old_values")
+  newValues  Json?    @map("new_values")
+  ipAddress  String?  @map("ip_address") @db.Inet
+  userAgent  String?  @map("user_agent") @db.Text
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  user       User?    @relation(fields: [userId], references: [id])
+
+  @@index([userId, createdAt])
+  @@index([entityType, entityId])
+  @@map("audit_logs")
+}

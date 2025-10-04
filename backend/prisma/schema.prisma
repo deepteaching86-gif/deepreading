@@ -1,0 +1,265 @@
+// Prisma Schema for Literacy Assessment System (Based on PRD)
+// Database: PostgreSQL (Supabase)
+// Version: 2.0 - Aligned with PRD Requirements
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ===== User Management =====
+
+enum UserRole {
+  student
+  teacher
+  parent
+  admin
+}
+
+model User {
+  id           String    @id @default(uuid()) @db.Uuid
+  email        String    @unique @db.VarChar(255)
+  passwordHash String    @map("password_hash") @db.VarChar(255)
+  role         UserRole
+  name         String    @db.VarChar(100)
+  phone        String?   @db.VarChar(20)
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  student  Student?
+  asParent Student[] @relation("ParentToStudent")
+  asTeacher Student[] @relation("TeacherToStudent")
+
+  @@map("users")
+}
+
+model Student {
+  id          String    @id @default(uuid()) @db.Uuid
+  userId      String    @unique @map("user_id") @db.Uuid
+  studentCode String?   @unique @map("student_code") @db.VarChar(50)
+  grade       Int       @db.Integer // 1-9 (초1~중3)
+  schoolName  String?   @map("school_name") @db.VarChar(200)
+  className   String?   @map("class_name") @db.VarChar(50)
+  birthDate   DateTime? @map("birth_date") @db.Date
+  parentId    String?   @map("parent_id") @db.Uuid
+  teacherId   String?   @map("teacher_id") @db.Uuid
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  // Relations
+  user     User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent   User?         @relation("ParentToStudent", fields: [parentId], references: [id])
+  teacher  User?         @relation("TeacherToStudent", fields: [teacherId], references: [id])
+  sessions TestSession[]
+
+  @@index([userId])
+  @@index([grade])
+  @@index([grade, teacherId])
+  @@map("students")
+}
+
+// ===== Test Templates & Questions =====
+
+enum QuestionCategory {
+  vocabulary          // 어휘력
+  reading             // 독해력
+  grammar             // 문법/어법
+  reasoning           // 추론/사고력
+  reading_motivation  // 읽기 동기
+  writing_motivation  // 글쓰기 동기
+  reading_environment // 독서 환경
+  reading_habit       // 독서 습관
+  reading_preference  // 선호 장르
+}
+
+enum QuestionType {
+  choice        // 선택형
+  short_answer  // 단답형
+  essay         // 서술형
+  likert_scale  // 리커트 척도 (1-5점)
+}
+
+enum Difficulty {
+  easy
+  medium
+  hard
+}
+
+model TestTemplate {
+  id             String    @id @default(uuid()) @db.Uuid
+  templateCode   String    @unique @map("template_code") @db.VarChar(50)
+  grade          Int       @db.Integer // 대상 학년 (1-9)
+  title          String    @db.VarChar(200)
+  version        String    @default("1.0") @db.VarChar(10)
+  totalQuestions Int       @map("total_questions") @db.Integer
+  timeLimit      Int?      @map("time_limit") @db.Integer // 분 단위
+  isActive       Boolean   @default(true) @map("is_active")
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  // Relations
+  questions  Question[]
+  sessions   TestSession[]
+  statistics Statistic[]
+
+  @@map("test_templates")
+}
+
+model Question {
+  id             String           @id @default(uuid()) @db.Uuid
+  templateId     String           @map("template_id") @db.Uuid
+  questionNumber Int              @map("question_number") @db.Integer
+  category       QuestionCategory
+  questionType   QuestionType     @map("question_type")
+  questionText   String           @map("question_text") @db.Text
+  passage        String?          @db.Text // 지문 (독해 문항용)
+  options        Json?            @db.JsonB // 선택지 [{id: 1, text: "..."}, ...]
+  correctAnswer  String           @map("correct_answer") @db.Text
+  points         Int              @default(1) @db.Integer
+  difficulty     Difficulty?
+  explanation    String?          @db.Text
+
+  // Relations
+  template TestTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  answers  Answer[]
+
+  @@unique([templateId, questionNumber])
+  @@index([templateId])
+  @@index([category])
+  @@map("questions")
+}
+
+// ===== Test Sessions & Answers =====
+
+enum SessionStatus {
+  pending     // 대기 중
+  in_progress // 진행 중
+  completed   // 완료 (채점 전)
+  scored      // 채점 완료
+}
+
+model TestSession {
+  id          String        @id @default(uuid()) @db.Uuid
+  sessionCode String        @unique @map("session_code") @db.VarChar(50)
+  studentId   String        @map("student_id") @db.Uuid
+  templateId  String        @map("template_id") @db.Uuid
+  status      SessionStatus @default(pending)
+  startedAt   DateTime?     @map("started_at")
+  completedAt DateTime?     @map("completed_at")
+  scoredAt    DateTime?     @map("scored_at")
+  createdAt   DateTime      @default(now()) @map("created_at")
+
+  // Relations
+  student  Student      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  template TestTemplate @relation(fields: [templateId], references: [id])
+  answers  Answer[]
+  result   TestResult?
+
+  @@index([studentId])
+  @@index([sessionCode])
+  @@index([status])
+  @@index([studentId, status])
+  @@map("test_sessions")
+}
+
+model Answer {
+  id            String   @id @default(uuid()) @db.Uuid
+  sessionId     String   @map("session_id") @db.Uuid
+  questionId    String   @map("question_id") @db.Uuid
+  studentAnswer String?  @map("student_answer") @db.Text
+  isCorrect     Boolean? @map("is_correct")
+  pointsEarned  Int      @default(0) @map("points_earned") @db.Integer
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  // Relations
+  session  TestSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  question Question    @relation(fields: [questionId], references: [id])
+
+  @@index([sessionId])
+  @@map("answers")
+}
+
+// ===== Test Results =====
+
+model TestResult {
+  id                     String   @id @default(uuid()) @db.Uuid
+  sessionId              String   @unique @map("session_id") @db.Uuid
+  totalScore             Int      @map("total_score") @db.Integer
+  totalPossible          Int      @map("total_possible") @db.Integer
+  percentage             Decimal  @db.Decimal(5, 2)
+  gradeLevel             Int?     @map("grade_level") @db.Integer // 1-9 등급
+  percentile             Decimal? @db.Decimal(5, 2)
+  vocabularyScore        Int?     @map("vocabulary_score") @db.Integer
+  readingScore           Int?     @map("reading_score") @db.Integer
+  grammarScore           Int?     @map("grammar_score") @db.Integer
+  reasoningScore         Int?     @map("reasoning_score") @db.Integer
+  // 설문 점수 추가
+  readingMotivationScore Decimal? @map("reading_motivation_score") @db.Decimal(3, 2) // 1.00-5.00
+  writingMotivationScore Decimal? @map("writing_motivation_score") @db.Decimal(3, 2)
+  readingEnvironmentScore Decimal? @map("reading_environment_score") @db.Decimal(3, 2)
+  readingHabitScore      Decimal? @map("reading_habit_score") @db.Decimal(3, 2)
+  readingPreferenceData  Json?    @map("reading_preference_data") @db.JsonB // 선호 장르 분석
+  strengths              Json?    @db.JsonB // 강점 분석
+  weaknesses             Json?    @db.JsonB // 약점 분석
+  recommendations        Json?    @db.JsonB // 학습 제안
+  createdAt              DateTime @default(now()) @map("created_at")
+
+  // Relations
+  session TestSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@map("test_results")
+}
+
+// ===== Statistics Cache =====
+
+model Statistic {
+  id            String       @id @default(uuid()) @db.Uuid
+  grade         Int          @db.Integer
+  templateId    String?      @map("template_id") @db.Uuid
+  avgScore      Decimal?     @map("avg_score") @db.Decimal(5, 2)
+  stdDeviation  Decimal?     @map("std_deviation") @db.Decimal(5, 2)
+  sampleSize    Int?         @map("sample_size") @db.Integer
+  updatedAt     DateTime     @updatedAt @map("updated_at")
+
+  // Relations
+  template TestTemplate? @relation(fields: [templateId], references: [id])
+
+  @@index([grade, templateId])
+  @@map("statistics")
+}
+
+// ===== Additional System Tables =====
+
+// Refresh Tokens for JWT
+model RefreshToken {
+  id        String   @id @default(uuid()) @db.Uuid
+  token     String   @unique @db.VarChar(500)
+  userId    String   @map("user_id") @db.Uuid
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@index([token])
+  @@map("refresh_tokens")
+}
+
+// Audit Log for security
+model AuditLog {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String?  @map("user_id") @db.Uuid
+  action    String   @db.VarChar(100)
+  entity    String   @db.VarChar(100)
+  entityId  String?  @map("entity_id") @db.Uuid
+  changes   Json?    @db.JsonB
+  ipAddress String?  @map("ip_address") @db.VarChar(45)
+  userAgent String?  @map("user_agent") @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}

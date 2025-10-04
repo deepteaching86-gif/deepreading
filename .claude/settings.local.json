@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(where npx)",
+      "Bash(npm install:*)",
+      "Bash(npm run prisma:generate:*)",
+      "Bash(npx prisma db push:*)",
+      "Bash(curl:*)",
+      "Bash(clip)",
+      "Bash(echo:*)",
+      "Bash(cat:*)",
+      "Bash(node:*)",
+      "Bash(timeout 10 npm run dev)",
+      "Bash(exit 0)",
+      "Bash(npm run dev:*)",
+      "Bash(env)",
+      "Bash(npx prisma migrate dev:*)",
+      "Bash(git remote set-url:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

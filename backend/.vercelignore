@@ -1,0 +1,13 @@
+node_modules
+.env
+.env.*
+logs
+*.log
+coverage
+.vscode
+.idea
+*.test.ts
+*.spec.ts
+tests/
+src/
+prisma/migrations/
