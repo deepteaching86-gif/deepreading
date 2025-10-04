@@ -9,5 +9,4 @@ coverage
 *.test.ts
 *.spec.ts
 tests/
-src/
 prisma/migrations/
