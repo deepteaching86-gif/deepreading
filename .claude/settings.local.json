@@ -23,7 +23,9 @@
       "Bash(npm run prisma:migrate:*)",
       "Bash(npm run seed:*)",
       "Bash(npm run prisma:seed:*)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(vercel:*)",
+      "Bash(timeout 30 bash -c 'while true; do sleep 5; done')"
     ],
     "deny": [],
     "ask": []

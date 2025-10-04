@@ -1,29 +1,15 @@
 {
   "version": 2,
-  "name": "literacy-assessment-api",
-  "buildCommand": "npm run build",
   "builds": [
     {
-      "src": "package.json",
+      "src": "api/index.ts",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
-      "src": "/health",
-      "dest": "dist/server.js"
-    },
-    {
-      "src": "/api/v1/(.*)",
-      "dest": "dist/server.js"
-    },
-    {
       "src": "/(.*)",
-      "dest": "dist/server.js"
+      "dest": "/api/index.ts"
     }
-  ],
-  "env": {
-    "NODE_ENV": "production"
-  },
-  "regions": ["icn1"]
+  ]
 }
