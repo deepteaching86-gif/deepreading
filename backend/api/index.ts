@@ -2,23 +2,20 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  try {
-    // Import the compiled Express app from dist/src/app
-    const { app } = require('../dist/src/app');
-
-    // Handle the request with Express app
-    return new Promise((resolve, reject) => {
-      app(req as any, res as any);
-      res.on('finish', resolve);
-      res.on('error', reject);
-    });
-  } catch (error) {
-    console.error('Error in serverless function:', error);
-    return res.status(500).json({
-      error: 'Internal Server Error',
-      message: error instanceof Error ? error.message : 'Unknown error',
-      stack: error instanceof Error ? error.stack : undefined,
-      cwd: process.cwd(),
+  // Simple health check endpoint
+  if (req.url === '/health') {
+    return res.status(200).json({
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV || 'production',
+      version: 'v1',
     });
   }
+
+  // Return 404 for other routes for now
+  return res.status(404).json({
+    error: 'Not Found',
+    message: `Cannot ${req.method} ${req.url}`,
+    path: req.url,
+  });
 }
