@@ -5,7 +5,8 @@ import path from 'path';
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     // Use absolute path for module resolution
-    const appPath = path.join(process.cwd(), 'dist', 'app');
+    // In Vercel, files are in /var/task/backend/
+    const appPath = path.join(process.cwd(), 'backend', 'dist', 'app');
     console.log('Attempting to load app from:', appPath);
 
     const { app } = await import(appPath);
