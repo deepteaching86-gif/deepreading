@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
-import prisma from '../../config/database';
-import { Prisma } from '@prisma/client';
+import { prisma } from '../../config/database';
+import { Prisma, QuestionCategory, Difficulty } from '@prisma/client';
 
 // 모든 문항 조회
 export const getAllQuestions = async (req: Request, res: Response) => {
@@ -13,11 +13,11 @@ export const getAllQuestions = async (req: Request, res: Response) => {
     const where: Prisma.QuestionWhereInput = {};
 
     if (category) {
-      where.category = category as string;
+      where.category = category as QuestionCategory;
     }
 
     if (difficulty) {
-      where.difficulty = difficulty as string;
+      where.difficulty = difficulty as Difficulty;
     }
 
     if (templateCode) {
@@ -48,7 +48,7 @@ export const getAllQuestions = async (req: Request, res: Response) => {
       prisma.question.count({ where }),
     ]);
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         questions,
@@ -62,7 +62,7 @@ export const getAllQuestions = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error('문항 조회 실패:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: '문항 조회에 실패했습니다.',
     });
@@ -103,7 +103,7 @@ export const getQuestionsByTemplate = async (req: Request, res: Response) => {
       });
     }
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         template: questions[0].template,
@@ -112,7 +112,7 @@ export const getQuestionsByTemplate = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error('템플릿 문항 조회 실패:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: '문항 조회에 실패했습니다.',
     });
@@ -144,13 +144,13 @@ export const getQuestionById = async (req: Request, res: Response) => {
       });
     }
 
-    res.json({
+    return res.json({
       success: true,
       data: question,
     });
   } catch (error) {
     console.error('문항 조회 실패:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: '문항 조회에 실패했습니다.',
     });
@@ -226,14 +226,14 @@ export const createQuestion = async (req: Request, res: Response) => {
       },
     });
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       message: '문항이 생성되었습니다.',
       data: question,
     });
   } catch (error) {
     console.error('문항 생성 실패:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: '문항 생성에 실패했습니다.',
     });
@@ -312,14 +312,14 @@ export const updateQuestion = async (req: Request, res: Response) => {
       },
     });
 
-    res.json({
+    return res.json({
       success: true,
       message: '문항이 수정되었습니다.',
       data: question,
     });
   } catch (error) {
     console.error('문항 수정 실패:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: '문항 수정에 실패했습니다.',
     });
@@ -359,13 +359,13 @@ export const deleteQuestion = async (req: Request, res: Response) => {
       where: { id },
     });
 
-    res.json({
+    return res.json({
       success: true,
       message: '문항이 삭제되었습니다.',
     });
   } catch (error) {
     console.error('문항 삭제 실패:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: '문항 삭제에 실패했습니다.',
     });

@@ -26,7 +26,7 @@ try {
     console.log('✅ Redis connected successfully');
   });
 
-  redisClient.on('error', (error) => {
+  redisClient.on('error', (_error) => {
     console.log('⚠️  Redis not available (cache disabled)');
   });
 

@@ -18,5 +18,5 @@ export const requireAdmin = (req: Request, res: Response, next: NextFunction) =>
     });
   }
 
-  next();
+  return next();
 };

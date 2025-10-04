@@ -55,7 +55,7 @@ async function main() {
               templateId: template.id,
               questionNumber: question.questionNumber,
             },
-          },
+          } as any,
           update: {},
           create: {
             templateId: template.id,
@@ -63,12 +63,12 @@ async function main() {
             category: question.category,
             questionType: question.questionType,
             questionText: question.questionText,
-            passage: question.passage,
-            options: question.options ? JSON.stringify(question.options) : null,
+            passage: question.passage ?? undefined,
+            options: question.options ? JSON.parse(JSON.stringify(question.options)) : undefined,
             correctAnswer: question.correctAnswer,
             points: question.points,
-            difficulty: question.difficulty,
-            explanation: question.explanation,
+            difficulty: question.difficulty ?? undefined,
+            explanation: question.explanation ?? undefined,
           },
         });
         createdCount++;

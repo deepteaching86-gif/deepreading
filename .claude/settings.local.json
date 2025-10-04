@@ -19,7 +19,11 @@
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(git config:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(npm run prisma:migrate:*)",
+      "Bash(npm run seed:*)",
+      "Bash(npm run prisma:seed:*)",
+      "Bash(npm run build:*)"
     ],
     "deny": [],
     "ask": []

@@ -1,4 +1,4 @@
-import prisma from '../config/database';
+import { prisma } from '../config/database';
 import { Prisma } from '@prisma/client';
 
 interface ScoringResult {
@@ -115,7 +115,7 @@ export class ScoringService {
     );
 
     // 9. 결과 저장
-    const result = await prisma.testResult.create({
+    await prisma.testResult.create({
       data: {
         sessionId,
         totalScore,
@@ -299,11 +299,32 @@ export class ScoringService {
   }
 
   /**
+   * Error function (erf) approximation
+   */
+  private erf(x: number): number {
+    // Abramowitz and Stegun approximation
+    const sign = x >= 0 ? 1 : -1;
+    x = Math.abs(x);
+
+    const a1 = 0.254829592;
+    const a2 = -0.284496736;
+    const a3 = 1.421413741;
+    const a4 = -1.453152027;
+    const a5 = 1.061405429;
+    const p = 0.3275911;
+
+    const t = 1.0 / (1.0 + p * x);
+    const y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.exp(-x * x);
+
+    return sign * y;
+  }
+
+  /**
    * Z-score를 백분위로 변환
    */
   private zScoreToPercentile(zScore: number): number {
     // 간단한 근사 공식 사용
-    const percentile = 50 + 50 * Math.erf(zScore / Math.sqrt(2));
+    const percentile = 50 + 50 * this.erf(zScore / Math.sqrt(2));
     return Math.max(0, Math.min(100, percentile));
   }
 
@@ -409,7 +430,7 @@ export class ScoringService {
   private generateRecommendations(
     weaknesses: any[],
     surveyScores: any,
-    grade: number
+    _grade: number
   ): any[] {
     const recommendations: any[] = [];
 

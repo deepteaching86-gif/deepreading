@@ -6,7 +6,7 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import { env } from './config/env';
 import { errorHandler } from './common/middleware/error-handler';
-import { logger, httpLogStream } from './config/logger';
+import { httpLogStream } from './config/logger';
 
 // Create Express app
 const app: Application = express();
@@ -46,7 +46,7 @@ if (env.NODE_ENV !== 'test') {
 // ===== Routes =====
 
 // Health check
-app.get('/health', (req, res) => {
+app.get('/health', (_req, res) => {
   res.status(200).json({
     status: 'ok',
     timestamp: new Date().toISOString(),
