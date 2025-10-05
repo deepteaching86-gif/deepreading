@@ -29,30 +29,40 @@ const logger = winston.createLogger({
     timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
     logFormat
   ),
-  transports: [
-    // Console transport
-    new winston.transports.Console({
-      format: combine(
-        colorize(),
-        logFormat
-      ),
-    }),
+  transports: process.env.VERCEL
+    ? [
+        // Vercel serverless: Console transport only (read-only filesystem)
+        new winston.transports.Console({
+          format: combine(
+            colorize(),
+            logFormat
+          ),
+        }),
+      ]
+    : [
+        // Local development: Console + File transports
+        new winston.transports.Console({
+          format: combine(
+            colorize(),
+            logFormat
+          ),
+        }),
 
-    // Error log file
-    new winston.transports.File({
-      filename: path.join(env.LOG_FILE_PATH, 'error.log'),
-      level: 'error',
-      maxsize: 5242880, // 5MB
-      maxFiles: 5,
-    }),
+        // Error log file
+        new winston.transports.File({
+          filename: path.join(env.LOG_FILE_PATH, 'error.log'),
+          level: 'error',
+          maxsize: 5242880, // 5MB
+          maxFiles: 5,
+        }),
 
-    // Combined log file
-    new winston.transports.File({
-      filename: path.join(env.LOG_FILE_PATH, 'combined.log'),
-      maxsize: 5242880, // 5MB
-      maxFiles: 5,
-    }),
-  ],
+        // Combined log file
+        new winston.transports.File({
+          filename: path.join(env.LOG_FILE_PATH, 'combined.log'),
+          maxsize: 5242880, // 5MB
+          maxFiles: 5,
+        }),
+      ],
   exitOnError: false,
 });
 
