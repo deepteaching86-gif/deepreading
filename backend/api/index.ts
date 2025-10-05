@@ -1,6 +1,9 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
-import { app } from '../src/app';
 
-export default (req: VercelRequest, res: VercelResponse) => {
-  return app(req as any, res as any);
-};
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  res.status(200).json({
+    status: 'ok',
+    message: 'Vercel serverless function is working',
+    timestamp: new Date().toISOString(),
+  });
+}
