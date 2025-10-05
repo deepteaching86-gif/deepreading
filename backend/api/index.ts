@@ -2,7 +2,8 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import { app } from '../src/app';
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+export default function handler(req: VercelRequest, res: VercelResponse) {
   // Use the Express app to handle all requests
-  return app(req, res);
+  // Express app is a request handler function
+  app(req as any, res as any);
 }
