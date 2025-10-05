@@ -31,7 +31,12 @@
       "Bash(if [ -f netlify.toml ])",
       "Bash(then cat netlify.toml)",
       "Bash(else echo \"No netlify.toml in root\")",
-      "Bash(fi)"
+      "Bash(fi)",
+      "Bash(npx vercel:*)",
+      "Bash(npm run:*)",
+      "Bash(timeout 15 bash -c 'while true; do sleep 5; done')",
+      "Read(//c/Users/owner/.config/**)",
+      "Bash(tee:*)"
     ],
     "deny": [],
     "ask": []
