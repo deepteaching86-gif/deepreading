@@ -57,7 +57,9 @@ app.get('/health', (_req, res) => {
 
 // API routes
 import adminQuestionsRoutes from './routes/admin/questions.routes';
+import authRoutes from './routes/auth/auth.routes';
 
+app.use(`/api/${env.API_VERSION}/auth`, authRoutes);
 app.use(`/api/${env.API_VERSION}/admin/questions`, adminQuestionsRoutes);
 
 // 404 handler

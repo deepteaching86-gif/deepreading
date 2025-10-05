@@ -26,7 +26,12 @@
       "Bash(npm run build:*)",
       "Bash(vercel:*)",
       "Bash(timeout 30 bash -c 'while true; do sleep 5; done')",
-      "Bash(npx vercel logs:*)"
+      "Bash(npx vercel logs:*)",
+      "Bash(npx ts-node:*)",
+      "Bash(if [ -f netlify.toml ])",
+      "Bash(then cat netlify.toml)",
+      "Bash(else echo \"No netlify.toml in root\")",
+      "Bash(fi)"
     ],
     "deny": [],
     "ask": []
