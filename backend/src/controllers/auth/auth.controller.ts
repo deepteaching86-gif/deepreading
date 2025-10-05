@@ -58,8 +58,8 @@ export const register = async (req: Request, res: Response) => {
         email: user.email,
         role: user.role,
       },
-      env.JWT_SECRET,
-      { expiresIn: env.JWT_ACCESS_EXPIRY }
+      env.JWT_SECRET as string,
+      { expiresIn: env.JWT_ACCESS_EXPIRY } as jwt.SignOptions
     );
 
     return res.status(201).json({
@@ -120,8 +120,8 @@ export const login = async (req: Request, res: Response) => {
         email: user.email,
         role: user.role,
       },
-      env.JWT_SECRET,
-      { expiresIn: env.JWT_ACCESS_EXPIRY }
+      env.JWT_SECRET as string,
+      { expiresIn: env.JWT_ACCESS_EXPIRY } as jwt.SignOptions
     );
 
     return res.status(200).json({
