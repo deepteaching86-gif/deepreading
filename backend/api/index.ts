@@ -10,6 +10,13 @@ async function getApp() {
   return app;
 }
 
+// Disable body parsing by Vercel - let Express handle it
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     const expressApp = await getApp();
