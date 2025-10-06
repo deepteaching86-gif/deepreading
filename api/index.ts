@@ -20,13 +20,17 @@ export const config = {
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
+    console.log('Handler called for:', req.method, req.url);
     const expressApp = await getApp();
+    console.log('Express app loaded successfully, type:', typeof expressApp);
     expressApp(req, res);
   } catch (error) {
-    console.error('Error loading Express app:', error);
+    console.error('Error in handler:', error);
+    console.error('Stack trace:', error instanceof Error ? error.stack : 'No stack trace');
     res.status(500).json({
       error: 'Internal Server Error',
       message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
     });
   }
 }
