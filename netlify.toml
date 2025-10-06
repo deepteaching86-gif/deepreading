@@ -13,11 +13,18 @@
   node_bundler = "esbuild"
 
 # Redirects and rewrites
-# API requests to Netlify Functions
+# API requests to Netlify Functions - must be before SPA fallback
+[[redirects]]
+  from = "/api/v1/*"
+  to = "/.netlify/functions/api/v1/:splat"
+  status = 200
+  force = true
+
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/api/:splat"
   status = 200
+  force = true
 
 # Frontend SPA fallback (must be last)
 [[redirects]]
