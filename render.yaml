@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: literacy-backend
+    runtime: node
+    plan: free
+    region: singapore
+    buildCommand: cd backend && npm install && npx prisma generate && npm run build
+    startCommand: cd backend && node dist/server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: CORS_ORIGIN
+        value: https://playful-cocada-a89755.netlify.app
+      - key: API_VERSION
+        value: v1
+      - key: PORT
+        value: 3000
