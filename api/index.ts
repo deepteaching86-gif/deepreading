@@ -1,6 +1,6 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
 
-// This handler must be at /api/index.ts and will handle all /api/* routes
+// Main serverless handler that forwards all requests to Express app
 let app: any;
 
 async function getApp() {
@@ -18,14 +18,16 @@ export const config = {
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
-    console.log('API handler called');
-    console.log('Method:', req.method);
-    console.log('URL:', req.url);
-    console.log('Original URL:', req.headers['x-vercel-proxied-for'] || req.url);
-
     const expressApp = await getApp();
-    
-    console.log('Forwarding to Express');
+
+    // Vercel strips /api prefix, so restore it for Express routes
+    const originalUrl = req.url;
+    if (!originalUrl?.startsWith('/api/')) {
+      req.url = '/api' + (originalUrl || '');
+    }
+
+    console.log('API handler - Method:', req.method, 'URL:', req.url);
+
     expressApp(req, res);
   } catch (error) {
     console.error('Error in handler:', error);
