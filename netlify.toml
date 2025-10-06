@@ -11,7 +11,7 @@
 # Redirects and rewrites
 [[redirects]]
   from = "/api/*"
-  to = "https://literacy-assessment-backend.vercel.app/api/:splat"
+  to = "https://deepreading.vercel.app/api/:splat"
   status = 200
   force = true
 
@@ -44,8 +44,8 @@
 
 # Production context
 [context.production.environment]
-  VITE_API_URL = "https://literacy-assessment-backend.vercel.app"
+  VITE_API_URL = "https://deepreading.vercel.app"
 
 # Preview context
 [context.branch-deploy.environment]
-  VITE_API_URL = "https://literacy-assessment-api-preview.vercel.app"
+  VITE_API_URL = "https://deepreading.vercel.app"
