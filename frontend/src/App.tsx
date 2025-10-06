@@ -1,6 +1,9 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useAuthStore } from './stores/authStore';
+
+// Auth Components
+import ProtectedRoute from './components/auth/ProtectedRoute';
+import RoleBasedRedirect from './components/auth/RoleBasedRedirect';
 
 // Pages
 import Login from './pages/auth/Login';
@@ -10,6 +13,7 @@ import TestStart from './pages/test/TestStart';
 import TestInProgress from './pages/test/TestInProgress';
 import TestResult from './pages/test/TestResult';
 import AdminQuestionManagement from './pages/admin/QuestionManagement';
+import Unauthorized from './pages/Unauthorized';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -20,30 +24,6 @@ const queryClient = new QueryClient({
   },
 });
 
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated } = useAuthStore();
-
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
-
-  return <>{children}</>;
-}
-
-function AdminRoute({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, user } = useAuthStore();
-
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
-
-  if (user?.role !== 'admin') {
-    return <Navigate to="/dashboard" replace />;
-  }
-
-  return <>{children}</>;
-}
-
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -52,12 +32,13 @@ function App() {
           {/* Public Routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/unauthorized" element={<Unauthorized />} />
 
-          {/* Protected Routes */}
+          {/* Student Routes */}
           <Route
             path="/dashboard"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['student']}>
                 <Dashboard />
               </ProtectedRoute>
             }
@@ -65,7 +46,7 @@ function App() {
           <Route
             path="/test/start/:templateCode"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['student']}>
                 <TestStart />
               </ProtectedRoute>
             }
@@ -73,7 +54,7 @@ function App() {
           <Route
             path="/test/session/:sessionId"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['student']}>
                 <TestInProgress />
               </ProtectedRoute>
             }
@@ -81,25 +62,68 @@ function App() {
           <Route
             path="/test/result/:sessionId"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['student']}>
                 <TestResult />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Parent Routes - TODO: Implement parent dashboard */}
+          <Route
+            path="/parent/dashboard"
+            element={
+              <ProtectedRoute allowedRoles={['parent']}>
+                <div className="min-h-screen bg-background flex items-center justify-center">
+                  <div className="text-center">
+                    <h1 className="text-2xl font-bold mb-4">학부모 대시보드</h1>
+                    <p className="text-muted-foreground">준비 중입니다...</p>
+                  </div>
+                </div>
               </ProtectedRoute>
             }
           />
 
           {/* Admin Routes */}
           <Route
+            path="/admin/dashboard"
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <div className="min-h-screen bg-background flex items-center justify-center">
+                  <div className="text-center">
+                    <h1 className="text-2xl font-bold mb-4">관리자 대시보드</h1>
+                    <p className="text-muted-foreground">준비 중입니다...</p>
+                  </div>
+                </div>
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/admin/questions"
             element={
-              <AdminRoute>
+              <ProtectedRoute allowedRoles={['admin']}>
                 <AdminQuestionManagement />
-              </AdminRoute>
+              </ProtectedRoute>
             }
           />
 
-          {/* Default Route */}
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          {/* Teacher Routes - TODO: Implement teacher dashboard */}
+          <Route
+            path="/teacher/dashboard"
+            element={
+              <ProtectedRoute allowedRoles={['teacher']}>
+                <div className="min-h-screen bg-background flex items-center justify-center">
+                  <div className="text-center">
+                    <h1 className="text-2xl font-bold mb-4">선생님 대시보드</h1>
+                    <p className="text-muted-foreground">준비 중입니다...</p>
+                  </div>
+                </div>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Default Routes */}
+          <Route path="/" element={<RoleBasedRedirect />} />
+          <Route path="*" element={<RoleBasedRedirect />} />
         </Routes>
       </BrowserRouter>
     </QueryClientProvider>
