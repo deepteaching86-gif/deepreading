@@ -1,5 +1,6 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
 
+// Vercel serverless function handler for Express app
 let app: any;
 
 async function getApp() {
