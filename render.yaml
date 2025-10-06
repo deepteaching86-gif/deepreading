@@ -11,13 +11,15 @@ services:
       - key: NODE_ENV
         value: production
       - key: DATABASE_URL
-        sync: false
+        value: postgresql://postgres.sxnjeqqvqbhueqbwsnpj:DeepReading2025%21%40%23%24SecureDB@aws-1-ap-northeast-2.pooler.supabase.com:6543/postgres?pgbouncer=true
       - key: SUPABASE_URL
-        sync: false
+        value: https://sxnjeqqvqbhueqbwsnpj.supabase.co
       - key: SUPABASE_ANON_KEY
-        sync: false
+        value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN4bmplcXF2cWJodWVxYndzbnBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk0ODUxMjAsImV4cCI6MjA3NTA2MTEyMH0.6xGE1QVp4GNV2iGRRwrXEU4ZblJqcn_gNusVhK8RmXI
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN4bmplcXF2cWJodWVxYndzbnBqIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1OTQ4NTEyMCwiZXhwIjoyMDc1MDYxMTIwfQ.SBNG3wXzfT5ahxBJBD84x_FAUHghy4iYj4c5apyrjRI
       - key: JWT_SECRET
-        sync: false
+        value: literacy-assessment-production-jwt-key-2025-super-secure
       - key: JWT_ACCESS_EXPIRY
         value: 15m
       - key: JWT_REFRESH_EXPIRY
@@ -38,3 +40,5 @@ services:
         value: Literacy Assessment System
       - key: FRONTEND_URL
         value: https://playful-cocada-a89755.netlify.app
+      - key: APP_URL
+        value: https://literacy-backend.onrender.com
