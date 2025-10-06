@@ -66,6 +66,7 @@ import adminSeedRoutes from './routes/admin/seed.routes';
 import authRoutes from './routes/auth/auth.routes';
 import templatesRoutes from './routes/templates/templates.routes';
 import sessionsRoutes from './routes/sessions/sessions.routes';
+import studentsRoutes from './routes/students/students.routes';
 
 // For Netlify: full paths including /api prefix
 app.use(`/api/${env.API_VERSION}/auth`, authRoutes);
@@ -73,6 +74,7 @@ app.use(`/api/${env.API_VERSION}/admin/questions`, adminQuestionsRoutes);
 app.use(`/api/${env.API_VERSION}/admin/seed`, adminSeedRoutes);
 app.use(`/api/${env.API_VERSION}/templates`, templatesRoutes);
 app.use(`/api/${env.API_VERSION}/sessions`, sessionsRoutes);
+app.use(`/api/${env.API_VERSION}/students`, studentsRoutes);
 
 // 404 handler
 app.use((req, res) => {
