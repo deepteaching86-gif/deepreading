@@ -271,3 +271,79 @@ export const updateSessionStatus = async (req: AuthRequest, res: Response, next:
     next(new ApiError('Failed to update session', 500));
   }
 };
+
+/**
+ * Start a new test session (using templateId)
+ */
+export const startSession = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const { templateId } = req.body;
+    const userId = req.user?.userId;
+
+    if (!userId) {
+      return next(new ApiError('User not authenticated', 401));
+    }
+
+    if (!templateId) {
+      return next(new ApiError('Template ID is required', 400));
+    }
+
+    // Find student record
+    const student = await prisma.student.findUnique({
+      where: { userId },
+    });
+
+    if (!student) {
+      return next(new ApiError('Student profile not found', 404));
+    }
+
+    // Find template
+    const template = await prisma.testTemplate.findUnique({
+      where: { id: templateId },
+    });
+
+    if (!template) {
+      return next(new ApiError('Template not found', 404));
+    }
+
+    if (!template.isActive) {
+      return next(new ApiError('Template is not active', 400));
+    }
+
+    // Create session
+    const session = await prisma.testSession.create({
+      data: {
+        sessionCode: 'SESSION-' + nanoid(10),
+        studentId: student.id,
+        templateId: template.id,
+        status: 'pending',
+      },
+      include: {
+        template: {
+          select: {
+            title: true,
+            grade: true,
+            templateCode: true,
+            totalQuestions: true,
+            timeLimit: true,
+          },
+        },
+      },
+    });
+
+    res.status(201).json({
+      success: true,
+      data: {
+        sessionId: session.id,
+        session,
+      },
+      message: 'Session started successfully',
+    });
+  } catch (error) {
+    if (error instanceof ApiError) {
+      return next(error);
+    }
+    console.error('Error starting session:', error);
+    next(new ApiError('Failed to start session', 500));
+  }
+};

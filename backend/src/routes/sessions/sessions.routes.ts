@@ -11,7 +11,10 @@ router.get('/my', authenticateToken, sessionsController.getMySessions);
 // Get session by ID
 router.get('/:id', authenticateToken, sessionsController.getSessionById);
 
-// Create new session
+// Start new session (using templateId)
+router.post('/start', authenticateToken, sessionsController.startSession);
+
+// Create new session (using templateCode)
 router.post('/', authenticateToken, sessionsController.createSession);
 
 // Update session status
