@@ -5,7 +5,8 @@ let app: any;
 
 async function getApp() {
   if (!app) {
-    const appModule = await import('../backend/dist/app');
+    // Use require instead of dynamic import for better compatibility in Vercel
+    const appModule = require('../backend/dist/app');
     app = appModule.app;
   }
   return app;
