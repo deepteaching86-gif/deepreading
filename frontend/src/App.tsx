@@ -15,6 +15,8 @@ import TestResult from './pages/test/TestResult';
 import AdminQuestionManagement from './pages/admin/QuestionManagement';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminGradingManagement from './pages/admin/GradingManagement';
+import AdminBulkUpload from './pages/admin/BulkUpload';
+import AdminStudentReports from './pages/admin/StudentReports';
 import ParentDashboard from './pages/parent/ParentDashboard';
 import TeacherDashboard from './pages/teacher/TeacherDashboard';
 import DetailedReport from './pages/DetailedReport';
@@ -105,6 +107,22 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['admin']}>
                 <AdminGradingManagement />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/bulk-upload"
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AdminBulkUpload />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/reports"
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AdminStudentReports />
               </ProtectedRoute>
             }
           />

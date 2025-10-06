@@ -347,7 +347,7 @@ export default function AdminDashboard() {
         {/* Quick Actions */}
         <section className="mt-8">
           <h2 className="text-xl font-bold mb-4 text-foreground">빠른 작업</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <Link
               to="/admin/questions"
               className="bg-card rounded-lg shadow-sm p-6 border border-border hover:border-primary transition-colors"
@@ -378,12 +378,42 @@ export default function AdminDashboard() {
               </div>
             </Link>
 
+            <Link
+              to="/admin/bulk-upload"
+              className="bg-card rounded-lg shadow-sm p-6 border border-border hover:border-primary transition-colors"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-chart-2/10 rounded-lg flex items-center justify-center">
+                  <span className="text-2xl">📤</span>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-foreground">대량 업로드</h3>
+                  <p className="text-sm text-muted-foreground">엑셀로 학생 데이터 일괄 등록</p>
+                </div>
+              </div>
+            </Link>
+
+            <Link
+              to="/admin/reports"
+              className="bg-card rounded-lg shadow-sm p-6 border border-border hover:border-primary transition-colors"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-chart-3/10 rounded-lg flex items-center justify-center">
+                  <span className="text-2xl">📊</span>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-foreground">학생 리포트</h3>
+                  <p className="text-sm text-muted-foreground">학생별 상세 리포트 조회</p>
+                </div>
+              </div>
+            </Link>
+
             <button
               onClick={fetchData}
               className="bg-card rounded-lg shadow-sm p-6 border border-border hover:border-primary transition-colors text-left"
             >
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-chart-2/10 rounded-lg flex items-center justify-center">
+                <div className="w-12 h-12 bg-chart-4/10 rounded-lg flex items-center justify-center">
                   <span className="text-2xl">🔄</span>
                 </div>
                 <div>
