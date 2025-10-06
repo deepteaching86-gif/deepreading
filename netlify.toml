@@ -54,10 +54,10 @@
 [context.development.environment]
   VITE_API_URL = "http://localhost:3000"
 
-# Production context
+# Production context - use relative path for Netlify Functions
 [context.production.environment]
-  VITE_API_URL = "https://literacy-backend.onrender.com"
+  VITE_API_URL = ""
 
-# Preview context
+# Preview context - use relative path for Netlify Functions
 [context.branch-deploy.environment]
-  VITE_API_URL = "https://literacy-backend.onrender.com"
+  VITE_API_URL = ""
