@@ -21,8 +21,18 @@ export const config = {
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     console.log('Handler called for:', req.method, req.url);
+    console.log('Original URL:', req.url);
+    console.log('Headers:', JSON.stringify(req.headers, null, 2));
+
     const expressApp = await getApp();
     console.log('Express app loaded successfully, type:', typeof expressApp);
+
+    // Preserve the original URL for Express routing
+    // Vercel rewrites strip the path, so we need to restore it
+    const originalUrl = req.url || '/';
+    req.url = originalUrl;
+
+    console.log('Forwarding to Express with URL:', req.url);
     expressApp(req, res);
   } catch (error) {
     console.error('Error in handler:', error);
