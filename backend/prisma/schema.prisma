@@ -241,6 +241,34 @@ model Statistic {
   @@map("statistics")
 }
 
+// ===== Peer Statistics (또래 평균) =====
+
+model PeerStatistics {
+  id                      String   @id @default(uuid()) @db.Uuid
+  grade                   Int      @db.Integer // 1-9
+  category                QuestionCategory
+
+  // 평균 점수 (실제 데이터 + 시뮬레이션)
+  avgScore                Decimal  @map("avg_score") @db.Decimal(5, 2)
+  avgPercentage           Decimal  @map("avg_percentage") @db.Decimal(5, 2)
+
+  // 통계 정보
+  stdDeviation            Decimal  @map("std_deviation") @db.Decimal(5, 2)
+  sampleSize              Int      @map("sample_size") @db.Integer
+  simulatedSampleSize     Int      @default(0) @map("simulated_sample_size") @db.Integer
+
+  // 백분위 분포 (JSON: {p10: 45, p25: 60, p50: 75, p75: 85, p90: 95})
+  percentileDistribution  Json     @map("percentile_distribution") @db.JsonB
+
+  // 메타데이터
+  lastUpdated             DateTime @updatedAt @map("last_updated")
+  createdAt               DateTime @default(now()) @map("created_at")
+
+  @@unique([grade, category])
+  @@index([grade])
+  @@map("peer_statistics")
+}
+
 // ===== Additional System Tables =====
 
 // Refresh Tokens for JWT

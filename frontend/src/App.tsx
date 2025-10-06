@@ -17,6 +17,7 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminGradingManagement from './pages/admin/GradingManagement';
 import ParentDashboard from './pages/parent/ParentDashboard';
 import TeacherDashboard from './pages/teacher/TeacherDashboard';
+import DetailedReport from './pages/DetailedReport';
 import Unauthorized from './pages/Unauthorized';
 
 const queryClient = new QueryClient({
@@ -104,6 +105,16 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['admin']}>
                 <AdminGradingManagement />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Report Routes */}
+          <Route
+            path="/report/:resultId"
+            element={
+              <ProtectedRoute allowedRoles={['student', 'parent', 'teacher', 'admin']}>
+                <DetailedReport />
               </ProtectedRoute>
             }
           />
