@@ -5,7 +5,7 @@ let app: any;
 
 async function getApp() {
   if (!app) {
-    const appModule = await import('../src/app');
+    const appModule = await import('../backend/dist/app');
     app = appModule.app;
   }
   return app;

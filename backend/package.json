@@ -5,6 +5,7 @@
   "main": "dist/server.js",
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only -r tsconfig-paths/register src/server.ts",
+    "build": "tsc && prisma generate",
     "vercel-build": "prisma generate",
     "start": "node dist/server.js",
     "test": "jest",
