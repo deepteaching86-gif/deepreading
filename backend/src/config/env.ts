@@ -12,7 +12,12 @@ const envSchema = z.object({
   API_VERSION: z.string().default('v1'),
 
   // Database (Prisma uses Supabase PostgreSQL)
-  DATABASE_URL: z.string().url(),
+  // PostgreSQL connection strings use postgresql:// protocol which is not recognized by z.string().url()
+  // Format: postgresql://USER:PASSWORD@HOST:PORT/DATABASE?schema=SCHEMA
+  DATABASE_URL: z.string().min(1).refine(
+    (val) => val.startsWith('postgresql://') || val.startsWith('postgres://'),
+    { message: 'DATABASE_URL must be a valid PostgreSQL connection string starting with postgresql:// or postgres://' }
+  ),
 
   // Supabase
   SUPABASE_URL: z.string().url(),
