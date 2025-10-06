@@ -8,10 +8,10 @@
 [build.environment]
   NODE_VERSION = "20"
 
-# Redirects and rewrites
+# Redirects and rewrites - proxy API to Netlify Function
 [[redirects]]
   from = "/api/*"
-  to = "https://deepreading.vercel.app/api/:splat"
+  to = "/.netlify/functions/api/:splat"
   status = 200
   force = true
 

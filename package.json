@@ -2,6 +2,11 @@
   "name": "literacy-assessment-monorepo",
   "private": true,
   "scripts": {
+    "build": "cd backend && npm install && npm run build",
     "vercel-build": "cd backend && npm install && npm run build"
+  },
+  "dependencies": {
+    "@netlify/functions": "^2.8.2",
+    "serverless-http": "^3.2.0"
   }
 }
