@@ -19,10 +19,12 @@ app.set('trust proxy', 1);
 // Security
 app.use(helmet());
 
-// CORS
+// CORS - Allow Netlify frontend
 app.use(cors({
-  origin: env.CORS_ORIGIN,
+  origin: env.CORS_ORIGIN || 'https://playful-cocada-a89755.netlify.app',
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
 // Body parsing
