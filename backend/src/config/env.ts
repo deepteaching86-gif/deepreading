@@ -61,6 +61,9 @@ const envSchema = z.object({
   SMTP_PASSWORD: z.string().optional(),
   EMAIL_FROM: z.string().email().optional(),
 
+  // OpenAI
+  OPENAI_API_KEY: z.string().optional(),
+
   // Logging
   LOG_LEVEL: z.enum(['error', 'warn', 'info', 'http', 'verbose', 'debug']).default('info'),
   LOG_FILE_PATH: z.string().default('./logs'),

@@ -65,6 +65,8 @@ import adminQuestionsRoutes from './routes/admin/questions.routes';
 import adminSeedRoutes from './routes/admin/seed.routes';
 import adminRoutes from './routes/admin/admin.routes';
 import adminGradingRoutes from './routes/admin/grading.routes';
+import adminBulkUploadRoutes from './routes/admin/bulk-upload.routes';
+import adminReportsRoutes from './routes/admin/reports.routes';
 import authRoutes from './routes/auth/auth.routes';
 import templatesRoutes from './routes/templates/templates.routes';
 import sessionsRoutes from './routes/sessions/sessions.routes';
@@ -74,11 +76,13 @@ import teachersRoutes from './routes/teachers/teachers.routes';
 import reportRoutes from './routes/report.routes';
 import migrationRoutes from './routes/migration.routes';
 
-// For Netlify: full paths including /api prefix
+// For Render backend: full paths including /api prefix
 app.use(`/api/${env.API_VERSION}/auth`, authRoutes);
 app.use(`/api/${env.API_VERSION}/admin/questions`, adminQuestionsRoutes);
 app.use(`/api/${env.API_VERSION}/admin/seed`, adminSeedRoutes);
 app.use(`/api/${env.API_VERSION}/admin/grading`, adminGradingRoutes);
+app.use(`/api/${env.API_VERSION}/admin/bulk-upload`, adminBulkUploadRoutes);
+app.use(`/api/${env.API_VERSION}/admin/reports`, adminReportsRoutes);
 app.use(`/api/${env.API_VERSION}/admin/migrate`, migrationRoutes);
 app.use(`/api/${env.API_VERSION}/reports`, reportRoutes);
 app.use(`/api/${env.API_VERSION}/admin`, adminRoutes);
