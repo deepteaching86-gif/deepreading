@@ -20,18 +20,19 @@ export const config = {
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
-    console.log('Handler called for:', req.method, req.url);
-    console.log('Original URL:', req.url);
-    console.log('Headers:', JSON.stringify(req.headers, null, 2));
+    // Vercel provides the original path in x-vercel-forwarded-for header or via query
+    // But the simplest approach is to use the URL as-is since we're rewriting everything to /api
+    const originalPath = req.headers['x-now-route-matches'] as string || req.url || '/';
+
+    console.log('Handler called');
+    console.log('Method:', req.method);
+    console.log('URL:', req.url);
+    console.log('Original Path:', originalPath);
+    console.log('All Headers:', JSON.stringify(req.headers, null, 2));
 
     const expressApp = await getApp();
-    console.log('Express app loaded successfully, type:', typeof expressApp);
 
-    // Preserve the original URL for Express routing
-    // Vercel rewrites strip the path, so we need to restore it
-    const originalUrl = req.url || '/';
-    req.url = originalUrl;
-
+    // The URL should already be correct from Vercel
     console.log('Forwarding to Express with URL:', req.url);
     expressApp(req, res);
   } catch (error) {
