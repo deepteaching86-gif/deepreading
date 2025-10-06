@@ -48,7 +48,14 @@
       "Bash(npx tsc:*)",
       "Bash(npx prisma:*)",
       "Bash(DATABASE_URL=\"postgresql://postgres.sxnjeqqvqbhueqbwsnpj:DeepReading2025%21%40%23%24SecureDB@db.sxnjeqqvqbhueqbwsnpj.supabase.co:5432/postgres\" npx prisma migrate dev --name add-peer-statistics)",
-      "Bash(timeout 180 bash -c 'while true; do sleep 30; done')"
+      "Bash(timeout 180 bash -c 'while true; do sleep 30; done')",
+      "Read(//c/Users/owner/AppData/Roaming/Claude/**)",
+      "Read(//c/Users/owner/.claude/**)",
+      "Bash(claude mcp list:*)",
+      "Bash(set SUPABASE_ACCESS_TOKEN=sbp_2582f48b9389cfb4b615d3a91c96a4b731015ffd)",
+      "Bash(npx:*)",
+      "Bash(cmd /c \"set SUPABASE_ACCESS_TOKEN=sbp_2582f48b9389cfb4b615d3a91c96a4b731015ffd && npx -y @supabase/mcp-server-supabase@latest --read-only --project-ref=sxnjeqqvqbhueqbwsnpj\")",
+      "Bash(git checkout:*)"
     ],
     "deny": [],
     "ask": []

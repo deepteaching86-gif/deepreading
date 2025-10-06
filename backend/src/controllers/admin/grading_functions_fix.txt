@@ -1,0 +1,90 @@
+async function generateGradingRubric(question: any): Promise<string> {
+  if (!openai) {
+    throw new Error('OpenAI API key not configured');
+  }
+  
+  const prompt = `다음 문제에 대한 채점 루브릭을 생성해주세요:
+
+문제: ${question.questionText}
+모범 답안: ${question.correctAnswer}
+배점: ${question.points}점
+
+채점 기준을 명확하게 작성해주세요. 각 점수 범위별로 어떤 요소가 포함되어야 하는지 설명해주세요.`;
+
+  const completion = await openai.chat.completions.create({
+    model: 'gpt-4o-mini',
+    messages: [
+      {
+        role: 'system',
+        content:
+          '당신은 국어 교육 전문가입니다. 학생 답안을 평가하기 위한 명확하고 공정한 채점 기준을 만드는 전문가입니다.',
+      },
+      {
+        role: 'user',
+        content: prompt,
+      },
+    ],
+    temperature: 0.3,
+  });
+
+  return completion.choices[0].message.content || '';
+}
+
+/**
+ * Grade essay answer using AI
+ */
+async function gradeEssayWithAI(
+  questionText: string,
+  correctAnswer: string,
+  studentAnswer: string,
+  rubric: string,
+  maxPoints: number
+): Promise<{ score: number; feedback: string }> {
+  if (!openai) {
+    throw new Error('OpenAI API key not configured');
+  }
+  
+  const prompt = `다음 학생 답안을 채점해주세요:
+
+문제: ${questionText}
+모범 답안: ${correctAnswer}
+학생 답안: ${studentAnswer}
+배점: ${maxPoints}점
+
+채점 기준:
+${rubric}
+
+학생 답안을 평가하고 다음 형식으로 응답해주세요:
+점수: [0-${maxPoints}]
+피드백: [구체적인 피드백]`;
+
+  const completion = await openai.chat.completions.create({
+    model: 'gpt-4o-mini',
+    messages: [
+      {
+        role: 'system',
+        content:
+          '당신은 공정하고 엄격한 국어 교사입니다. 학생 답안을 객관적으로 평가하고 건설적인 피드백을 제공합니다.',
+      },
+      {
+        role: 'user',
+        content: prompt,
+      },
+    ],
+    temperature: 0.3,
+  });
+
+  const response = completion.choices[0].message.content || '';
+
+  // Parse response
+  const scoreMatch = response.match(/점수[:\s]+(\d+(?:\.\d+)?)/);
+  const feedbackMatch = response.match(/피드백[:\s]+(.+)/s);
+
+  const score = scoreMatch ? parseFloat(scoreMatch[1]) : maxPoints * 0.5;
+  const feedback = feedbackMatch ? feedbackMatch[1].trim() : response;
+
+  return {
+    score: Math.min(score, maxPoints),
+    feedback,
+  };
+}
