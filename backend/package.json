@@ -31,7 +31,7 @@
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
-    "@supabase/supabase-js": "^2.47.10",
+    "@supabase/supabase-js": "^2.58.0",
     "@types/bcrypt": "^5.0.2",
     "@types/bcryptjs": "^2.4.6",
     "@types/cors": "^2.8.17",
@@ -52,6 +52,7 @@
     "morgan": "^1.10.1",
     "nanoid": "^5.1.6",
     "openai": "^6.1.0",
+    "pg": "^8.16.3",
     "typescript": "^5.9.3",
     "winston": "^3.17.0",
     "zod": "^3.24.1"

@@ -72,12 +72,14 @@ import studentsRoutes from './routes/students/students.routes';
 import parentsRoutes from './routes/parents/parents.routes';
 import teachersRoutes from './routes/teachers/teachers.routes';
 import reportRoutes from './routes/report.routes';
+import migrationRoutes from './routes/migration.routes';
 
 // For Netlify: full paths including /api prefix
 app.use(`/api/${env.API_VERSION}/auth`, authRoutes);
 app.use(`/api/${env.API_VERSION}/admin/questions`, adminQuestionsRoutes);
 app.use(`/api/${env.API_VERSION}/admin/seed`, adminSeedRoutes);
 app.use(`/api/${env.API_VERSION}/admin/grading`, adminGradingRoutes);
+app.use(`/api/${env.API_VERSION}/admin/migrate`, migrationRoutes);
 app.use(`/api/${env.API_VERSION}/reports`, reportRoutes);
 app.use(`/api/${env.API_VERSION}/admin`, adminRoutes);
 app.use(`/api/${env.API_VERSION}/templates`, templatesRoutes);
