@@ -11,6 +11,9 @@ import { httpLogStream } from './config/logger';
 // Create Express app
 const app: Application = express();
 
+// Trust Vercel proxy
+app.set('trust proxy', 1);
+
 // ===== Middleware =====
 
 // Security
