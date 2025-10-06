@@ -62,8 +62,10 @@ app.get('/health', (_req, res) => {
 import adminQuestionsRoutes from './routes/admin/questions.routes';
 import authRoutes from './routes/auth/auth.routes';
 
-app.use(`/api/${env.API_VERSION}/auth`, authRoutes);
-app.use(`/api/${env.API_VERSION}/admin/questions`, adminQuestionsRoutes);
+// Note: Vercel strips /api prefix when routing to /api/index.ts
+// So /api/v1/auth/login becomes /v1/auth/login
+app.use(`/${env.API_VERSION}/auth`, authRoutes);
+app.use(`/${env.API_VERSION}/admin/questions`, adminQuestionsRoutes);
 
 // 404 handler
 app.use((req, res) => {
