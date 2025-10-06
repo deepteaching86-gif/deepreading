@@ -12,10 +12,10 @@
   directory = "netlify/functions"
   node_bundler = "esbuild"
 
-# Redirects and rewrites - proxy API to Netlify Function
+# Redirects and rewrites - proxy API to Vercel backend
 [[redirects]]
   from = "/api/*"
-  to = "/.netlify/functions/api/:splat"
+  to = "https://deepreading.vercel.app/api/:splat"
   status = 200
   force = true
 
@@ -48,8 +48,8 @@
 
 # Production context
 [context.production.environment]
-  VITE_API_URL = "https://deepreading.vercel.app"
+  VITE_API_URL = "https://playful-cocada-a89755.netlify.app"
 
 # Preview context
 [context.branch-deploy.environment]
-  VITE_API_URL = "https://deepreading.vercel.app"
+  VITE_API_URL = "https://playful-cocada-a89755.netlify.app"
