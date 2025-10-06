@@ -13,7 +13,13 @@
   node_bundler = "esbuild"
 
 # Redirects and rewrites
-# API requests to Netlify Functions
+# API requests to Netlify Functions (primary route)
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/api/:splat"
+  status = 200
+
+# Direct Netlify Functions access
 [[redirects]]
   from = "/.netlify/functions/*"
   to = "/.netlify/functions/:splat"

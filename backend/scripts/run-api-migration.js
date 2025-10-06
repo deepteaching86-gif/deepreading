@@ -1,7 +1,7 @@
 const https = require('https');
 
 // Netlify Functions API URL
-const API_BASE = 'https://deepreading.netlify.app/.netlify/functions/api';
+const API_BASE = 'https://playful-cocada-a89755.netlify.app/.netlify/functions/api';
 
 // Admin credentials (from seed data)
 const ADMIN_EMAIL = 'admin@deepreading.com';
@@ -18,7 +18,7 @@ async function loginAdmin() {
     });
 
     const options = {
-      hostname: 'deepreading.netlify.app',
+      hostname: 'playful-cocada-a89755.netlify.app',
       port: 443,
       path: '/.netlify/functions/api/v1/auth/login',
       method: 'POST',
@@ -73,7 +73,7 @@ async function loginAdmin() {
 async function checkStatus(token) {
   return new Promise((resolve, reject) => {
     const options = {
-      hostname: 'deepreading.netlify.app',
+      hostname: 'playful-cocada-a89755.netlify.app',
       port: 443,
       path: '/.netlify/functions/api/v1/admin/migrate/peer-stats/status',
       method: 'GET',
@@ -136,7 +136,7 @@ async function checkStatus(token) {
 async function runMigration(token) {
   return new Promise((resolve, reject) => {
     const options = {
-      hostname: 'deepreading.netlify.app',
+      hostname: 'playful-cocada-a89755.netlify.app',
       port: 443,
       path: '/.netlify/functions/api/v1/admin/migrate/peer-stats',
       method: 'POST',
