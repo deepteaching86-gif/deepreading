@@ -363,27 +363,12 @@ export default function AdminDashboard() {
               </div>
             </Link>
 
-            <Link
-              to="/templates"
-              className="bg-card rounded-lg shadow-sm p-6 border border-border hover:border-primary transition-colors"
-            >
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-chart-1/10 rounded-lg flex items-center justify-center">
-                  <span className="text-2xl">📝</span>
-                </div>
-                <div>
-                  <h3 className="font-semibold text-foreground">템플릿 관리</h3>
-                  <p className="text-sm text-muted-foreground">테스트 템플릿 확인</p>
-                </div>
-              </div>
-            </Link>
-
             <button
-              onClick={() => window.location.reload()}
+              onClick={fetchData}
               className="bg-card rounded-lg shadow-sm p-6 border border-border hover:border-primary transition-colors text-left"
             >
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-chart-2/10 rounded-lg flex items-center justify-center">
+                <div className="w-12 h-12 bg-chart-1/10 rounded-lg flex items-center justify-center">
                   <span className="text-2xl">🔄</span>
                 </div>
                 <div>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import axios from '../../lib/axios';
 
 interface Question {
   id: string;
@@ -48,9 +48,6 @@ const QuestionManagement: React.FC = () => {
 
       const response = await axios.get('/api/v1/admin/questions', {
         params,
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
       });
 
       setQuestions(response.data.data.questions);
@@ -73,12 +70,7 @@ const QuestionManagement: React.FC = () => {
     try {
       await axios.put(
         `/api/v1/admin/questions/${selectedQuestion.id}`,
-        selectedQuestion,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-          },
-        }
+        selectedQuestion
       );
 
       alert('문항이 수정되었습니다.');
@@ -95,11 +87,7 @@ const QuestionManagement: React.FC = () => {
     if (!confirm('정말 이 문항을 삭제하시겠습니까?')) return;
 
     try {
-      await axios.delete(`/api/v1/admin/questions/${id}`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
+      await axios.delete(`/api/v1/admin/questions/${id}`);
 
       alert('문항이 삭제되었습니다.');
       fetchQuestions();
