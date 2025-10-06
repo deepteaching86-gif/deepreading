@@ -5,6 +5,9 @@ import { grade3Data } from './seeds/data/grade3';
 import { grade4Data } from './seeds/data/grade4';
 import { grade5Data } from './seeds/data/grade5';
 import { grade6Data } from './seeds/data/grade6';
+import { grade7Data } from './seeds/data/grade7';
+import { grade8Data } from './seeds/data/grade8';
+import { grade9Data } from './seeds/data/grade9';
 
 const prisma = new PrismaClient();
 
@@ -15,7 +18,7 @@ async function main() {
     // ===== 1. Seed Test Templates =====
     console.log('📝 Seeding Test Templates...');
 
-    const gradeData = [grade1Data, grade2Data, grade3Data, grade4Data, grade5Data, grade6Data];
+    const gradeData = [grade1Data, grade2Data, grade3Data, grade4Data, grade5Data, grade6Data, grade7Data, grade8Data, grade9Data];
     const templates = [];
 
     for (const data of gradeData) {
@@ -87,7 +90,7 @@ async function main() {
     console.log('\n📊 Seeding Summary:');
     console.log(`   ✅ Test Templates: ${templates.length}`);
     console.log(`   ✅ Total Questions: ${totalQuestions}`);
-    console.log(`   ✅ Grade Coverage: 1학년, 2학년, 3학년, 4학년, 5학년, 6학년\n`);
+    console.log(`   ✅ Grade Coverage: 초등 1-6학년, 중등 1-3학년\n`);
 
     console.log('🎉 Database seeding completed successfully!\n');
   } catch (error) {
