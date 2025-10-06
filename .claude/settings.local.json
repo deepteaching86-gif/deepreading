@@ -36,7 +36,14 @@
       "Bash(npm run:*)",
       "Bash(timeout 15 bash -c 'while true; do sleep 5; done')",
       "Read(//c/Users/owner/.config/**)",
-      "Bash(tee:*)"
+      "Bash(tee:*)",
+      "Bash(for i in {1..10})",
+      "Bash(do sleep:*)",
+      "Bash(done)",
+      "Bash(for i in {1..15})",
+      "Bash(netlify env:set:*)",
+      "Bash(npx netlify env:set:*)",
+      "Bash(npx netlify link:*)"
     ],
     "deny": [],
     "ask": []

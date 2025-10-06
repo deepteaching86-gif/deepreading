@@ -63,10 +63,14 @@ app.get('/health', (_req, res) => {
 // API routes
 import adminQuestionsRoutes from './routes/admin/questions.routes';
 import authRoutes from './routes/auth/auth.routes';
+import templatesRoutes from './routes/templates/templates.routes';
+import sessionsRoutes from './routes/sessions/sessions.routes';
 
 // For Netlify: full paths including /api prefix
 app.use(`/api/${env.API_VERSION}/auth`, authRoutes);
 app.use(`/api/${env.API_VERSION}/admin/questions`, adminQuestionsRoutes);
+app.use(`/api/${env.API_VERSION}/templates`, templatesRoutes);
+app.use(`/api/${env.API_VERSION}/sessions`, sessionsRoutes);
 
 // 404 handler
 app.use((req, res) => {
