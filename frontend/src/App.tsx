@@ -14,6 +14,7 @@ import TestInProgress from './pages/test/TestInProgress';
 import TestResult from './pages/test/TestResult';
 import AdminQuestionManagement from './pages/admin/QuestionManagement';
 import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminGradingManagement from './pages/admin/GradingManagement';
 import ParentDashboard from './pages/parent/ParentDashboard';
 import TeacherDashboard from './pages/teacher/TeacherDashboard';
 import Unauthorized from './pages/Unauthorized';
@@ -95,6 +96,14 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['admin']}>
                 <AdminQuestionManagement />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/grading"
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AdminGradingManagement />
               </ProtectedRoute>
             }
           />

@@ -64,6 +64,7 @@ app.get('/health', (_req, res) => {
 import adminQuestionsRoutes from './routes/admin/questions.routes';
 import adminSeedRoutes from './routes/admin/seed.routes';
 import adminRoutes from './routes/admin/admin.routes';
+import adminGradingRoutes from './routes/admin/grading.routes';
 import authRoutes from './routes/auth/auth.routes';
 import templatesRoutes from './routes/templates/templates.routes';
 import sessionsRoutes from './routes/sessions/sessions.routes';
@@ -75,6 +76,7 @@ import teachersRoutes from './routes/teachers/teachers.routes';
 app.use(`/api/${env.API_VERSION}/auth`, authRoutes);
 app.use(`/api/${env.API_VERSION}/admin/questions`, adminQuestionsRoutes);
 app.use(`/api/${env.API_VERSION}/admin/seed`, adminSeedRoutes);
+app.use(`/api/${env.API_VERSION}/admin/grading`, adminGradingRoutes);
 app.use(`/api/${env.API_VERSION}/admin`, adminRoutes);
 app.use(`/api/${env.API_VERSION}/templates`, templatesRoutes);
 app.use(`/api/${env.API_VERSION}/sessions`, sessionsRoutes);

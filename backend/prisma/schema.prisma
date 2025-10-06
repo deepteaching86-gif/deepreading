@@ -95,9 +95,13 @@ model TestTemplate {
   templateCode   String    @unique @map("template_code") @db.VarChar(50)
   grade          Int       @db.Integer // 대상 학년 (1-9)
   title          String    @db.VarChar(200)
+  description    String?   @db.Text
   version        String    @default("1.0") @db.VarChar(10)
   totalQuestions Int       @map("total_questions") @db.Integer
+  totalPoints    Int       @default(100) @map("total_points") @db.Integer
+  passingScore   Int       @default(60) @map("passing_score") @db.Integer
   timeLimit      Int?      @map("time_limit") @db.Integer // 분 단위
+  status         String    @default("active") @db.VarChar(20)
   isActive       Boolean   @default(true) @map("is_active")
   createdAt      DateTime  @default(now()) @map("created_at")
 
@@ -167,13 +171,15 @@ model TestSession {
 }
 
 model Answer {
-  id            String   @id @default(uuid()) @db.Uuid
-  sessionId     String   @map("session_id") @db.Uuid
-  questionId    String   @map("question_id") @db.Uuid
-  studentAnswer String?  @map("student_answer") @db.Text
-  isCorrect     Boolean? @map("is_correct")
-  pointsEarned  Int      @default(0) @map("points_earned") @db.Integer
-  createdAt     DateTime @default(now()) @map("created_at")
+  id             String   @id @default(uuid()) @db.Uuid
+  sessionId      String   @map("session_id") @db.Uuid
+  questionId     String   @map("question_id") @db.Uuid
+  questionNumber Int      @map("question_number") @db.Integer
+  studentAnswer  String?  @map("student_answer") @db.Text
+  isCorrect      Boolean? @map("is_correct")
+  pointsEarned   Int      @default(0) @map("points_earned") @db.Integer
+  feedback       String?  @db.Text // AI-generated feedback for essays
+  createdAt      DateTime @default(now()) @map("created_at")
 
   // Relations
   session  TestSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
@@ -192,6 +198,8 @@ model TestResult {
   totalPossible          Int      @map("total_possible") @db.Integer
   percentage             Decimal  @db.Decimal(5, 2)
   gradeLevel             Int?     @map("grade_level") @db.Integer // 1-9 등급
+  correctAnswers         Int      @default(0) @map("correct_answers") @db.Integer
+  incorrectAnswers       Int      @default(0) @map("incorrect_answers") @db.Integer
   percentile             Decimal? @db.Decimal(5, 2)
   vocabularyScore        Int?     @map("vocabulary_score") @db.Integer
   readingScore           Int?     @map("reading_score") @db.Integer
