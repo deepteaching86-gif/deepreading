@@ -13,6 +13,7 @@ import TestStart from './pages/test/TestStart';
 import TestInProgress from './pages/test/TestInProgress';
 import TestResult from './pages/test/TestResult';
 import AdminQuestionManagement from './pages/admin/QuestionManagement';
+import ParentDashboard from './pages/parent/ParentDashboard';
 import Unauthorized from './pages/Unauthorized';
 
 const queryClient = new QueryClient({
@@ -68,17 +69,12 @@ function App() {
             }
           />
 
-          {/* Parent Routes - TODO: Implement parent dashboard */}
+          {/* Parent Routes */}
           <Route
             path="/parent/dashboard"
             element={
               <ProtectedRoute allowedRoles={['parent']}>
-                <div className="min-h-screen bg-background flex items-center justify-center">
-                  <div className="text-center">
-                    <h1 className="text-2xl font-bold mb-4">학부모 대시보드</h1>
-                    <p className="text-muted-foreground">준비 중입니다...</p>
-                  </div>
-                </div>
+                <ParentDashboard />
               </ProtectedRoute>
             }
           />

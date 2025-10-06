@@ -44,7 +44,8 @@
       "Bash(netlify env:set:*)",
       "Bash(npx netlify env:set:*)",
       "Bash(npx netlify link:*)",
-      "Bash(timeout 120 bash -c 'while true; do sleep 30; done')"
+      "Bash(timeout 120 bash -c 'while true; do sleep 30; done')",
+      "Bash(npx tsc:*)"
     ],
     "deny": [],
     "ask": []
