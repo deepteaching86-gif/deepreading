@@ -15,6 +15,7 @@ import TestResult from './pages/test/TestResult';
 import AdminQuestionManagement from './pages/admin/QuestionManagement';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import ParentDashboard from './pages/parent/ParentDashboard';
+import TeacherDashboard from './pages/teacher/TeacherDashboard';
 import Unauthorized from './pages/Unauthorized';
 
 const queryClient = new QueryClient({
@@ -98,17 +99,12 @@ function App() {
             }
           />
 
-          {/* Teacher Routes - TODO: Implement teacher dashboard */}
+          {/* Teacher Routes */}
           <Route
             path="/teacher/dashboard"
             element={
               <ProtectedRoute allowedRoles={['teacher']}>
-                <div className="min-h-screen bg-background flex items-center justify-center">
-                  <div className="text-center">
-                    <h1 className="text-2xl font-bold mb-4">선생님 대시보드</h1>
-                    <p className="text-muted-foreground">준비 중입니다...</p>
-                  </div>
-                </div>
+                <TeacherDashboard />
               </ProtectedRoute>
             }
           />
