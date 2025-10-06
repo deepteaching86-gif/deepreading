@@ -1,0 +1,8 @@
+올바른 Netlify 배포 정보
+=========================
+
+Site ID: b1ce6181-d158-42e0-b07f-d19353e0fa70
+URL: https://playful-cocada-a89755.netlify.app
+GitHub: github.com/deepteaching86-gif/deepreading
+
+⚠️ 이 사이트로만 배포할 것!

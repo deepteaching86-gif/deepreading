@@ -40,7 +40,13 @@ const QuestionManagement: React.FC = () => {
       const params: any = {};
 
       if (selectedGrade) {
-        params.templateCode = `ELEM${selectedGrade}-V1`;
+        // 학년에 따라 템플릿 코드 생성
+        const gradeNum = parseInt(selectedGrade);
+        if (gradeNum <= 6) {
+          params.templateCode = `ELEM${selectedGrade}-V1`;
+        } else {
+          params.templateCode = `MIDDLE${gradeNum - 6}-V1`;
+        }
       }
       if (selectedCategory) {
         params.category = selectedCategory;
@@ -98,291 +104,341 @@ const QuestionManagement: React.FC = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-6">문항 관리</h1>
+    <div className="min-h-screen bg-background">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <h1 className="text-3xl font-bold mb-6 text-foreground">문항 관리</h1>
 
-      {/* 필터 */}
-      <div className="bg-white p-4 rounded-lg shadow mb-6">
-        <div className="flex gap-4">
-          <select
-            value={selectedGrade}
-            onChange={(e) => setSelectedGrade(e.target.value)}
-            className="border rounded px-3 py-2"
-          >
-            <option value="">전체 학년</option>
-            {[1, 2, 3, 4, 5, 6].map((grade) => (
-              <option key={grade} value={grade}>
-                초등 {grade}학년
-              </option>
-            ))}
-          </select>
-
-          <select
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            className="border rounded px-3 py-2"
-          >
-            <option value="">전체 영역</option>
-            <option value="vocabulary">어휘력</option>
-            <option value="reading">독해력</option>
-            <option value="grammar">문법/어법</option>
-            <option value="reasoning">추론/사고력</option>
-          </select>
-        </div>
-      </div>
-
-      {/* 문항 목록 */}
-      {loading ? (
-        <div className="text-center py-12">로딩 중...</div>
-      ) : (
-        <div className="bg-white rounded-lg shadow">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  학년
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  문항번호
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  영역
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  문제
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  난이도
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  작업
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {questions.map((question) => (
-                <tr key={question.id}>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {question.template.grade}학년
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {question.questionNumber}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {question.category}
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="max-w-md truncate">
-                      {question.questionText}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span
-                      className={`px-2 py-1 rounded text-xs ${
-                        question.difficulty === 'easy'
-                          ? 'bg-green-100 text-green-800'
-                          : question.difficulty === 'medium'
-                          ? 'bg-yellow-100 text-yellow-800'
-                          : 'bg-red-100 text-red-800'
-                      }`}
-                    >
-                      {question.difficulty}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <button
-                      onClick={() => handleEdit(question)}
-                      className="text-blue-600 hover:text-blue-900 mr-3"
-                    >
-                      수정
-                    </button>
-                    <button
-                      onClick={() => handleDelete(question.id)}
-                      className="text-red-600 hover:text-red-900"
-                    >
-                      삭제
-                    </button>
-                  </td>
-                </tr>
+        {/* 필터 */}
+        <div className="bg-card rounded-lg shadow-sm p-6 mb-6 border border-border">
+          <div className="flex gap-4">
+            <select
+              value={selectedGrade}
+              onChange={(e) => setSelectedGrade(e.target.value)}
+              className="border border-border rounded-lg px-4 py-2 bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+              <option value="">전체 학년</option>
+              {[1, 2, 3, 4, 5, 6].map((grade) => (
+                <option key={grade} value={grade}>
+                  초등 {grade}학년
+                </option>
               ))}
-            </tbody>
-          </table>
+              {[7, 8, 9].map((grade) => (
+                <option key={grade} value={grade}>
+                  중등 {grade - 6}학년
+                </option>
+              ))}
+            </select>
+
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="border border-border rounded-lg px-4 py-2 bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+              <option value="">전체 영역</option>
+              <option value="vocabulary">어휘력</option>
+              <option value="reading">독해력</option>
+              <option value="grammar">문법/어법</option>
+              <option value="reasoning">추론/사고력</option>
+            </select>
+          </div>
         </div>
-      )}
 
-      {/* 수정 모달 */}
-      {isEditing && selectedQuestion && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <h2 className="text-2xl font-bold mb-4">문항 수정</h2>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  문제 번호
-                </label>
-                <input
-                  type="number"
-                  value={selectedQuestion.questionNumber}
-                  onChange={(e) =>
-                    setSelectedQuestion({
-                      ...selectedQuestion,
-                      questionNumber: parseInt(e.target.value),
-                    })
-                  }
-                  className="w-full border rounded px-3 py-2"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  문제 텍스트
-                </label>
-                <textarea
-                  value={selectedQuestion.questionText}
-                  onChange={(e) =>
-                    setSelectedQuestion({
-                      ...selectedQuestion,
-                      questionText: e.target.value,
-                    })
-                  }
-                  className="w-full border rounded px-3 py-2"
-                  rows={3}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  지문 (선택)
-                </label>
-                <textarea
-                  value={selectedQuestion.passage || ''}
-                  onChange={(e) =>
-                    setSelectedQuestion({
-                      ...selectedQuestion,
-                      passage: e.target.value,
-                    })
-                  }
-                  className="w-full border rounded px-3 py-2"
-                  rows={3}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  정답
-                </label>
-                <input
-                  type="text"
-                  value={selectedQuestion.correctAnswer}
-                  onChange={(e) =>
-                    setSelectedQuestion({
-                      ...selectedQuestion,
-                      correctAnswer: e.target.value,
-                    })
-                  }
-                  className="w-full border rounded px-3 py-2"
-                />
-              </div>
-
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    카테고리
-                  </label>
-                  <select
-                    value={selectedQuestion.category}
-                    onChange={(e) =>
-                      setSelectedQuestion({
-                        ...selectedQuestion,
-                        category: e.target.value,
-                      })
-                    }
-                    className="w-full border rounded px-3 py-2"
-                  >
-                    <option value="vocabulary">어휘력</option>
-                    <option value="reading">독해력</option>
-                    <option value="grammar">문법/어법</option>
-                    <option value="reasoning">추론/사고력</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+        {/* 문항 목록 */}
+        {loading ? (
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <div className="text-xl text-muted-foreground">로딩 중...</div>
+          </div>
+        ) : (
+          <div className="bg-card rounded-lg shadow-md overflow-hidden border border-border">
+            <table className="min-w-full divide-y divide-border">
+              <thead className="bg-muted">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    학년
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    문항번호
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    영역
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    문제
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     난이도
-                  </label>
-                  <select
-                    value={selectedQuestion.difficulty}
-                    onChange={(e) =>
-                      setSelectedQuestion({
-                        ...selectedQuestion,
-                        difficulty: e.target.value,
-                      })
-                    }
-                    className="w-full border rounded px-3 py-2"
-                  >
-                    <option value="easy">쉬움</option>
-                    <option value="medium">보통</option>
-                    <option value="hard">어려움</option>
-                  </select>
-                </div>
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    작업
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-card divide-y divide-border">
+                {questions.map((question) => (
+                  <tr key={question.id} className="hover:bg-muted/50 transition-colors">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-card-foreground">
+                      {question.template.grade}학년
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-card-foreground">
+                      {question.questionNumber}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-card-foreground">
+                      {question.category}
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="max-w-md truncate text-sm text-card-foreground">
+                        {question.questionText}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-medium ${
+                          question.difficulty === 'easy'
+                            ? 'bg-chart-1/20 text-chart-1'
+                            : question.difficulty === 'medium'
+                            ? 'bg-chart-3/20 text-chart-3'
+                            : 'bg-destructive/20 text-destructive'
+                        }`}
+                      >
+                        {question.difficulty === 'easy' ? '쉬움' : question.difficulty === 'medium' ? '보통' : '어려움'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      <button
+                        onClick={() => handleEdit(question)}
+                        className="text-primary hover:text-primary/80 font-medium mr-4 transition-colors"
+                      >
+                        수정
+                      </button>
+                      <button
+                        onClick={() => handleDelete(question.id)}
+                        className="text-destructive hover:text-destructive/80 font-medium transition-colors"
+                      >
+                        삭제
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
 
+        {/* 수정 모달 */}
+        {isEditing && selectedQuestion && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+            <div className="bg-card rounded-lg p-8 max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-xl border border-border">
+              <h2 className="text-2xl font-bold mb-6 text-foreground">문항 수정</h2>
+
+              <div className="space-y-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    배점
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    문제 번호
                   </label>
                   <input
                     type="number"
-                    value={selectedQuestion.points}
+                    value={selectedQuestion.questionNumber}
                     onChange={(e) =>
                       setSelectedQuestion({
                         ...selectedQuestion,
-                        points: parseInt(e.target.value),
+                        questionNumber: parseInt(e.target.value),
                       })
                     }
-                    className="w-full border rounded px-3 py-2"
+                    className="w-full border border-border rounded-lg px-4 py-2 bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    문제 텍스트
+                  </label>
+                  <textarea
+                    value={selectedQuestion.questionText}
+                    onChange={(e) =>
+                      setSelectedQuestion({
+                        ...selectedQuestion,
+                        questionText: e.target.value,
+                      })
+                    }
+                    className="w-full border border-border rounded-lg px-4 py-3 bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    rows={3}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    지문 (선택)
+                  </label>
+                  <textarea
+                    value={selectedQuestion.passage || ''}
+                    onChange={(e) =>
+                      setSelectedQuestion({
+                        ...selectedQuestion,
+                        passage: e.target.value,
+                      })
+                    }
+                    className="w-full border border-border rounded-lg px-4 py-3 bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    rows={3}
+                  />
+                </div>
+
+                {/* 선택지 (객관식인 경우) */}
+                {selectedQuestion.questionType === 'choice' && selectedQuestion.options && (
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-3">
+                      선택지
+                    </label>
+                    <div className="space-y-3">
+                      {Array.isArray(selectedQuestion.options) &&
+                        selectedQuestion.options.map((option: any, index: number) => (
+                          <div key={index} className="flex items-center gap-3">
+                            <span className="font-medium text-muted-foreground w-8">
+                              {index + 1}.
+                            </span>
+                            <input
+                              type="text"
+                              value={typeof option === 'object' ? option.text : option}
+                              onChange={(e) => {
+                                const newOptions = [...selectedQuestion.options];
+                                if (typeof newOptions[index] === 'object') {
+                                  newOptions[index] = {
+                                    ...newOptions[index],
+                                    text: e.target.value,
+                                  };
+                                } else {
+                                  newOptions[index] = e.target.value;
+                                }
+                                setSelectedQuestion({
+                                  ...selectedQuestion,
+                                  options: newOptions,
+                                });
+                              }}
+                              className="flex-1 border border-border rounded-lg px-4 py-2 bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                              placeholder={`선택지 ${index + 1}`}
+                            />
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                )}
+
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    정답
+                  </label>
+                  <input
+                    type="text"
+                    value={selectedQuestion.correctAnswer}
+                    onChange={(e) =>
+                      setSelectedQuestion({
+                        ...selectedQuestion,
+                        correctAnswer: e.target.value,
+                      })
+                    }
+                    className="w-full border border-border rounded-lg px-4 py-2 bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                </div>
+
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      카테고리
+                    </label>
+                    <select
+                      value={selectedQuestion.category}
+                      onChange={(e) =>
+                        setSelectedQuestion({
+                          ...selectedQuestion,
+                          category: e.target.value,
+                        })
+                      }
+                      className="w-full border border-border rounded-lg px-4 py-2 bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    >
+                      <option value="vocabulary">어휘력</option>
+                      <option value="reading">독해력</option>
+                      <option value="grammar">문법/어법</option>
+                      <option value="reasoning">추론/사고력</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      난이도
+                    </label>
+                    <select
+                      value={selectedQuestion.difficulty}
+                      onChange={(e) =>
+                        setSelectedQuestion({
+                          ...selectedQuestion,
+                          difficulty: e.target.value,
+                        })
+                      }
+                      className="w-full border border-border rounded-lg px-4 py-2 bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    >
+                      <option value="easy">쉬움</option>
+                      <option value="medium">보통</option>
+                      <option value="hard">어려움</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      배점
+                    </label>
+                    <input
+                      type="number"
+                      value={selectedQuestion.points}
+                      onChange={(e) =>
+                        setSelectedQuestion({
+                          ...selectedQuestion,
+                          points: parseInt(e.target.value),
+                        })
+                      }
+                      className="w-full border border-border rounded-lg px-4 py-2 bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    해설
+                  </label>
+                  <textarea
+                    value={selectedQuestion.explanation || ''}
+                    onChange={(e) =>
+                      setSelectedQuestion({
+                        ...selectedQuestion,
+                        explanation: e.target.value,
+                      })
+                    }
+                    className="w-full border border-border rounded-lg px-4 py-3 bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    rows={3}
                   />
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  해설
-                </label>
-                <textarea
-                  value={selectedQuestion.explanation || ''}
-                  onChange={(e) =>
-                    setSelectedQuestion({
-                      ...selectedQuestion,
-                      explanation: e.target.value,
-                    })
-                  }
-                  className="w-full border rounded px-3 py-2"
-                  rows={3}
-                />
+              <div className="flex justify-end gap-3 mt-8">
+                <button
+                  onClick={() => {
+                    setIsEditing(false);
+                    setSelectedQuestion(null);
+                  }}
+                  className="px-6 py-2 border border-border rounded-lg hover:bg-muted transition-colors text-foreground font-medium"
+                >
+                  취소
+                </button>
+                <button
+                  onClick={handleSave}
+                  className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium shadow-sm"
+                >
+                  저장
+                </button>
               </div>
             </div>
-
-            <div className="flex justify-end gap-3 mt-6">
-              <button
-                onClick={() => {
-                  setIsEditing(false);
-                  setSelectedQuestion(null);
-                }}
-                className="px-4 py-2 border rounded hover:bg-gray-50"
-              >
-                취소
-              </button>
-              <button
-                onClick={handleSave}
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-              >
-                저장
-              </button>
-            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };
