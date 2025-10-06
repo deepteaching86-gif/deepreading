@@ -7,6 +7,7 @@ services:
     buildCommand: cd backend && npm install && npx prisma generate && npm run build
     startCommand: cd backend && node dist/server.js
     healthCheckPath: /health
+    # Updated: 2025-10-06 - Force redeploy for /start endpoint
     envVars:
       - key: NODE_ENV
         value: production
