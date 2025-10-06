@@ -42,8 +42,8 @@
 
 # Production context
 [context.production.environment]
-  VITE_API_URL = "https://deepreading.vercel.app"
+  VITE_API_URL = "https://literacy-backend.onrender.com"
 
 # Preview context
 [context.branch-deploy.environment]
-  VITE_API_URL = "https://deepreading.vercel.app"
+  VITE_API_URL = "https://literacy-backend.onrender.com"
