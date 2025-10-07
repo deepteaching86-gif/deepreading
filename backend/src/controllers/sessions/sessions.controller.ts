@@ -399,7 +399,8 @@ export const submitSession = async (req: AuthRequest, res: Response, next: NextF
 
     for (const question of allQuestions) {
       const studentAnswer = answersMap.get(question.id) || '';
-      const isCorrect = studentAnswer.toLowerCase().trim() === question.correctAnswer.toLowerCase().trim();
+      const correctAnswer = String(question.correctAnswer || '');
+      const isCorrect = studentAnswer.toLowerCase().trim() === correctAnswer.toLowerCase().trim();
 
       if (isCorrect) {
         correctAnswers++;
@@ -423,7 +424,7 @@ export const submitSession = async (req: AuthRequest, res: Response, next: NextF
         await prisma.answer.update({
           where: { id: existingAnswer.id },
           data: {
-            studentAnswer,
+            studentAnswer: studentAnswer || null,
             isCorrect,
           },
         });
@@ -434,7 +435,7 @@ export const submitSession = async (req: AuthRequest, res: Response, next: NextF
             sessionId: id,
             questionId: question.id,
             questionNumber: question.questionNumber,
-            studentAnswer,
+            studentAnswer: studentAnswer || null,
             isCorrect,
           },
         });
