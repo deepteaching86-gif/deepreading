@@ -81,9 +81,7 @@ const TestResultEnhanced = () => {
     const fetchResult = async () => {
       try {
         const response = await axios.get(`/api/v1/sessions/${sessionId}/result`);
-        console.log('API Response:', response.data); // Debug log
         if (response.data.success) {
-          console.log('Category Scores:', response.data.data.result?.categoryScores); // Debug log
           setResult(response.data.data);
         }
       } catch (err: any) {
@@ -140,16 +138,11 @@ const TestResultEnhanced = () => {
 
   // Calculate literacy scores - with safety checks
   const categoryScores = result.result.categoryScores || [];
-  console.log('Processing category scores:', categoryScores); // Debug log
-  console.log('CategoryScores detail:', JSON.stringify(categoryScores, null, 2)); // Detailed log
 
   const vocabularyScore = categoryScores.find(c => c.category === 'vocabulary')?.percentage || 0;
   const readingScore = categoryScores.find(c => c.category === 'reading')?.percentage || 0;
   const grammarScore = categoryScores.find(c => c.category === 'grammar')?.percentage || 0;
   const reasoningScore = categoryScores.find(c => c.category === 'reasoning')?.percentage || 0;
-
-  console.log('Calculated scores:', { vocabularyScore, readingScore, grammarScore, reasoningScore }); // Debug log
-  console.log('Are scores valid?', vocabularyScore, readingScore, grammarScore, reasoningScore); // Individual scores
 
   const literacyScores: LiteracyScores = {
     vocabulary: vocabularyScore,
@@ -223,8 +216,6 @@ const TestResultEnhanced = () => {
     },
   };
 
-  console.log('Radar data:', radarData); // Debug chart data
-
   // Bar chart data
   const barData = {
     labels: ['어휘력', '독해력', '문법/어법', '추론/사고력'],
@@ -283,8 +274,6 @@ const TestResultEnhanced = () => {
       },
     },
   };
-
-  console.log('Bar data:', barData); // Debug chart data
 
   const getCategoryName = (category: string) => {
     const names: Record<string, string> = {
