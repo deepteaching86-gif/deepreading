@@ -51,6 +51,11 @@ export const getSurveyQuestions = async (req: AuthRequest, res: Response, next: 
       throw new ApiError('Unauthorized', 403);
     }
 
+    // template 확인
+    if (!session.template || !session.template.id) {
+      throw new ApiError('Session template not found', 500);
+    }
+
     // 설문 문항 조회 (총 25문항)
     const surveyQuestions = await prisma.question.findMany({
       where: {
