@@ -438,6 +438,7 @@ export const submitSession = async (req: AuthRequest, res: Response, next: NextF
       });
 
       const answerValue: string | null = studentAnswer ? studentAnswer : null;
+      const pointsEarned = isCorrect ? question.points : 0;
 
       if (existingAnswer) {
         // Update existing answer
@@ -446,6 +447,7 @@ export const submitSession = async (req: AuthRequest, res: Response, next: NextF
           data: {
             studentAnswer: answerValue,
             isCorrect,
+            pointsEarned,
           },
         });
       } else {
@@ -457,12 +459,44 @@ export const submitSession = async (req: AuthRequest, res: Response, next: NextF
             questionNumber: question.questionNumber,
             studentAnswer: answerValue,
             isCorrect,
+            pointsEarned,
           },
         });
       }
     }
 
     const percentage = totalPossible > 0 ? (totalScore / totalPossible) * 100 : 0;
+
+    // Calculate percentile (rank among peers with same grade and template)
+    const peerSessions = await prisma.testSession.findMany({
+      where: {
+        templateId: session.templateId,
+        status: 'completed',
+        result: {
+          isNot: null,
+        },
+      },
+      include: {
+        result: true,
+        student: {
+          select: {
+            grade: true,
+          },
+        },
+      },
+    });
+
+    // Filter peers with same grade
+    const sameGradeScores = peerSessions
+      .filter((s) => s.student.grade === session.student.grade && s.result)
+      .map((s) => Number(s.result!.percentage))
+      .sort((a, b) => a - b);
+
+    let percentile: number | null = null;
+    if (sameGradeScores.length > 1) {
+      const lowerScores = sameGradeScores.filter((score) => score < percentage).length;
+      percentile = (lowerScores / sameGradeScores.length) * 100;
+    }
 
     // Determine grade level (1-9 scale, not letter grades)
     let gradeLevel = 1;
@@ -492,6 +526,7 @@ export const submitSession = async (req: AuthRequest, res: Response, next: NextF
         totalPossible,
         percentage,
         gradeLevel,
+        percentile,
         correctAnswers,
         incorrectAnswers,
       },
@@ -501,6 +536,7 @@ export const submitSession = async (req: AuthRequest, res: Response, next: NextF
         totalPossible,
         percentage,
         gradeLevel,
+        percentile,
         correctAnswers,
         incorrectAnswers,
       },
