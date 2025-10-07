@@ -49,11 +49,26 @@ interface TestResult {
   recommendations: any[];
 }
 
+interface Answer {
+  questionNumber: number;
+  studentAnswer: string;
+  isCorrect: boolean;
+  pointsEarned: number;
+  feedback: string | null;
+  question: {
+    questionText: string;
+    questionType: string;
+    correctAnswer: string;
+    category: string;
+  };
+}
+
 export default function TestResultEnhanced() {
   const { sessionId } = useParams<{ sessionId: string }>();
   const navigate = useNavigate();
   const [result, setResult] = useState<TestResult | null>(null);
   const [templateInfo, setTemplateInfo] = useState<any>(null);
+  const [answers, setAnswers] = useState<Answer[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -66,6 +81,11 @@ export default function TestResultEnhanced() {
       const response = await axios.get(`/api/v1/sessions/${sessionId}/result`);
       setResult(response.data.data.result);
       setTemplateInfo(response.data.data.template);
+
+      // Get answers with feedback
+      if (response.data.data.answers) {
+        setAnswers(response.data.data.answers);
+      }
     } catch (error) {
       console.error('결과 조회 실패:', error);
       alert('결과를 불러올 수 없습니다.');
@@ -550,6 +570,78 @@ export default function TestResultEnhanced() {
                               {resource}
                             </span>
                           ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* AI 피드백 섹션 */}
+        {answers.length > 0 && (
+          <div className="bg-white rounded-2xl shadow-lg p-8 mb-8 border border-gray-100">
+            <h3 className="text-2xl font-bold mb-6 text-gray-800 flex items-center gap-2">
+              <span>🤖</span> AI 채점 피드백
+            </h3>
+            <div className="space-y-6">
+              {answers.map((ans, idx) => {
+                const getCategoryName = (cat: string) => {
+                  const names: Record<string, string> = {
+                    vocabulary: '어휘력',
+                    reading: '독해력',
+                    grammar: '문법/어법',
+                    reasoning: '추론/사고력',
+                  };
+                  return names[cat] || cat;
+                };
+
+                return (
+                  <div
+                    key={idx}
+                    className="border-2 border-blue-200 rounded-xl p-6 bg-gradient-to-br from-blue-50 to-indigo-50 hover:shadow-md transition-shadow"
+                  >
+                    <div className="flex items-start gap-3 mb-4">
+                      <div className="w-10 h-10 bg-blue-500 text-white rounded-full flex items-center justify-center text-lg font-bold flex-shrink-0">
+                        {ans.questionNumber}
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="px-3 py-1 bg-blue-100 text-blue-700 text-sm rounded-full font-medium">
+                            {getCategoryName(ans.question.category)}
+                          </span>
+                          <span className="text-sm text-gray-600">
+                            획득 점수: {ans.pointsEarned}점
+                          </span>
+                        </div>
+                        <div className="text-sm text-gray-700 font-medium mb-3">
+                          {ans.question.questionText}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="ml-13 space-y-3">
+                      <div className="bg-white bg-opacity-60 rounded-lg p-3">
+                        <div className="text-xs text-gray-500 mb-1">학생 답변</div>
+                        <div className="text-sm text-gray-800">{ans.studentAnswer}</div>
+                      </div>
+
+                      <div className="bg-green-50 bg-opacity-60 rounded-lg p-3">
+                        <div className="text-xs text-green-600 mb-1">정답</div>
+                        <div className="text-sm text-green-900 font-medium">{ans.question.correctAnswer}</div>
+                      </div>
+
+                      {ans.feedback && (
+                        <div className="bg-gradient-to-r from-blue-100 to-indigo-100 rounded-lg p-4 border-l-4 border-blue-500">
+                          <div className="flex items-start gap-2">
+                            <span className="text-2xl">💬</span>
+                            <div className="flex-1">
+                              <div className="text-sm font-bold text-blue-900 mb-2">AI 피드백</div>
+                              <div className="text-sm text-blue-800 leading-relaxed">{ans.feedback}</div>
+                            </div>
+                          </div>
                         </div>
                       )}
                     </div>

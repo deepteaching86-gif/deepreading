@@ -66,7 +66,16 @@ interface ReportData {
     weaknesses: string[];
   };
   recommendations: string[];
-  incorrectAnswers: any[];
+  incorrectAnswers: Array<{
+    questionNumber: number;
+    category: string;
+    categoryName: string;
+    questionText: string;
+    studentAnswer: string;
+    correctAnswer: string;
+    explanation?: string;
+    feedback?: string;
+  }>;
 }
 
 export default function DetailedReportEnhanced() {
@@ -560,8 +569,22 @@ export default function DetailedReportEnhanced() {
                     <span className="text-sm font-bold text-red-700">{ans.categoryName}</span>
                   </div>
                   <div className="text-sm text-gray-700 ml-11">
+                    <span className="font-semibold">학생 답변:</span> {ans.studentAnswer || '(미응답)'}
+                  </div>
+                  <div className="text-sm text-gray-700 ml-11 mt-1">
                     <span className="font-semibold">정답:</span> {ans.correctAnswer}
                   </div>
+                  {ans.feedback && (
+                    <div className="text-sm text-blue-700 mt-2 ml-11 bg-blue-50 p-3 rounded-lg border-l-4 border-blue-400">
+                      <div className="flex items-start gap-2">
+                        <span className="text-lg">🤖</span>
+                        <div>
+                          <div className="font-bold mb-1">AI 피드백</div>
+                          <div>{ans.feedback}</div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                   {ans.explanation && (
                     <div className="text-sm text-gray-600 mt-2 ml-11 bg-white bg-opacity-70 p-2 rounded">
                       💬 {ans.explanation}

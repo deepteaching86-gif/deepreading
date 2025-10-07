@@ -768,11 +768,32 @@ export const getSessionResult = async (req: AuthRequest, res: Response, next: Ne
       recommendations,
     };
 
+    // Include answers with feedback for essay/short_answer questions
+    const answersWithFeedback = session.answers
+      .filter((a: any) =>
+        a.feedback &&
+        !a.isCorrect
+      )
+      .map((a: any) => ({
+        questionNumber: a.questionNumber,
+        studentAnswer: a.studentAnswer,
+        isCorrect: a.isCorrect,
+        pointsEarned: a.pointsEarned,
+        feedback: a.feedback,
+        question: {
+          questionText: a.question.questionText,
+          questionType: a.question.questionType,
+          correctAnswer: a.question.correctAnswer,
+          category: a.question.category,
+        },
+      }));
+
     res.json({
       success: true,
       data: {
         result,
         template: session.template,
+        answers: answersWithFeedback,
       },
     });
   } catch (error) {
