@@ -4,6 +4,7 @@ import express, { Application } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
+import path from 'path';
 import { env } from './config/env';
 import { errorHandler } from './common/middleware/error-handler';
 import { httpLogStream } from './config/logger';
@@ -15,6 +16,9 @@ const app: Application = express();
 app.set('trust proxy', 1);
 
 // ===== Middleware =====
+
+// Static files - uploads folder
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // Security
 app.use(helmet());

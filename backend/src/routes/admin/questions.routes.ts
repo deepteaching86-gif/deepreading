@@ -8,6 +8,8 @@ import {
   updateQuestion,
   deleteQuestion,
   getQuestionsByTemplate,
+  uploadImage,
+  upload,
 } from '../../controllers/admin/questions.controller';
 
 const router = Router();
@@ -21,6 +23,9 @@ router.get('/', getAllQuestions);
 
 // GET /api/admin/questions/template/:templateCode - 특정 테스트 템플릿의 문항 조회
 router.get('/template/:templateCode', getQuestionsByTemplate);
+
+// POST /api/admin/questions/upload-image - 이미지 업로드
+router.post('/upload-image', upload.single('image'), uploadImage);
 
 // GET /api/admin/questions/:id - 특정 문항 조회
 router.get('/:id', getQuestionById);

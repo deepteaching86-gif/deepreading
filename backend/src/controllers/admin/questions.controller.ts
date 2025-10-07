@@ -1,6 +1,42 @@
 import { Request, Response } from 'express';
 import { prisma } from '../../config/database';
 import { Prisma, QuestionCategory, Difficulty } from '@prisma/client';
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
+
+// Multer 설정 (이미지 업로드)
+const storage = multer.diskStorage({
+  destination: (_req, _file, cb) => {
+    const uploadDir = path.join(__dirname, '../../../uploads/questions');
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: (_req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    cb(null, 'question-' + uniqueSuffix + path.extname(file.originalname));
+  },
+});
+
+const fileFilter = (_req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+  const allowedTypes = /jpeg|jpg|png/;
+  const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+  const mimetype = allowedTypes.test(file.mimetype);
+
+  if (mimetype && extname) {
+    cb(null, true);
+  } else {
+    cb(new Error('PNG 또는 JPEG 형식의 이미지만 업로드 가능합니다.'));
+  }
+};
+
+export const upload = multer({
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+  fileFilter,
+});
 
 // 모든 문항 조회
 export const getAllQuestions = async (req: Request, res: Response) => {
@@ -157,6 +193,36 @@ export const getQuestionById = async (req: Request, res: Response) => {
   }
 };
 
+// 이미지 업로드
+export const uploadImage = async (req: Request, res: Response) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: '이미지 파일이 없습니다.',
+      });
+    }
+
+    // 이미지 URL 생성 (Render의 경우 public URL 사용)
+    const imageUrl = `/uploads/questions/${req.file.filename}`;
+
+    return res.json({
+      success: true,
+      message: '이미지가 업로드되었습니다.',
+      data: {
+        imageUrl,
+        filename: req.file.filename,
+      },
+    });
+  } catch (error) {
+    console.error('이미지 업로드 실패:', error);
+    return res.status(500).json({
+      success: false,
+      message: '이미지 업로드에 실패했습니다.',
+    });
+  }
+};
+
 // 문항 생성
 export const createQuestion = async (req: Request, res: Response) => {
   try {
@@ -167,6 +233,7 @@ export const createQuestion = async (req: Request, res: Response) => {
       questionType,
       questionText,
       passage,
+      imageUrl,
       options,
       correctAnswer,
       points,
@@ -209,6 +276,7 @@ export const createQuestion = async (req: Request, res: Response) => {
         questionType,
         questionText,
         passage,
+        imageUrl,
         options,
         correctAnswer,
         points,
@@ -250,6 +318,7 @@ export const updateQuestion = async (req: Request, res: Response) => {
       questionType,
       questionText,
       passage,
+      imageUrl,
       options,
       correctAnswer,
       points,
@@ -295,6 +364,7 @@ export const updateQuestion = async (req: Request, res: Response) => {
         ...(questionType && { questionType }),
         ...(questionText && { questionText }),
         ...(passage !== undefined && { passage }),
+        ...(imageUrl !== undefined && { imageUrl }),
         ...(options !== undefined && { options }),
         ...(correctAnswer && { correctAnswer }),
         ...(points !== undefined && { points }),

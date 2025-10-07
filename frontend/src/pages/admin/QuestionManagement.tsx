@@ -8,6 +8,7 @@ interface Question {
   questionType: string;
   questionText: string;
   passage?: string;
+  imageUrl?: string;
   options?: any;
   correctAnswer: string;
   points: number;
@@ -20,15 +21,48 @@ interface Question {
   };
 }
 
+interface NewQuestion {
+  templateCode: string;
+  questionNumber: number;
+  category: string;
+  questionType: string;
+  questionText: string;
+  passage?: string;
+  imageUrl?: string;
+  options?: string[];
+  correctAnswer: string;
+  points: number;
+  difficulty: string;
+  explanation?: string;
+}
+
 const QuestionManagement: React.FC = () => {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [selectedQuestion, setSelectedQuestion] = useState<Question | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   // 필터
   const [selectedGrade, setSelectedGrade] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
+
+  // 새 문항
+  const [newQuestion, setNewQuestion] = useState<NewQuestion>({
+    templateCode: '',
+    questionNumber: 1,
+    category: 'vocabulary',
+    questionType: 'choice',
+    questionText: '',
+    passage: '',
+    imageUrl: '',
+    options: ['', '', '', ''],
+    correctAnswer: '',
+    points: 10,
+    difficulty: 'medium',
+    explanation: '',
+  });
 
   useEffect(() => {
     fetchQuestions();
@@ -103,10 +137,103 @@ const QuestionManagement: React.FC = () => {
     }
   };
 
+  const handleImageUpload = async (file: File, isEdit: boolean = false) => {
+    if (!file.type.match(/^image\/(png|jpeg|jpg)$/)) {
+      alert('PNG 또는 JPEG 형식의 이미지만 업로드 가능합니다.');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert('이미지 크기는 5MB 이하여야 합니다.');
+      return;
+    }
+
+    try {
+      setUploadingImage(true);
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const response = await axios.post('/api/v1/admin/questions/upload-image', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      const imageUrl = response.data.data.imageUrl;
+
+      if (isEdit && selectedQuestion) {
+        setSelectedQuestion({
+          ...selectedQuestion,
+          imageUrl,
+        });
+      } else {
+        setNewQuestion({
+          ...newQuestion,
+          imageUrl,
+        });
+      }
+
+      alert('이미지가 업로드되었습니다.');
+    } catch (error: any) {
+      console.error('이미지 업로드 실패:', error);
+      alert(error.response?.data?.message || '이미지 업로드에 실패했습니다.');
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
+  const handleCreateQuestion = async () => {
+    if (!newQuestion.templateCode || !newQuestion.questionText) {
+      alert('템플릿과 문제 텍스트는 필수 항목입니다.');
+      return;
+    }
+
+    if (newQuestion.questionType === 'choice' && newQuestion.options) {
+      const filledOptions = newQuestion.options.filter((opt) => opt.trim());
+      if (filledOptions.length < 2) {
+        alert('객관식은 최소 2개의 선택지가 필요합니다.');
+        return;
+      }
+    }
+
+    try {
+      await axios.post('/api/v1/admin/questions', newQuestion);
+
+      alert('새 문항이 생성되었습니다.');
+      setIsCreating(false);
+      setNewQuestion({
+        templateCode: '',
+        questionNumber: 1,
+        category: 'vocabulary',
+        questionType: 'choice',
+        questionText: '',
+        passage: '',
+        imageUrl: '',
+        options: ['', '', '', ''],
+        correctAnswer: '',
+        points: 10,
+        difficulty: 'medium',
+        explanation: '',
+      });
+      fetchQuestions();
+    } catch (error: any) {
+      console.error('문항 생성 실패:', error);
+      alert(error.response?.data?.message || '문항 생성에 실패했습니다.');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-3xl font-bold mb-6 text-foreground">문항 관리</h1>
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl font-bold text-foreground">문항 관리</h1>
+          <button
+            onClick={() => setIsCreating(true)}
+            className="px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium shadow-sm"
+          >
+            ➕ 새 문항 추가
+          </button>
+        </div>
 
         {/* 필터 */}
         <div className="bg-card rounded-lg shadow-sm p-6 mb-6 border border-border">
@@ -283,6 +410,50 @@ const QuestionManagement: React.FC = () => {
                   />
                 </div>
 
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    이미지 (선택)
+                  </label>
+                  <div className="space-y-3">
+                    {selectedQuestion.imageUrl && (
+                      <div className="relative inline-block">
+                        <img
+                          src={selectedQuestion.imageUrl}
+                          alt="문제 이미지"
+                          className="max-w-md max-h-64 rounded-lg border border-border"
+                        />
+                        <button
+                          onClick={() =>
+                            setSelectedQuestion({
+                              ...selectedQuestion,
+                              imageUrl: '',
+                            })
+                          }
+                          className="absolute top-2 right-2 bg-destructive text-destructive-foreground rounded-full p-2 hover:bg-destructive/90 transition-colors shadow-md"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    )}
+                    <input
+                      type="file"
+                      accept="image/png,image/jpeg,image/jpg"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleImageUpload(file, true);
+                      }}
+                      disabled={uploadingImage}
+                      className="block w-full text-sm text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 file:cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    />
+                    {uploadingImage && (
+                      <p className="text-sm text-muted-foreground">이미지 업로드 중...</p>
+                    )}
+                    <p className="text-xs text-muted-foreground">
+                      PNG 또는 JPEG 형식, 최대 5MB
+                    </p>
+                  </div>
+                </div>
+
                 {/* 선택지 (객관식인 경우) */}
                 {selectedQuestion.questionType === 'choice' && selectedQuestion.options && (
                   <div>
@@ -433,6 +604,325 @@ const QuestionManagement: React.FC = () => {
                   className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium shadow-sm"
                 >
                   저장
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 새 문항 생성 모달 */}
+        {isCreating && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+            <div className="bg-card rounded-lg p-8 max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-xl border border-border">
+              <h2 className="text-2xl font-bold mb-6 text-foreground">새 문항 추가</h2>
+
+              <div className="space-y-6">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      템플릿 코드 *
+                    </label>
+                    <select
+                      value={newQuestion.templateCode}
+                      onChange={(e) =>
+                        setNewQuestion({
+                          ...newQuestion,
+                          templateCode: e.target.value,
+                        })
+                      }
+                      className="w-full border border-border rounded-lg px-4 py-2 bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    >
+                      <option value="">템플릿 선택</option>
+                      {[1, 2, 3, 4, 5, 6].map((grade) => (
+                        <option key={`elem-${grade}`} value={`ELEM${grade}-V1`}>
+                          초등 {grade}학년 (ELEM{grade}-V1)
+                        </option>
+                      ))}
+                      {[7, 8, 9].map((grade) => (
+                        <option key={`middle-${grade}`} value={`MIDDLE${grade - 6}-V1`}>
+                          중등 {grade - 6}학년 (MIDDLE{grade - 6}-V1)
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      문제 번호 *
+                    </label>
+                    <input
+                      type="number"
+                      value={newQuestion.questionNumber}
+                      onChange={(e) =>
+                        setNewQuestion({
+                          ...newQuestion,
+                          questionNumber: parseInt(e.target.value),
+                        })
+                      }
+                      className="w-full border border-border rounded-lg px-4 py-2 bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      영역 *
+                    </label>
+                    <select
+                      value={newQuestion.category}
+                      onChange={(e) =>
+                        setNewQuestion({
+                          ...newQuestion,
+                          category: e.target.value,
+                        })
+                      }
+                      className="w-full border border-border rounded-lg px-4 py-2 bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    >
+                      <option value="vocabulary">어휘력</option>
+                      <option value="reading">독해력</option>
+                      <option value="grammar">문법/어법</option>
+                      <option value="reasoning">추론/사고력</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      문제 유형 *
+                    </label>
+                    <select
+                      value={newQuestion.questionType}
+                      onChange={(e) =>
+                        setNewQuestion({
+                          ...newQuestion,
+                          questionType: e.target.value,
+                        })
+                      }
+                      className="w-full border border-border rounded-lg px-4 py-2 bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    >
+                      <option value="choice">객관식</option>
+                      <option value="short_answer">주관식</option>
+                      <option value="essay">서술형</option>
+                      <option value="likert_scale">리커트 척도</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    문제 텍스트 *
+                  </label>
+                  <textarea
+                    value={newQuestion.questionText}
+                    onChange={(e) =>
+                      setNewQuestion({
+                        ...newQuestion,
+                        questionText: e.target.value,
+                      })
+                    }
+                    className="w-full border border-border rounded-lg px-4 py-3 bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    rows={3}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    지문 (선택)
+                  </label>
+                  <textarea
+                    value={newQuestion.passage || ''}
+                    onChange={(e) =>
+                      setNewQuestion({
+                        ...newQuestion,
+                        passage: e.target.value,
+                      })
+                    }
+                    className="w-full border border-border rounded-lg px-4 py-3 bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    rows={3}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    이미지 (선택)
+                  </label>
+                  <div className="space-y-3">
+                    {newQuestion.imageUrl && (
+                      <div className="relative inline-block">
+                        <img
+                          src={newQuestion.imageUrl}
+                          alt="문제 이미지"
+                          className="max-w-md max-h-64 rounded-lg border border-border"
+                        />
+                        <button
+                          onClick={() =>
+                            setNewQuestion({
+                              ...newQuestion,
+                              imageUrl: '',
+                            })
+                          }
+                          className="absolute top-2 right-2 bg-destructive text-destructive-foreground rounded-full p-2 hover:bg-destructive/90 transition-colors shadow-md"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    )}
+                    <input
+                      type="file"
+                      accept="image/png,image/jpeg,image/jpg"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleImageUpload(file, false);
+                      }}
+                      disabled={uploadingImage}
+                      className="block w-full text-sm text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 file:cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    />
+                    {uploadingImage && (
+                      <p className="text-sm text-muted-foreground">이미지 업로드 중...</p>
+                    )}
+                    <p className="text-xs text-muted-foreground">
+                      PNG 또는 JPEG 형식, 최대 5MB
+                    </p>
+                  </div>
+                </div>
+
+                {/* 선택지 (객관식인 경우) */}
+                {newQuestion.questionType === 'choice' && newQuestion.options && (
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-3">
+                      선택지 *
+                    </label>
+                    <div className="space-y-3">
+                      {newQuestion.options.map((option: string, index: number) => (
+                        <div key={index} className="flex items-center gap-3">
+                          <span className="font-medium text-muted-foreground w-8">
+                            {index + 1}.
+                          </span>
+                          <input
+                            type="text"
+                            value={option}
+                            onChange={(e) => {
+                              const newOptions = [...(newQuestion.options || [])];
+                              newOptions[index] = e.target.value;
+                              setNewQuestion({
+                                ...newQuestion,
+                                options: newOptions,
+                              });
+                            }}
+                            className="flex-1 border border-border rounded-lg px-4 py-2 bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                            placeholder={`선택지 ${index + 1}`}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    정답 *
+                  </label>
+                  <input
+                    type="text"
+                    value={newQuestion.correctAnswer}
+                    onChange={(e) =>
+                      setNewQuestion({
+                        ...newQuestion,
+                        correctAnswer: e.target.value,
+                      })
+                    }
+                    className="w-full border border-border rounded-lg px-4 py-2 bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    placeholder="객관식은 선택지 번호 (1, 2, 3...), 주관식/서술형은 모범답안"
+                  />
+                </div>
+
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      난이도 *
+                    </label>
+                    <select
+                      value={newQuestion.difficulty}
+                      onChange={(e) =>
+                        setNewQuestion({
+                          ...newQuestion,
+                          difficulty: e.target.value,
+                        })
+                      }
+                      className="w-full border border-border rounded-lg px-4 py-2 bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    >
+                      <option value="easy">쉬움</option>
+                      <option value="medium">보통</option>
+                      <option value="hard">어려움</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      배점 *
+                    </label>
+                    <input
+                      type="number"
+                      value={newQuestion.points}
+                      onChange={(e) =>
+                        setNewQuestion({
+                          ...newQuestion,
+                          points: parseInt(e.target.value),
+                        })
+                      }
+                      className="w-full border border-border rounded-lg px-4 py-2 bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
+
+                  <div></div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    해설 (선택)
+                  </label>
+                  <textarea
+                    value={newQuestion.explanation || ''}
+                    onChange={(e) =>
+                      setNewQuestion({
+                        ...newQuestion,
+                        explanation: e.target.value,
+                      })
+                    }
+                    className="w-full border border-border rounded-lg px-4 py-3 bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    rows={3}
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3 mt-8">
+                <button
+                  onClick={() => {
+                    setIsCreating(false);
+                    setNewQuestion({
+                      templateCode: '',
+                      questionNumber: 1,
+                      category: 'vocabulary',
+                      questionType: 'choice',
+                      questionText: '',
+                      passage: '',
+                      imageUrl: '',
+                      options: ['', '', '', ''],
+                      correctAnswer: '',
+                      points: 10,
+                      difficulty: 'medium',
+                      explanation: '',
+                    });
+                  }}
+                  className="px-6 py-2 border border-border rounded-lg hover:bg-muted transition-colors text-foreground font-medium"
+                >
+                  취소
+                </button>
+                <button
+                  onClick={handleCreateQuestion}
+                  className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium shadow-sm"
+                >
+                  생성
                 </button>
               </div>
             </div>

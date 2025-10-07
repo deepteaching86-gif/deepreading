@@ -60,7 +60,8 @@
       "Bash(set NETLIFY_SITE_ID=b1ce6181-d158-42e0-b07f-d19353e0fa70)",
       "Bash(dir:*)",
       "Bash(timeout:*)",
-      "Bash(git rm:*)"
+      "Bash(git rm:*)",
+      "Bash(findstr:*)"
     ],
     "deny": [],
     "ask": []
