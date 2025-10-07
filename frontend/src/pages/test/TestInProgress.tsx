@@ -63,12 +63,24 @@ export default function TestInProgress() {
       const response = await axios.get(`/api/v1/sessions/${sessionId}`);
       let session = response.data.data;
 
+      // 설문 완료 여부 확인
+      if (!session.surveyCompletedAt) {
+        alert('먼저 설문을 완료해주세요.');
+        navigate(`/test/survey/${sessionId}`);
+        return;
+      }
+
       // Fix: Access questions from session.template.questions
       if (!session.template?.questions || session.template.questions.length === 0) {
         throw new Error('테스트 문제를 찾을 수 없습니다.');
       }
 
-      setQuestions(session.template.questions);
+      // 설문 문항 제외 (실제 테스트 문항만)
+      const testQuestions = session.template.questions.filter((q: Question) => {
+        return !['reading_motivation', 'reading_environment', 'reading_habit', 'writing_motivation', 'reading_preference'].includes(q.category);
+      });
+
+      setQuestions(testQuestions);
 
       // 기존 답안 불러오기
       const existingAnswers: Record<string, string> = {};
@@ -77,7 +89,7 @@ export default function TestInProgress() {
       });
       setAnswers(existingAnswers);
 
-      // If session hasn't started yet, start it now
+      // If session hasn't started actual test yet, start it now (타이머 시작)
       if (!session.startedAt || session.status === 'pending') {
         const startResponse = await axios.patch(`/api/v1/sessions/${sessionId}/status`, {
           status: 'in_progress',
@@ -85,7 +97,7 @@ export default function TestInProgress() {
         session = startResponse.data.data;
       }
 
-      // 남은 시간 계산 - 타이머는 세션 시작 시간부터 자동으로 시작
+      // 남은 시간 계산 - 타이머는 실제 테스트 시작 시간부터 자동으로 시작
       const startedAt = new Date(session.startedAt);
       const now = new Date();
       const elapsedMinutes = (now.getTime() - startedAt.getTime()) / 1000 / 60;

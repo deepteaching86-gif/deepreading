@@ -3,6 +3,7 @@ import { Request, Response, NextFunction } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { ApiError } from '../../errors/api-error';
 import { nanoid } from 'nanoid';
+import { gradeEssayWithAI } from '../../services/openai.service';
 
 const prisma = new PrismaClient();
 
@@ -418,15 +419,48 @@ export const submitSession = async (req: AuthRequest, res: Response, next: NextF
     for (const question of allQuestions) {
       const studentAnswer: string = String(answersMap.get(question.id) || '');
       const correctAnswer: string = String(question.correctAnswer || '');
-      const isCorrect = studentAnswer.toLowerCase().trim() === correctAnswer.toLowerCase().trim();
 
-      if (isCorrect) {
+      let isCorrect = false;
+      let pointsEarned = 0;
+      let feedback: string | null = null;
+
+      // AI 채점 for essay and short_answer questions
+      if (
+        (question.questionType === 'essay' || question.questionType === 'short_answer') &&
+        studentAnswer.trim() !== ''
+      ) {
+        try {
+          const aiResult = await gradeEssayWithAI({
+            questionText: question.questionText,
+            passage: question.passage || undefined,
+            correctAnswer,
+            studentAnswer,
+            points: question.points,
+          });
+
+          isCorrect = aiResult.isCorrect;
+          pointsEarned = aiResult.pointsEarned;
+          feedback = aiResult.feedback;
+        } catch (error) {
+          console.error(`AI grading failed for question ${question.id}:`, error);
+          // Fallback to simple matching
+          isCorrect = studentAnswer.toLowerCase().trim() === correctAnswer.toLowerCase().trim();
+          pointsEarned = isCorrect ? question.points : 0;
+          feedback = 'AI 채점 실패로 단순 비교 채점이 적용되었습니다.';
+        }
+      } else {
+        // Simple matching for choice questions
+        isCorrect = studentAnswer.toLowerCase().trim() === correctAnswer.toLowerCase().trim();
+        pointsEarned = isCorrect ? question.points : 0;
+      }
+
+      if (isCorrect || pointsEarned > 0) {
         correctAnswers++;
-        totalScore += question.points;
       } else {
         incorrectAnswers++;
       }
 
+      totalScore += pointsEarned;
       totalPossible += question.points;
 
       // Check if answer already exists
@@ -438,7 +472,6 @@ export const submitSession = async (req: AuthRequest, res: Response, next: NextF
       });
 
       const answerValue: string | null = studentAnswer ? studentAnswer : null;
-      const pointsEarned = isCorrect ? question.points : 0;
 
       if (existingAnswer) {
         // Update existing answer
@@ -448,6 +481,7 @@ export const submitSession = async (req: AuthRequest, res: Response, next: NextF
             studentAnswer: answerValue,
             isCorrect,
             pointsEarned,
+            feedback,
           },
         });
       } else {
@@ -460,6 +494,7 @@ export const submitSession = async (req: AuthRequest, res: Response, next: NextF
             studentAnswer: answerValue,
             isCorrect,
             pointsEarned,
+            feedback,
           },
         });
       }

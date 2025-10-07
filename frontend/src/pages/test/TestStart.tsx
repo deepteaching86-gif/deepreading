@@ -48,7 +48,8 @@ export default function TestStart() {
       });
 
       const sessionId = response.data.data.sessionId;
-      navigate(`/test/session/${sessionId}`);
+      // 설문 페이지로 이동 (설문 완료 후 실제 테스트 시작)
+      navigate(`/test/survey/${sessionId}`);
     } catch (error: any) {
       console.error('테스트 시작 실패:', error);
       alert(error.response?.data?.message || '테스트를 시작할 수 없습니다.');
