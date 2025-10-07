@@ -29,4 +29,7 @@ router.post('/:id/submit', authenticateToken, sessionsController.submitSession);
 // Update session status
 router.patch('/:id/status', authenticateToken, sessionsController.updateSessionStatus);
 
+// Delete session
+router.delete('/:id', authenticateToken, sessionsController.deleteSession);
+
 export default router;

@@ -125,7 +125,9 @@ export const getAllSessions = async (req: AuthRequest, res: Response, next: Next
 
     const sessions = await prisma.testSession.findMany({
       where: {
-        status: 'scored',
+        status: {
+          in: ['completed', 'scored'],
+        },
       },
       include: {
         student: {

@@ -97,6 +97,21 @@ export default function Dashboard() {
     navigate('/login');
   };
 
+  const handleDeleteSession = async (sessionId: string) => {
+    if (!confirm('이 테스트를 삭제하시겠습니까?')) {
+      return;
+    }
+
+    try {
+      await axios.delete(`/api/v1/sessions/${sessionId}`);
+      alert('테스트가 삭제되었습니다.');
+      fetchData(); // Refresh data
+    } catch (error) {
+      console.error('테스트 삭제 실패:', error);
+      alert('테스트 삭제에 실패했습니다.');
+    }
+  };
+
   const getGradeName = (grade: number) => {
     if (grade <= 6) return `초등 ${grade}학년`;
     return `중등 ${grade - 6}학년`;
@@ -328,22 +343,30 @@ export default function Dashboard() {
                         {new Date(session.createdAt).toLocaleDateString('ko-KR')}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        {session.status === 'in_progress' && (
+                        <div className="flex items-center gap-2">
+                          {session.status === 'in_progress' && (
+                            <button
+                              onClick={() => navigate(`/test/session/${session.id}`)}
+                              className="text-primary hover:underline text-sm font-medium"
+                            >
+                              계속하기
+                            </button>
+                          )}
+                          {(session.status === 'scored' || session.status === 'completed') && session.result && (
+                            <button
+                              onClick={() => navigate(`/test/result/${session.id}`)}
+                              className="text-primary hover:underline text-sm font-medium"
+                            >
+                              결과보기
+                            </button>
+                          )}
                           <button
-                            onClick={() => navigate(`/test/session/${session.id}`)}
-                            className="text-primary hover:underline text-sm font-medium"
+                            onClick={() => handleDeleteSession(session.id)}
+                            className="text-destructive hover:underline text-sm font-medium ml-2"
                           >
-                            계속하기
+                            삭제
                           </button>
-                        )}
-                        {session.status === 'scored' && session.result && (
-                          <button
-                            onClick={() => navigate(`/test/result/${session.id}`)}
-                            className="text-primary hover:underline text-sm font-medium"
-                          >
-                            결과보기
-                          </button>
-                        )}
+                        </div>
                       </td>
                     </tr>
                   ))}

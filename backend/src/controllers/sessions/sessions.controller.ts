@@ -663,9 +663,9 @@ export const getSessionResult = async (req: AuthRequest, res: Response, next: Ne
     const result = {
       totalScore: session.result.totalScore,
       totalPossible: session.result.totalPossible,
-      percentage: session.result.percentage,
+      percentage: Number(session.result.percentage),
       gradeLevel: session.result.gradeLevel || 1,
-      percentile: session.result.percentile,
+      percentile: session.result.percentile ? Number(session.result.percentile) : null,
       vocabularyScore: categoryScores['vocabulary']?.score || 0,
       readingScore: categoryScores['reading']?.score || 0,
       grammarScore: categoryScores['grammar']?.score || 0,
@@ -693,6 +693,57 @@ export const getSessionResult = async (req: AuthRequest, res: Response, next: Ne
     }
     console.error('Error getting session result:', error);
     next(new ApiError('Failed to get session result', 500));
+  }
+};
+
+/**
+ * Delete a test session
+ */
+export const deleteSession = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user?.userId;
+
+    if (!userId) {
+      throw new ApiError('User not authenticated', 401);
+    }
+
+    // Get session to verify ownership
+    const session = await prisma.testSession.findUnique({
+      where: { id },
+      include: {
+        student: {
+          select: {
+            userId: true,
+          },
+        },
+      },
+    });
+
+    if (!session) {
+      throw new ApiError('Session not found', 404);
+    }
+
+    // Verify ownership (students can only delete their own sessions, admins can delete any)
+    if (session.student.userId !== userId && req.user?.role !== 'admin') {
+      throw new ApiError('Unauthorized to delete this session', 403);
+    }
+
+    // Delete session (cascade will delete answers and result)
+    await prisma.testSession.delete({
+      where: { id },
+    });
+
+    res.json({
+      success: true,
+      message: 'Session deleted successfully',
+    });
+  } catch (error) {
+    if (error instanceof ApiError) {
+      return next(error);
+    }
+    console.error('Error deleting session:', error);
+    next(new ApiError('Failed to delete session', 500));
   }
 };
 
