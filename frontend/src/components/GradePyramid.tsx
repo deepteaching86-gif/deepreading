@@ -8,6 +8,14 @@ interface GradePyramidProps {
 export function GradePyramid({ currentGrade, className = '' }: GradePyramidProps) {
   return (
     <div className={`relative ${className}`}>
+      <style>{`
+        @media print {
+          .pyramid-block {
+            print-color-adjust: exact !important;
+            -webkit-print-color-adjust: exact !important;
+          }
+        }
+      `}</style>
       {/* 피라미드 구조 */}
       <div className="flex flex-col items-center gap-0.5">
         {GRADE_PYRAMID.map((level) => {
@@ -23,9 +31,9 @@ export function GradePyramid({ currentGrade, className = '' }: GradePyramidProps
               {/* 피라미드 블록 */}
               <div
                 className={`
-                  relative h-14 rounded-lg transition-all duration-300
+                  pyramid-block relative h-14 rounded-lg transition-all duration-300
                   ${isCurrentLevel
-                    ? 'ring-4 ring-purple-600 ring-offset-2 shadow-2xl scale-105 z-10'
+                    ? 'ring-4 ring-violet-700 ring-offset-2 shadow-2xl scale-105 z-10'
                     : 'hover:scale-105 hover:shadow-lg'
                   }
                 `}
@@ -39,7 +47,7 @@ export function GradePyramid({ currentGrade, className = '' }: GradePyramidProps
                     <div
                       className={`
                         font-bold text-sm
-                        ${level.level <= 3 ? 'text-white' : 'text-purple-900'}
+                        ${level.level <= 3 ? 'text-white' : 'text-violet-900'}
                         ${isCurrentLevel ? 'text-lg' : ''}
                       `}
                     >
@@ -48,7 +56,7 @@ export function GradePyramid({ currentGrade, className = '' }: GradePyramidProps
                     <div
                       className={`
                         text-xs
-                        ${level.level <= 3 ? 'text-purple-100' : 'text-purple-700'}
+                        ${level.level <= 3 ? 'text-violet-100' : 'text-violet-700'}
                         ${isCurrentLevel ? 'font-semibold' : ''}
                       `}
                     >
@@ -60,9 +68,9 @@ export function GradePyramid({ currentGrade, className = '' }: GradePyramidProps
                 {/* 현재 위치 마커 */}
                 {isCurrentLevel && (
                   <>
-                    <div className="absolute -right-12 top-1/2 -translate-y-1/2 flex items-center gap-2 z-20">
-                      <div className="w-8 h-0.5 bg-purple-600"></div>
-                      <div className="bg-purple-600 text-white px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap shadow-lg">
+                    <div className="absolute -right-12 top-1/2 -translate-y-1/2 flex items-center gap-2 z-20 print:hidden">
+                      <div className="w-8 h-0.5 bg-violet-700"></div>
+                      <div className="bg-violet-700 text-white px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap shadow-lg">
                         내 위치
                       </div>
                     </div>
@@ -87,7 +95,7 @@ export function GradePyramid({ currentGrade, className = '' }: GradePyramidProps
       {/* 설명 텍스트 */}
       <div className="mt-8 text-center">
         <p className="text-sm text-gray-600">
-          당신은 <span className="font-bold text-purple-600">{GRADE_PYRAMID[currentGrade - 1]?.label}</span> 등급입니다
+          당신은 <span className="font-bold text-violet-700">{GRADE_PYRAMID[currentGrade - 1]?.label}</span> 등급입니다
         </p>
         <p className="text-xs text-gray-500 mt-1">
           {GRADE_PYRAMID[currentGrade - 1]?.description}
