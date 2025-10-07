@@ -139,6 +139,7 @@ export const getSessionById = async (req: AuthRequest, res: Response, next: Next
       return next(error);
     }
     console.error('Error fetching session:', error);
+    console.error('Error details:', JSON.stringify(error, null, 2));
     next(new ApiError('Failed to fetch session', 500));
   }
 };
