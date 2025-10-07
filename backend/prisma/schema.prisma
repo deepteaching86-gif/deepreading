@@ -129,8 +129,9 @@ model Question {
   explanation    String?          @db.Text
 
   // Relations
-  template TestTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
-  answers  Answer[]
+  template        TestTemplate     @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  answers         Answer[]
+  surveyResponses SurveyResponse[]
 
   @@unique([templateId, questionNumber])
   @@index([templateId])
@@ -148,21 +149,23 @@ enum SessionStatus {
 }
 
 model TestSession {
-  id          String        @id @default(uuid()) @db.Uuid
-  sessionCode String        @unique @map("session_code") @db.VarChar(50)
-  studentId   String        @map("student_id") @db.Uuid
-  templateId  String        @map("template_id") @db.Uuid
-  status      SessionStatus @default(pending)
-  startedAt   DateTime?     @map("started_at")
-  completedAt DateTime?     @map("completed_at")
-  scoredAt    DateTime?     @map("scored_at")
-  createdAt   DateTime      @default(now()) @map("created_at")
+  id                  String        @id @default(uuid()) @db.Uuid
+  sessionCode         String        @unique @map("session_code") @db.VarChar(50)
+  studentId           String        @map("student_id") @db.Uuid
+  templateId          String        @map("template_id") @db.Uuid
+  status              SessionStatus @default(pending)
+  surveyCompletedAt   DateTime?     @map("survey_completed_at") // 설문 완료 시간
+  startedAt           DateTime?     @map("started_at") // 실제 테스트 시작 시간
+  completedAt         DateTime?     @map("completed_at")
+  scoredAt            DateTime?     @map("scored_at")
+  createdAt           DateTime      @default(now()) @map("created_at")
 
   // Relations
-  student  Student      @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  template TestTemplate @relation(fields: [templateId], references: [id])
-  answers  Answer[]
-  result   TestResult?
+  student         Student           @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  template        TestTemplate      @relation(fields: [templateId], references: [id])
+  answers         Answer[]
+  result          TestResult?
+  surveyResponses SurveyResponse[]
 
   @@index([studentId])
   @@index([sessionCode])
@@ -188,6 +191,24 @@ model Answer {
 
   @@index([sessionId])
   @@map("answers")
+}
+
+// ===== Survey Responses (설문 응답) =====
+
+model SurveyResponse {
+  id             String   @id @default(uuid()) @db.Uuid
+  sessionId      String   @map("session_id") @db.Uuid
+  questionId     String   @map("question_id") @db.Uuid
+  questionNumber Int      @map("question_number") @db.Integer
+  response       String   @db.Text // 응답 값 (숫자 또는 텍스트)
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  // Relations
+  session  TestSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  question Question    @relation(fields: [questionId], references: [id])
+
+  @@index([sessionId])
+  @@map("survey_responses")
 }
 
 // ===== Test Results =====

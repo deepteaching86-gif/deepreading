@@ -10,6 +10,7 @@ import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import Dashboard from './pages/Dashboard';
 import TestStart from './pages/test/TestStart';
+import TestSurvey from './pages/test/TestSurvey';
 import TestInProgress from './pages/test/TestInProgress';
 import TestResultEnhanced from './pages/test/TestResultEnhanced';
 import AdminQuestionManagement from './pages/admin/QuestionManagement';
@@ -55,6 +56,14 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['student']}>
                 <TestStart />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/test/survey/:sessionId"
+            element={
+              <ProtectedRoute allowedRoles={['student']}>
+                <TestSurvey />
               </ProtectedRoute>
             }
           />

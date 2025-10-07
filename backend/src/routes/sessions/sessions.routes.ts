@@ -2,6 +2,7 @@
 import { Router } from 'express';
 import { authenticateToken } from '../../middleware/auth.middleware';
 import * as sessionsController from '../../controllers/sessions/sessions.controller';
+import * as surveyController from '../../controllers/sessions/survey.controller';
 
 const router = Router();
 
@@ -31,5 +32,10 @@ router.patch('/:id/status', authenticateToken, sessionsController.updateSessionS
 
 // Delete session
 router.delete('/:id', authenticateToken, sessionsController.deleteSession);
+
+// Survey routes
+router.get('/:id/survey', authenticateToken, surveyController.getSurveyQuestions);
+router.post('/:id/survey', authenticateToken, surveyController.submitSurveyResponses);
+router.get('/:id/survey/responses', authenticateToken, surveyController.getSurveyResponses);
 
 export default router;
