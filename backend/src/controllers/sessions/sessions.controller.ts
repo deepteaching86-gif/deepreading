@@ -670,13 +670,18 @@ export const getSessionResult = async (req: AuthRequest, res: Response, next: Ne
 
     session.answers.forEach((answer: any) => {
       const category = answer.question.category;
+      // Only count test categories (not survey)
+      if (!['vocabulary', 'reading', 'grammar', 'reasoning'].includes(category)) {
+        return;
+      }
+
       if (!categoryScores[category]) {
         categoryScores[category] = { correct: 0, total: 0, score: 0 };
       }
       categoryScores[category].total += answer.question.points;
+      categoryScores[category].score += answer.pointsEarned || 0;
       if (answer.isCorrect) {
         categoryScores[category].correct += answer.question.points;
-        categoryScores[category].score += answer.question.points;
       }
     });
 
@@ -753,14 +758,32 @@ export const getSessionResult = async (req: AuthRequest, res: Response, next: Ne
       category,
       score: data.score,
       maxScore: data.total,
-      percentage: (data.correct / data.total) * 100,
+      percentage: data.total > 0 ? (data.score / data.total) * 100 : 0,
     }));
+
+    // Calculate grade based on actual percentage
+    const totalScore = session.result.totalScore;
+    const totalPossible = session.result.totalPossible;
+    const percentage = totalPossible > 0 ? (totalScore / totalPossible) * 100 : 0;
+
+    // Grade calculation (1-9)
+    const calculateGrade = (pct: number): number => {
+      if (pct >= 96) return 1;
+      if (pct >= 89) return 2;
+      if (pct >= 77) return 3;
+      if (pct >= 60) return 4;
+      if (pct >= 40) return 5;
+      if (pct >= 23) return 6;
+      if (pct >= 11) return 7;
+      if (pct >= 4) return 8;
+      return 9;
+    };
 
     const result = {
       sessionId: session.id,
       studentId: session.studentId,
       totalScore: session.result.totalScore,
-      grade: session.result.gradeLevel || 1,
+      grade: calculateGrade(percentage),
       strengths: strengths.map(s => s.description),
       weaknesses: weaknesses.map(w => w.description),
       recommendations: recommendations.map(r => r.suggestion),
