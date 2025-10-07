@@ -107,7 +107,12 @@ export const getSessionById = async (req: AuthRequest, res: Response, next: Next
           },
         },
         template: {
-          include: {
+          select: {
+            id: true,
+            templateCode: true,
+            grade: true,
+            title: true,
+            timeLimit: true,
             questions: {
               orderBy: {
                 questionNumber: 'asc',
