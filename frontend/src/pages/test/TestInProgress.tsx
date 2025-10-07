@@ -61,7 +61,7 @@ export default function TestInProgress() {
     try {
       setLoading(true);
       const response = await axios.get(`/api/v1/sessions/${sessionId}`);
-      const session = response.data.data;
+      let session = response.data.data;
 
       // Fix: Access questions from session.template.questions
       if (!session.template?.questions || session.template.questions.length === 0) {
@@ -76,6 +76,14 @@ export default function TestInProgress() {
         existingAnswers[answer.questionId] = answer.studentAnswer || '';
       });
       setAnswers(existingAnswers);
+
+      // If session hasn't started yet, start it now
+      if (!session.startedAt || session.status === 'pending') {
+        const startResponse = await axios.patch(`/api/v1/sessions/${sessionId}/status`, {
+          status: 'in_progress',
+        });
+        session = startResponse.data.data;
+      }
 
       // 남은 시간 계산 - 타이머는 세션 시작 시간부터 자동으로 시작
       const startedAt = new Date(session.startedAt);
