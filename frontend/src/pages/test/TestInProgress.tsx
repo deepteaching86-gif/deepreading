@@ -56,7 +56,12 @@ export default function TestInProgress() {
       const response = await axios.get(`/api/v1/sessions/${sessionId}`);
       const session = response.data.data;
 
-      setQuestions(session.questions);
+      // Fix: Access questions from session.template.questions
+      if (!session.template?.questions || session.template.questions.length === 0) {
+        throw new Error('테스트 문제를 찾을 수 없습니다.');
+      }
+
+      setQuestions(session.template.questions);
 
       // 기존 답안 불러오기
       const existingAnswers: Record<string, string> = {};
@@ -157,8 +162,6 @@ export default function TestInProgress() {
     return categoryMap[category] || category;
   };
 
-  const currentQuestion = questions[currentQuestionIndex];
-
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -166,6 +169,17 @@ export default function TestInProgress() {
       </div>
     );
   }
+
+  // Check if questions array exists and has items
+  if (!questions || questions.length === 0) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-xl text-muted-foreground">문제를 불러올 수 없습니다.</div>
+      </div>
+    );
+  }
+
+  const currentQuestion = questions[currentQuestionIndex];
 
   if (!currentQuestion) {
     return null;
