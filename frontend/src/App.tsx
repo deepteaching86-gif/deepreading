@@ -11,7 +11,7 @@ import Register from './pages/auth/Register';
 import Dashboard from './pages/Dashboard';
 import TestStart from './pages/test/TestStart';
 import TestInProgress from './pages/test/TestInProgress';
-import TestResult from './pages/test/TestResult';
+import TestResultEnhanced from './pages/test/TestResultEnhanced';
 import AdminQuestionManagement from './pages/admin/QuestionManagement';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminGradingManagement from './pages/admin/GradingManagement';
@@ -70,7 +70,7 @@ function App() {
             path="/test/result/:sessionId"
             element={
               <ProtectedRoute allowedRoles={['student']}>
-                <TestResult />
+                <TestResultEnhanced />
               </ProtectedRoute>
             }
           />
