@@ -398,8 +398,8 @@ export const submitSession = async (req: AuthRequest, res: Response, next: NextF
     let totalPossible = 0;
 
     for (const question of allQuestions) {
-      const studentAnswer = answersMap.get(question.id) || '';
-      const correctAnswer = String(question.correctAnswer || '');
+      const studentAnswer: string = String(answersMap.get(question.id) || '');
+      const correctAnswer: string = String(question.correctAnswer || '');
       const isCorrect = studentAnswer.toLowerCase().trim() === correctAnswer.toLowerCase().trim();
 
       if (isCorrect) {
@@ -419,12 +419,14 @@ export const submitSession = async (req: AuthRequest, res: Response, next: NextF
         },
       });
 
+      const answerValue: string | null = studentAnswer ? studentAnswer : null;
+
       if (existingAnswer) {
         // Update existing answer
         await prisma.answer.update({
           where: { id: existingAnswer.id },
           data: {
-            studentAnswer: studentAnswer || null,
+            studentAnswer: answerValue,
             isCorrect,
           },
         });
@@ -435,7 +437,7 @@ export const submitSession = async (req: AuthRequest, res: Response, next: NextF
             sessionId: id,
             questionId: question.id,
             questionNumber: question.questionNumber,
-            studentAnswer: studentAnswer || null,
+            studentAnswer: answerValue,
             isCorrect,
           },
         });
