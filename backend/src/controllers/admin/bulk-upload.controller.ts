@@ -73,7 +73,7 @@ interface AuthRequest extends Request {
 }
 
 /**
- * Download Excel template
+ * Download Universal Excel template (supports all grades)
  */
 export const downloadTemplate = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
@@ -81,28 +81,11 @@ export const downloadTemplate = async (req: AuthRequest, res: Response, next: Ne
       return next(new ApiError('Admin only', 403));
     }
 
-    const { templateCode } = req.query;
-    if (!templateCode) {
-      return next(new ApiError('Template code required', 400));
-    }
-
-    const template = await prisma.testTemplate.findUnique({
-      where: { templateCode: templateCode as string },
-      include: {
-        questions: {
-          orderBy: { questionNumber: 'asc' },
-        },
-      },
-    });
-
-    if (!template) {
-      return next(new ApiError('Template not found', 404));
-    }
-
     const workbook = new ExcelJS.Workbook();
     const dataSheet = workbook.addWorksheet('학생 데이터');
+    const infoSheet = workbook.addWorksheet('사용 안내');
 
-    // Define columns
+    // Define columns - universal template with 50 question columns
     const columns: any[] = [
       { header: '학생이름', key: 'studentName', width: 15 },
       { header: '학생이메일', key: 'studentEmail', width: 25 },
@@ -112,31 +95,89 @@ export const downloadTemplate = async (req: AuthRequest, res: Response, next: Ne
       { header: '템플릿코드', key: 'templateCode', width: 15 },
     ];
 
-    template.questions.forEach((q) => {
+    // Add 50 question columns (supports up to 50 questions per test)
+    for (let i = 1; i <= 50; i++) {
       columns.push({
-        header: `Q${q.questionNumber}`,
-        key: `q${q.questionNumber}`,
-        width: 30,
+        header: `Q${i}`,
+        key: `q${i}`,
+        width: 15,
       });
-    });
+    }
 
     dataSheet.columns = columns;
 
-    // Sample row
-    const sampleRow: any = {
-      studentName: '홍길동',
-      studentEmail: 'student1@example.com',
-      grade: template.grade,
-      schoolName: '테스트초등학교',
-      className: `${template.grade}-1`,
-      templateCode: template.templateCode,
+    // Add sample rows for different grades
+    const sampleRows = [
+      {
+        studentName: '홍길동',
+        studentEmail: 'student1@example.com',
+        grade: 3,
+        schoolName: '테스트초등학교',
+        className: '3-1',
+        templateCode: 'ELEM3-V1',
+        q1: '1',
+        q2: '답안 예시',
+        q3: '3',
+      },
+      {
+        studentName: '김영희',
+        studentEmail: 'student2@example.com',
+        grade: 7,
+        schoolName: '테스트중학교',
+        className: '1-2',
+        templateCode: 'MIDDLE1-V1',
+        q1: '2',
+        q2: '답안 예시',
+        q3: '4',
+      },
+    ];
+
+    sampleRows.forEach((row) => dataSheet.addRow(row));
+
+    // Style header row
+    dataSheet.getRow(1).font = { bold: true };
+    dataSheet.getRow(1).fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FF9333EA' }, // Purple color
     };
+    dataSheet.getRow(1).alignment = { vertical: 'middle', horizontal: 'center' };
 
-    template.questions.forEach((q) => {
-      sampleRow[`q${q.questionNumber}`] = q.questionType === 'choice' ? '1' : '답안 예시';
-    });
+    // Add info sheet
+    infoSheet.columns = [
+      { header: '항목', key: 'item', width: 20 },
+      { header: '설명', key: 'description', width: 60 },
+    ];
 
-    dataSheet.addRow(sampleRow);
+    const infoData = [
+      { item: '사용 방법', description: '1. 학생 데이터 시트에 학생 정보와 답안을 입력합니다.' },
+      { item: '', description: '2. 필수 항목: 학생이름, 학생이메일, 학년, 템플릿코드' },
+      { item: '', description: '3. 선택 항목: 학교명, 반' },
+      { item: '', description: '4. 답안은 Q1, Q2, Q3... 형식으로 입력합니다.' },
+      { item: '', description: '5. 파일을 저장하고 업로드 페이지에서 업로드합니다.' },
+      { item: '', description: '' },
+      { item: '템플릿 코드', description: '초등: ELEM1-V1 ~ ELEM6-V1 | 중등: MIDDLE1-V1 ~ MIDDLE3-V1' },
+      { item: '학년', description: '초등 1~6학년: 1~6 | 중등 1~3학년: 7~9' },
+      { item: '', description: '' },
+      { item: '객관식 답안', description: '1, 2, 3, 4 중 하나' },
+      { item: '주관식 답안', description: '학생이 작성한 답안을 그대로 입력' },
+      { item: '서술형 답안', description: '학생이 작성한 답안을 그대로 입력 (AI가 자동 채점)' },
+      { item: '리커트 척도', description: '1~5 사이의 숫자' },
+      { item: '', description: '' },
+      { item: '주의사항', description: '- 한 파일에 여러 학년의 학생을 섞어서 입력 가능' },
+      { item: '', description: '- 각 학생마다 올바른 템플릿코드를 입력해야 합니다' },
+      { item: '', description: '- 이메일은 중복되지 않아야 합니다' },
+      { item: '', description: '- 답안이 없는 문항은 빈 칸으로 두면 0점 처리됩니다' },
+    ];
+
+    infoData.forEach((row) => infoSheet.addRow(row));
+
+    infoSheet.getRow(1).font = { bold: true };
+    infoSheet.getRow(1).fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FF9333EA' },
+    };
 
     res.setHeader(
       'Content-Type',
@@ -144,13 +185,13 @@ export const downloadTemplate = async (req: AuthRequest, res: Response, next: Ne
     );
     res.setHeader(
       'Content-Disposition',
-      `attachment; filename=template_${template.templateCode}.xlsx`
+      'attachment; filename=literacy_test_universal_template.xlsx'
     );
 
     await workbook.xlsx.write(res);
     res.end();
   } catch (error) {
-    console.error('Error:', error);
+    console.error('Template download error:', error);
     next(new ApiError('Failed to generate template', 500));
   }
 };

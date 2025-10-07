@@ -2,34 +2,32 @@ import React, { useState } from 'react';
 import axios from '../../lib/axios';
 
 const BulkUpload: React.FC = () => {
-  const [templateCode, setTemplateCode] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [downloading, setDownloading] = useState(false);
   const [results, setResults] = useState<any[]>([]);
   const [error, setError] = useState('');
 
   const handleDownloadTemplate = async () => {
     try {
-      if (!templateCode) {
-        alert('템플릿 코드를 입력하세요.');
-        return;
-      }
-
+      setDownloading(true);
       const response = await axios.get(`/api/v1/admin/bulk-upload/template`, {
-        params: { templateCode },
         responseType: 'blob',
       });
 
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', `${templateCode}_template.xlsx`);
+      link.setAttribute('download', 'literacy_test_universal_template.xlsx');
       document.body.appendChild(link);
       link.click();
       link.remove();
+      window.URL.revokeObjectURL(url);
     } catch (err: any) {
       console.error('템플릿 다운로드 실패:', err);
       alert(err.response?.data?.message || '템플릿 다운로드에 실패했습니다.');
+    } finally {
+      setDownloading(false);
     }
   };
 
@@ -46,11 +44,6 @@ const BulkUpload: React.FC = () => {
       return;
     }
 
-    if (!templateCode) {
-      setError('템플릿 코드를 입력하세요.');
-      return;
-    }
-
     try {
       setUploading(true);
       setError('');
@@ -58,7 +51,6 @@ const BulkUpload: React.FC = () => {
 
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('templateCode', templateCode);
 
       const response = await axios.post('/api/v1/admin/bulk-upload/upload', formData, {
         headers: {
@@ -84,26 +76,28 @@ const BulkUpload: React.FC = () => {
 
         {/* 템플릿 다운로드 */}
         <div className="bg-card rounded-lg shadow-sm p-6 mb-6 border border-border">
-          <h2 className="text-xl font-semibold mb-4 text-foreground">1. 엑셀 템플릿 다운로드</h2>
-          <div className="flex gap-4">
-            <input
-              type="text"
-              value={templateCode}
-              onChange={(e) => setTemplateCode(e.target.value)}
-              placeholder="템플릿 코드 (예: ELEM3-V1)"
-              className="flex-1 border border-border rounded-lg px-4 py-2 bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-            />
+          <h2 className="text-xl font-semibold mb-4 text-foreground">1. 통합 엑셀 템플릿 다운로드</h2>
+          <div className="mb-4">
             <button
               onClick={handleDownloadTemplate}
-              disabled={!templateCode}
-              className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+              disabled={downloading}
+              className="w-full px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
             >
-              템플릿 다운로드
+              {downloading ? '다운로드 중...' : '📥 통합 템플릿 다운로드'}
             </button>
           </div>
-          <p className="mt-3 text-sm text-muted-foreground">
-            * 템플릿 코드 예시: ELEM1-V1 ~ ELEM6-V1 (초등), MIDDLE1-V1 ~ MIDDLE3-V1 (중등)
-          </p>
+          <div className="bg-muted/30 rounded-lg p-4 space-y-2">
+            <p className="text-sm text-foreground font-medium">✨ 통합 템플릿 특징:</p>
+            <ul className="text-sm text-muted-foreground space-y-1 ml-4">
+              <li>• 한 파일로 모든 학년 학생 데이터 입력 가능</li>
+              <li>• 각 행에 학년과 템플릿코드를 입력하여 여러 학년을 한번에 처리</li>
+              <li>• 최대 50개 문항까지 지원 (Q1~Q50)</li>
+              <li>• 사용 안내 시트 포함</li>
+            </ul>
+            <p className="text-xs text-muted-foreground mt-3">
+              템플릿 코드: ELEM1-V1 ~ ELEM6-V1 (초등 1~6학년), MIDDLE1-V1 ~ MIDDLE3-V1 (중등 1~3학년)
+            </p>
+          </div>
         </div>
 
         {/* 파일 업로드 */}
@@ -132,11 +126,14 @@ const BulkUpload: React.FC = () => {
 
           <button
             onClick={handleUpload}
-            disabled={!file || !templateCode || uploading}
+            disabled={!file || uploading}
             className="w-full px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
           >
-            {uploading ? '업로드 중...' : '업로드 및 데이터 생성'}
+            {uploading ? '업로드 중...' : '📤 업로드 및 자동 채점 시작'}
           </button>
+          <p className="mt-2 text-xs text-muted-foreground text-center">
+            * 주관식/서술형은 AI(GPT-4o-mini)가 자동 채점합니다
+          </p>
         </div>
 
         {/* 결과 */}
