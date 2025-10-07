@@ -19,7 +19,7 @@ import AdminBulkUpload from './pages/admin/BulkUpload';
 import AdminStudentReports from './pages/admin/StudentReports';
 import ParentDashboard from './pages/parent/ParentDashboard';
 import TeacherDashboard from './pages/teacher/TeacherDashboard';
-import DetailedReport from './pages/DetailedReport';
+import DetailedReportEnhanced from './pages/DetailedReportEnhanced';
 import Unauthorized from './pages/Unauthorized';
 
 const queryClient = new QueryClient({
@@ -132,7 +132,7 @@ function App() {
             path="/report/:resultId"
             element={
               <ProtectedRoute allowedRoles={['student', 'parent', 'teacher', 'admin']}>
-                <DetailedReport />
+                <DetailedReportEnhanced />
               </ProtectedRoute>
             }
           />
