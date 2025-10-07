@@ -114,6 +114,19 @@ export const getSessionById = async (req: AuthRequest, res: Response, next: Next
             title: true,
             timeLimit: true,
             questions: {
+              select: {
+                id: true,
+                questionNumber: true,
+                category: true,
+                questionType: true,
+                questionText: true,
+                passage: true,
+                imageUrl: true,
+                options: true,
+                points: true,
+                difficulty: true,
+                correctAnswer: true,
+              },
               orderBy: {
                 questionNumber: 'asc',
               },
