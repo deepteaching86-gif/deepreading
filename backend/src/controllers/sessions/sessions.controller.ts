@@ -626,7 +626,13 @@ export const getSessionResult = async (req: AuthRequest, res: Response, next: Ne
         },
         result: true,
         answers: {
-          include: {
+          select: {
+            id: true,
+            questionNumber: true,
+            studentAnswer: true,
+            isCorrect: true,
+            pointsEarned: true,
+            feedback: true,
             question: {
               select: {
                 questionNumber: true,
