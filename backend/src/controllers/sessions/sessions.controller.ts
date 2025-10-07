@@ -847,12 +847,39 @@ export const getSessionResult = async (req: AuthRequest, res: Response, next: Ne
         },
       }));
 
+    // Fetch survey responses
+    const surveyResponses = await prisma.surveyResponse.findMany({
+      where: {
+        sessionId: id,
+      },
+      include: {
+        question: {
+          select: {
+            questionNumber: true,
+            category: true,
+            questionType: true,
+            questionText: true,
+            options: true,
+          },
+        },
+      },
+      orderBy: {
+        questionNumber: 'asc',
+      },
+    });
+
     res.json({
       success: true,
       data: {
         result,
         template: session.template,
         answers: answersWithFeedback,
+        surveyResponses: surveyResponses.map((sr: any) => ({
+          questionNumber: sr.questionNumber,
+          category: sr.question.category,
+          questionText: sr.question.questionText,
+          response: sr.response,
+        })),
       },
     });
   } catch (error) {

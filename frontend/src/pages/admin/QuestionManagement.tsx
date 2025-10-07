@@ -87,7 +87,10 @@ const QuestionManagement: React.FC = () => {
       }
 
       const response = await axios.get('/api/v1/admin/questions', {
-        params,
+        params: {
+          ...params,
+          limit: 1000, // 최대 1000개까지 표시
+        },
       });
 
       setQuestions(response.data.data.questions);
