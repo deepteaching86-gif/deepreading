@@ -305,22 +305,39 @@ export const saveAnswers = async (req: AuthRequest, res: Response, next: NextFun
 
     // Save or update answers
     for (const answer of answers) {
-      await prisma.answer.upsert({
+      // Find question to get questionNumber
+      const question = await prisma.question.findUnique({
+        where: { id: answer.questionId },
+        select: { questionNumber: true },
+      });
+
+      if (!question) continue;
+
+      // Check if answer already exists
+      const existingAnswer = await prisma.answer.findFirst({
         where: {
-          sessionId_questionId: {
-            sessionId: id,
-            questionId: answer.questionId,
-          },
-        },
-        update: {
-          studentAnswer: answer.answer,
-        },
-        create: {
           sessionId: id,
           questionId: answer.questionId,
-          studentAnswer: answer.answer,
         },
       });
+
+      if (existingAnswer) {
+        // Update existing answer
+        await prisma.answer.update({
+          where: { id: existingAnswer.id },
+          data: { studentAnswer: answer.answer },
+        });
+      } else {
+        // Create new answer
+        await prisma.answer.create({
+          data: {
+            sessionId: id,
+            questionId: answer.questionId,
+            questionNumber: question.questionNumber,
+            studentAnswer: answer.answer,
+          },
+        });
+      }
     }
 
     res.json({
@@ -393,35 +410,49 @@ export const submitSession = async (req: AuthRequest, res: Response, next: NextF
 
       totalPossible += question.points;
 
-      // Save answer
-      await prisma.answer.upsert({
+      // Check if answer already exists
+      const existingAnswer = await prisma.answer.findFirst({
         where: {
-          sessionId_questionId: {
-            sessionId: id,
-            questionId: question.id,
-          },
-        },
-        update: {
-          studentAnswer,
-          isCorrect,
-        },
-        create: {
           sessionId: id,
           questionId: question.id,
-          studentAnswer,
-          isCorrect,
         },
       });
+
+      if (existingAnswer) {
+        // Update existing answer
+        await prisma.answer.update({
+          where: { id: existingAnswer.id },
+          data: {
+            studentAnswer,
+            isCorrect,
+          },
+        });
+      } else {
+        // Create new answer
+        await prisma.answer.create({
+          data: {
+            sessionId: id,
+            questionId: question.id,
+            questionNumber: question.questionNumber,
+            studentAnswer,
+            isCorrect,
+          },
+        });
+      }
     }
 
     const percentage = totalPossible > 0 ? (totalScore / totalPossible) * 100 : 0;
 
-    // Determine grade level
-    let gradeLevel = 'F';
-    if (percentage >= 90) gradeLevel = 'A';
-    else if (percentage >= 80) gradeLevel = 'B';
-    else if (percentage >= 70) gradeLevel = 'C';
-    else if (percentage >= 60) gradeLevel = 'D';
+    // Determine grade level (1-9 scale, not letter grades)
+    let gradeLevel = 1;
+    if (percentage >= 90) gradeLevel = 9;
+    else if (percentage >= 80) gradeLevel = 8;
+    else if (percentage >= 70) gradeLevel = 7;
+    else if (percentage >= 60) gradeLevel = 6;
+    else if (percentage >= 50) gradeLevel = 5;
+    else if (percentage >= 40) gradeLevel = 4;
+    else if (percentage >= 30) gradeLevel = 3;
+    else if (percentage >= 20) gradeLevel = 2;
 
     // Update session status
     await prisma.testSession.update({
