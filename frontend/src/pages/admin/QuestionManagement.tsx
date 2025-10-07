@@ -277,32 +277,40 @@ const QuestionManagement: React.FC = () => {
             <div className="text-xl text-muted-foreground">로딩 중...</div>
           </div>
         ) : (
-          <div className="bg-card rounded-lg shadow-md overflow-hidden border border-border">
-            <table className="min-w-full divide-y divide-border">
-              <thead className="bg-muted">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    학년
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    문항번호
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    영역
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    문제
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    난이도
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    작업
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-card divide-y divide-border">
-                {questions.map((question) => (
+          <div className="bg-card rounded-lg shadow-md border border-border">
+            {/* 문항 개수 표시 */}
+            <div className="px-6 py-3 bg-muted/50 border-b border-border">
+              <p className="text-sm text-muted-foreground">
+                전체 <span className="font-bold text-primary">{questions.length}</span>개의 문항
+              </p>
+            </div>
+            {/* 스크롤 가능한 테이블 컨테이너 */}
+            <div className="overflow-auto max-h-[calc(100vh-350px)]">
+              <table className="min-w-full divide-y divide-border">
+                <thead className="bg-muted sticky top-0 z-10">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      학년
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      문항번호
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      영역
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      문제
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      난이도
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      작업
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-card divide-y divide-border">
+                  {questions.map((question) => (
                   <tr key={question.id} className="hover:bg-muted/50 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-card-foreground">
                       {question.template.grade}학년
@@ -346,9 +354,10 @@ const QuestionManagement: React.FC = () => {
                       </button>
                     </td>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
 
