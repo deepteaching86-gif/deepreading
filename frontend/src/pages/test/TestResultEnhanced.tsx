@@ -141,6 +141,7 @@ const TestResultEnhanced = () => {
   // Calculate literacy scores - with safety checks
   const categoryScores = result.result.categoryScores || [];
   console.log('Processing category scores:', categoryScores); // Debug log
+  console.log('CategoryScores detail:', JSON.stringify(categoryScores, null, 2)); // Detailed log
 
   const vocabularyScore = categoryScores.find(c => c.category === 'vocabulary')?.percentage || 0;
   const readingScore = categoryScores.find(c => c.category === 'reading')?.percentage || 0;
@@ -148,6 +149,7 @@ const TestResultEnhanced = () => {
   const reasoningScore = categoryScores.find(c => c.category === 'reasoning')?.percentage || 0;
 
   console.log('Calculated scores:', { vocabularyScore, readingScore, grammarScore, reasoningScore }); // Debug log
+  console.log('Are scores valid?', vocabularyScore, readingScore, grammarScore, reasoningScore); // Individual scores
 
   const literacyScores: LiteracyScores = {
     vocabulary: vocabularyScore,
@@ -178,36 +180,50 @@ const TestResultEnhanced = () => {
     ],
   };
 
-  const radarOptions = {
+  const radarOptions: any = {
     responsive: true,
     maintainAspectRatio: true,
+    animation: {
+      duration: 1000,
+    },
     scales: {
       r: {
         beginAtZero: true,
         max: 100,
+        min: 0,
         ticks: {
           stepSize: 20,
           font: { size: 11 },
           color: '#6b7280',
+          backdropColor: 'transparent',
         },
         grid: {
           color: '#e5e7eb',
+          circular: true,
+        },
+        angleLines: {
+          color: '#e5e7eb',
         },
         pointLabels: {
-          font: { size: 13, weight: 'bold' as const },
+          font: { size: 13, weight: 'bold' },
           color: '#374151',
         },
       },
     },
     plugins: {
-      legend: { display: false },
+      legend: {
+        display: false
+      },
       tooltip: {
+        enabled: true,
         callbacks: {
-          label: (context: any) => `${context.parsed.r.toFixed(1)}%`,
+          label: (context: any) => `${context.parsed.r?.toFixed(1) || 0}%`,
         },
       },
     },
   };
+
+  console.log('Radar data:', radarData); // Debug chart data
 
   // Bar chart data
   const barData = {
@@ -224,14 +240,18 @@ const TestResultEnhanced = () => {
     ],
   };
 
-  const barOptions = {
+  const barOptions: any = {
     responsive: true,
     maintainAspectRatio: true,
-    indexAxis: 'y' as const,
+    indexAxis: 'y',
+    animation: {
+      duration: 1000,
+    },
     scales: {
       x: {
         beginAtZero: true,
         max: 100,
+        min: 0,
         ticks: {
           callback: (value: any) => `${value}%`,
           font: { size: 11 },
@@ -243,21 +263,28 @@ const TestResultEnhanced = () => {
       },
       y: {
         ticks: {
-          font: { size: 12, weight: 'bold' as const },
+          font: { size: 12, weight: 'bold' },
           color: '#374151',
         },
-        grid: { display: false },
+        grid: {
+          display: false
+        },
       },
     },
     plugins: {
-      legend: { display: false },
+      legend: {
+        display: false
+      },
       tooltip: {
+        enabled: true,
         callbacks: {
-          label: (context: any) => `${context.parsed.x.toFixed(1)}%`,
+          label: (context: any) => `${context.parsed.x?.toFixed(1) || 0}%`,
         },
       },
     },
   };
+
+  console.log('Bar data:', barData); // Debug chart data
 
   const getCategoryName = (category: string) => {
     const names: Record<string, string> = {
@@ -492,54 +519,74 @@ const TestResultEnhanced = () => {
         {/* Charts */}
         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200 chart-container page-break">
           <h2 className="text-lg font-bold text-gray-900 mb-4">영역별 분석</h2>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div>
-              <h3 className="text-sm font-semibold text-gray-700 mb-3 text-center">
-                종합 분석
-              </h3>
-              <div className="h-64 flex items-center justify-center">
-                <Radar data={radarData} options={radarOptions} />
+          {categoryScores.length > 0 ? (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div>
+                <h3 className="text-sm font-semibold text-gray-700 mb-3 text-center">
+                  종합 분석
+                </h3>
+                <div className="h-64 flex items-center justify-center">
+                  {radarData.datasets[0].data.some(d => d > 0) ? (
+                    <Radar data={radarData} options={radarOptions} />
+                  ) : (
+                    <p className="text-gray-500">데이터를 불러오는 중...</p>
+                  )}
+                </div>
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold text-gray-700 mb-3 text-center">
+                  점수 비교
+                </h3>
+                <div className="h-64 flex items-center justify-center">
+                  {barData.datasets[0].data.some(d => d > 0) ? (
+                    <Bar data={barData} options={barOptions} />
+                  ) : (
+                    <p className="text-gray-500">데이터를 불러오는 중...</p>
+                  )}
+                </div>
               </div>
             </div>
-            <div>
-              <h3 className="text-sm font-semibold text-gray-700 mb-3 text-center">
-                점수 비교
-              </h3>
-              <div className="h-64 flex items-center justify-center">
-                <Bar data={barData} options={barOptions} />
-              </div>
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-gray-500">영역별 데이터가 없습니다.</p>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Category Scores */}
         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200 page-break">
           <h2 className="text-lg font-bold text-gray-900 mb-4">영역별 점수</h2>
-          <div className="space-y-3">
-            {result.result.categoryScores.map((cat, idx) => (
-              <div key={idx}>
-                <div className="flex justify-between items-center mb-1">
-                  <span className="text-sm font-medium text-gray-900">
-                    {getCategoryName(cat.category)}
-                  </span>
-                  <div className="flex items-center gap-3">
-                    <span className="text-xs text-gray-600">
-                      {cat.score}점 / {cat.maxScore}점
+          {categoryScores.length > 0 ? (
+            <div className="space-y-3">
+              {categoryScores.map((cat, idx) => (
+                <div key={idx}>
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="text-sm font-medium text-gray-900">
+                      {getCategoryName(cat.category)}
                     </span>
-                    <span className="text-sm font-bold text-violet-800 min-w-[50px] text-right">
-                      {cat.percentage.toFixed(1)}%
-                    </span>
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs text-gray-600">
+                        {cat.score}점 / {cat.maxScore}점
+                      </span>
+                      <span className="text-sm font-bold text-violet-800 min-w-[50px] text-right">
+                        {cat.percentage.toFixed(1)}%
+                      </span>
+                    </div>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div
+                      className="h-2 rounded-full bg-violet-800 transition-all duration-500"
+                      style={{ width: `${cat.percentage}%` }}
+                    ></div>
                   </div>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    className="h-2 rounded-full bg-violet-800 transition-all duration-500"
-                    style={{ width: `${cat.percentage}%` }}
-                  ></div>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-gray-500">영역별 점수 데이터가 없습니다.</p>
+            </div>
+          )}
         </div>
 
         {/* AI Feedback */}
