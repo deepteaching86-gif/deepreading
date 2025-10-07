@@ -1,12 +1,68 @@
-// Bulk upload controller - Simple working version
+// Bulk upload controller with OpenAI integration
 import { Request, Response, NextFunction } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { ApiError } from '../../errors/api-error';
 import * as XLSX from 'xlsx';
 import * as ExcelJS from 'exceljs';
 import * as bcrypt from 'bcryptjs';
+import OpenAI from 'openai';
+import { env } from '../../config/env';
 
 const prisma = new PrismaClient();
+
+// Initialize OpenAI only if API key is available
+const openai = env.OPENAI_API_KEY
+  ? new OpenAI({ apiKey: env.OPENAI_API_KEY })
+  : null;
+
+/**
+ * Grade subjective answer using OpenAI GPT-4o-mini
+ */
+async function gradeWithAI(question: any, studentAnswer: string): Promise<{ pointsEarned: number; feedback: string }> {
+  if (!openai) {
+    return { pointsEarned: Math.floor(question.points / 2), feedback: 'OpenAI API 미설정' };
+  }
+
+  try {
+    const prompt = `다음은 독해력 평가 문제와 학생의 답변입니다. 답변을 채점하고 피드백을 제공해주세요.
+
+문제: ${question.questionText}
+${question.correctAnswer ? `모범 답안: ${question.correctAnswer}` : ''}
+배점: ${question.points}점
+학생 답변: ${studentAnswer}
+
+다음 형식으로 응답해주세요:
+점수: [0-${question.points} 사이의 정수]
+피드백: [50자 이내의 간단한 피드백]`;
+
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [
+        {
+          role: 'system',
+          content: '당신은 초중등 독해력 평가 전문가입니다. 학생 답변을 공정하고 건설적으로 채점해주세요.',
+        },
+        { role: 'user', content: prompt },
+      ],
+      temperature: 0.3,
+      max_tokens: 200,
+    });
+
+    const response = completion.choices[0]?.message?.content || '';
+
+    // Parse response
+    const scoreMatch = response.match(/점수:\s*(\d+)/);
+    const feedbackMatch = response.match(/피드백:\s*(.+)/);
+
+    const pointsEarned = scoreMatch ? Math.min(parseInt(scoreMatch[1], 10), question.points) : Math.floor(question.points / 2);
+    const feedback = feedbackMatch ? feedbackMatch[1].trim() : '채점 완료';
+
+    return { pointsEarned, feedback };
+  } catch (error) {
+    console.error('OpenAI grading error:', error);
+    return { pointsEarned: Math.floor(question.points / 2), feedback: 'AI 채점 실패 (자동 절반 점수)' };
+  }
+}
 
 interface AuthRequest extends Request {
   user?: {
@@ -209,18 +265,42 @@ export const processBulkUpload = async (req: AuthRequest, res: Response, next: N
 
           let isCorrect = false;
           let pointsEarned = 0;
+          let feedback = '';
 
-          if (studentAnswer && question.questionType === 'choice') {
+          if (!studentAnswer) {
+            // No answer - 0 points
+            incorrectAnswers++;
+          } else if (question.questionType === 'choice') {
+            // Objective question - automatic grading
             isCorrect = studentAnswer === question.correctAnswer;
             pointsEarned = isCorrect ? question.points : 0;
             if (isCorrect) correctAnswers++;
             else incorrectAnswers++;
-          } else if (studentAnswer) {
-            // Non-choice questions get half points for now
-            pointsEarned = Math.floor(question.points / 2);
-            correctAnswers++;
-          } else {
-            incorrectAnswers++;
+          } else if (question.questionType === 'short_answer' || question.questionType === 'essay') {
+            // Subjective question - AI grading with GPT-4o-mini
+            if (openai) {
+              const aiGrade = await gradeWithAI(question, studentAnswer);
+              pointsEarned = aiGrade.pointsEarned;
+              feedback = aiGrade.feedback;
+              isCorrect = pointsEarned >= question.points * 0.7; // 70% 이상이면 correct
+              if (isCorrect) correctAnswers++;
+              else incorrectAnswers++;
+            } else {
+              // Fallback: half points if no OpenAI
+              pointsEarned = Math.floor(question.points / 2);
+              feedback = '자동 채점 (OpenAI 미설정)';
+              correctAnswers++;
+            }
+          } else if (question.questionType === 'likert_scale') {
+            // Likert scale - score is the answer value
+            const scaleValue = parseInt(studentAnswer, 10);
+            if (!isNaN(scaleValue) && scaleValue >= 1 && scaleValue <= 5) {
+              pointsEarned = scaleValue;
+              isCorrect = true;
+              correctAnswers++;
+            } else {
+              incorrectAnswers++;
+            }
           }
 
           totalScore += pointsEarned;
@@ -233,6 +313,7 @@ export const processBulkUpload = async (req: AuthRequest, res: Response, next: N
               studentAnswer,
               isCorrect,
               pointsEarned,
+              feedback: feedback || null,
             },
           });
         }

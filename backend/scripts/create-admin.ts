@@ -7,9 +7,9 @@ const prisma = new PrismaClient();
 async function createAdmin() {
   try {
     // Admin account details
-    const adminEmail = 'admin@literacytest.com';
-    const adminPassword = 'Admin123!@#'; // Change this in production
-    const adminName = '관리자';
+    const adminEmail = 'admin@literacy.com';
+    const adminPassword = 'admin1234';
+    const adminName = 'Administrator';
 
     // Check if admin already exists
     const existingAdmin = await prisma.user.findUnique({
