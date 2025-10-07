@@ -23,13 +23,34 @@ app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 // Security
 app.use(helmet());
 
-// CORS - Allow Netlify frontend
+// CORS - Allow Netlify frontend and local development
+const allowedOrigins = [
+  'https://playful-cocada-a89755.netlify.app',
+  'http://localhost:5173',
+  'http://localhost:3000',
+];
+
 app.use(cors({
-  origin: env.CORS_ORIGIN || 'https://playful-cocada-a89755.netlify.app',
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps or curl)
+    if (!origin) return callback(null, true);
+
+    // Check if origin is in allowed list or matches CORS_ORIGIN env var
+    if (allowedOrigins.includes(origin) || origin === env.CORS_ORIGIN) {
+      return callback(null, true);
+    }
+
+    callback(new Error('Not allowed by CORS'));
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
+  exposedHeaders: ['Content-Range', 'X-Content-Range'],
+  maxAge: 86400, // 24 hours
 }));
+
+// Handle OPTIONS preflight requests explicitly
+app.options('*', cors());
 
 // Body parsing
 app.use(express.json({ limit: '10mb' }));
