@@ -748,24 +748,24 @@ export const getSessionResult = async (req: AuthRequest, res: Response, next: Ne
       });
     });
 
+    // Format category scores with percentages
+    const formattedCategoryScores = Object.entries(categoryScores).map(([category, data]) => ({
+      category,
+      score: data.score,
+      maxScore: data.total,
+      percentage: (data.correct / data.total) * 100,
+    }));
+
     const result = {
+      sessionId: session.id,
+      studentId: session.studentId,
       totalScore: session.result.totalScore,
-      totalPossible: session.result.totalPossible,
-      percentage: Number(session.result.percentage),
-      gradeLevel: session.result.gradeLevel || 1,
-      percentile: session.result.percentile ? Number(session.result.percentile) : null,
-      vocabularyScore: categoryScores['vocabulary']?.score || 0,
-      readingScore: categoryScores['reading']?.score || 0,
-      grammarScore: categoryScores['grammar']?.score || 0,
-      reasoningScore: categoryScores['reasoning']?.score || 0,
-      readingMotivationScore: surveyScores['reading_motivation'],
-      writingMotivationScore: surveyScores['writing_motivation'],
-      readingEnvironmentScore: surveyScores['reading_environment'],
-      readingHabitScore: surveyScores['reading_habit'],
-      readingPreferenceData: surveyScores['reading_preference'],
-      strengths,
-      weaknesses,
-      recommendations,
+      grade: session.result.gradeLevel || 1,
+      strengths: strengths.map(s => s.description),
+      weaknesses: weaknesses.map(w => w.description),
+      recommendations: recommendations.map(r => r.suggestion),
+      completedAt: session.completedAt?.toISOString() || new Date().toISOString(),
+      categoryScores: formattedCategoryScores,
     };
 
     // Include answers with feedback for essay/short_answer questions
