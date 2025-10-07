@@ -573,8 +573,14 @@ const TestResultEnhanced = () => {
           )}
         </div>
 
-        {/* Action Button */}
-        <div className="flex justify-center">
+        {/* Action Buttons */}
+        <div className="flex flex-col sm:flex-row justify-center gap-4">
+          <button
+            onClick={() => window.print()}
+            className="px-8 py-3 bg-white text-purple-600 rounded-lg font-semibold hover:bg-purple-50 transition-colors shadow-sm border-2 border-purple-600"
+          >
+            📄 인쇄하기
+          </button>
           <button
             onClick={() => navigate('/dashboard')}
             className="px-8 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors shadow-sm"
