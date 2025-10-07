@@ -294,6 +294,9 @@ function getCategoryName(category: QuestionCategory): string {
     reading_environment: '독서 환경',
     reading_habit: '독서 습관',
     reading_preference: '선호 장르',
+    digital_literacy: '디지털 리터러시',
+    critical_thinking: '비판적 사고',
+    reading_attitude: '독서 태도',
   };
   return names[category] || category;
 }

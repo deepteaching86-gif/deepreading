@@ -75,9 +75,9 @@ export default function TestInProgress() {
         throw new Error('테스트 문제를 찾을 수 없습니다.');
       }
 
-      // 설문 문항 제외 (실제 테스트 문항만)
+      // 설문 문항 제외 (실제 테스트 문항만) - 총 25문항 설문 제외
       const testQuestions = session.template.questions.filter((q: Question) => {
-        return !['reading_motivation', 'reading_environment', 'reading_habit', 'writing_motivation', 'reading_preference'].includes(q.category);
+        return !['reading_motivation', 'reading_environment', 'reading_habit', 'writing_motivation', 'reading_preference', 'digital_literacy', 'critical_thinking', 'reading_attitude'].includes(q.category);
       });
 
       setQuestions(testQuestions);

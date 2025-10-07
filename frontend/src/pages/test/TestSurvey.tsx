@@ -89,6 +89,9 @@ export default function TestSurvey() {
       reading_habit: '독서 습관',
       writing_motivation: '글쓰기 동기',
       reading_preference: '선호 장르',
+      digital_literacy: '디지털 리터러시',
+      critical_thinking: '비판적 사고',
+      reading_attitude: '독서 태도',
     };
     return names[category] || category;
   };
@@ -100,6 +103,9 @@ export default function TestSurvey() {
       reading_habit: 'from-purple-500 to-purple-600',
       writing_motivation: 'from-orange-500 to-orange-600',
       reading_preference: 'from-pink-500 to-pink-600',
+      digital_literacy: 'from-indigo-500 to-indigo-600',
+      critical_thinking: 'from-teal-500 to-teal-600',
+      reading_attitude: 'from-cyan-500 to-cyan-600',
     };
     return colors[category] || 'from-gray-500 to-gray-600';
   };

@@ -51,7 +51,7 @@ export const getSurveyQuestions = async (req: AuthRequest, res: Response, next: 
       throw new ApiError('Unauthorized', 403);
     }
 
-    // 설문 문항 조회 (reading_motivation, reading_environment, reading_habit, writing_motivation, reading_preference)
+    // 설문 문항 조회 (총 25문항)
     const surveyQuestions = await prisma.question.findMany({
       where: {
         templateId: session.template.id,
@@ -62,6 +62,9 @@ export const getSurveyQuestions = async (req: AuthRequest, res: Response, next: 
             'reading_habit',
             'writing_motivation',
             'reading_preference',
+            'digital_literacy',
+            'critical_thinking',
+            'reading_attitude',
           ],
         },
       },
