@@ -516,6 +516,174 @@ export const submitSession = async (req: AuthRequest, res: Response, next: NextF
 };
 
 /**
+ * Get session result
+ */
+export const getSessionResult = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user?.userId;
+
+    if (!userId) {
+      throw new ApiError('User not authenticated', 401);
+    }
+
+    // Get session with template info
+    const session: any = await prisma.testSession.findUnique({
+      where: { id },
+      include: {
+        template: {
+          select: {
+            id: true,
+            templateCode: true,
+            grade: true,
+            title: true,
+            timeLimit: true,
+          },
+        },
+        result: true,
+        answers: {
+          include: {
+            question: {
+              select: {
+                questionNumber: true,
+                category: true,
+                points: true,
+              },
+            },
+          },
+          orderBy: {
+            questionNumber: 'asc',
+          },
+        },
+        student: {
+          select: {
+            userId: true,
+          },
+        },
+      },
+    });
+
+    if (!session) {
+      throw new ApiError('Session not found', 404);
+    }
+
+    // Verify ownership
+    if (session.student.userId !== userId) {
+      throw new ApiError('Unauthorized access to session', 403);
+    }
+
+    // Check if session is completed
+    if (session.status !== 'completed') {
+      throw new ApiError('Session is not completed yet', 400);
+    }
+
+    if (!session.result) {
+      throw new ApiError('Test result not available', 404);
+    }
+
+    // Calculate category scores
+    const categoryScores: Record<string, { correct: number; total: number; score: number }> = {};
+
+    session.answers.forEach((answer: any) => {
+      const category = answer.question.category;
+      if (!categoryScores[category]) {
+        categoryScores[category] = { correct: 0, total: 0, score: 0 };
+      }
+      categoryScores[category].total += answer.question.points;
+      if (answer.isCorrect) {
+        categoryScores[category].correct += answer.question.points;
+        categoryScores[category].score += answer.question.points;
+      }
+    });
+
+    // Calculate survey scores (Likert scale averages)
+    const surveyCategories = ['reading_motivation', 'writing_motivation', 'reading_environment', 'reading_habit', 'reading_preference'];
+    const surveyScores: Record<string, number | null> = {};
+
+    surveyCategories.forEach((category) => {
+      const categoryAnswers = session.answers.filter((a: any) => a.question.category === category);
+      if (categoryAnswers.length > 0) {
+        const sum = categoryAnswers.reduce((acc: any, a: any) => {
+          const value = parseInt(a.studentAnswer || '0', 10);
+          return acc + (isNaN(value) ? 0 : value);
+        }, 0);
+        surveyScores[category] = sum / categoryAnswers.length;
+      } else {
+        surveyScores[category] = null;
+      }
+    });
+
+    // Identify strengths (categories with >80% correct)
+    const strengths: any[] = [];
+    const weaknesses: any[] = [];
+
+    Object.entries(categoryScores).forEach(([category, data]) => {
+      const percentage = (data.correct / data.total) * 100;
+      if (percentage >= 80) {
+        strengths.push({
+          category,
+          description: `${category} 영역에서 ${percentage.toFixed(1)}%의 정답률을 달성했습니다.`,
+          percentage: percentage.toFixed(1),
+          score: data.score,
+        });
+      } else if (percentage < 60) {
+        weaknesses.push({
+          category,
+          description: `${category} 영역에서 ${percentage.toFixed(1)}%의 정답률을 보였습니다. 추가 학습이 필요합니다.`,
+          percentage: percentage.toFixed(1),
+          score: data.score,
+        });
+      }
+    });
+
+    // Generate recommendations based on weaknesses
+    const recommendations: any[] = [];
+    weaknesses.forEach((weakness) => {
+      recommendations.push({
+        category: weakness.category,
+        priority: weakness.percentage < 50 ? 'high' : 'medium',
+        suggestion: `${weakness.category} 영역 집중 학습을 권장합니다.`,
+        resources: ['교과서 복습', '추가 문제 풀이', '개별 학습 지도'],
+      });
+    });
+
+    const result = {
+      totalScore: session.result.totalScore,
+      totalPossible: session.result.totalPossible,
+      percentage: session.result.percentage,
+      gradeLevel: session.result.gradeLevel || 1,
+      percentile: session.result.percentile,
+      vocabularyScore: categoryScores['vocabulary']?.score || 0,
+      readingScore: categoryScores['reading']?.score || 0,
+      grammarScore: categoryScores['grammar']?.score || 0,
+      reasoningScore: categoryScores['reasoning']?.score || 0,
+      readingMotivationScore: surveyScores['reading_motivation'],
+      writingMotivationScore: surveyScores['writing_motivation'],
+      readingEnvironmentScore: surveyScores['reading_environment'],
+      readingHabitScore: surveyScores['reading_habit'],
+      readingPreferenceData: surveyScores['reading_preference'],
+      strengths,
+      weaknesses,
+      recommendations,
+    };
+
+    res.json({
+      success: true,
+      data: {
+        result,
+        template: session.template,
+      },
+    });
+  } catch (error) {
+    if (error instanceof ApiError) {
+      return next(error);
+    }
+    console.error('Error getting session result:', error);
+    next(new ApiError('Failed to get session result', 500));
+  }
+};
+
+/**
  * Start a new test session (using templateId)
  */
 export const startSession = async (req: AuthRequest, res: Response, next: NextFunction) => {

@@ -8,6 +8,9 @@ const router = Router();
 // Get user's sessions
 router.get('/my', authenticateToken, sessionsController.getMySessions);
 
+// Get session result
+router.get('/:id/result', authenticateToken, sessionsController.getSessionResult);
+
 // Get session by ID
 router.get('/:id', authenticateToken, sessionsController.getSessionById);
 
