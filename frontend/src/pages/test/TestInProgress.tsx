@@ -9,6 +9,7 @@ interface Question {
   questionType: string;
   questionText: string;
   passage?: string;
+  imageUrl?: string;
   options?: { id: number; text: string }[];
   points: number;
   difficulty: string;
@@ -34,21 +35,27 @@ export default function TestInProgress() {
     fetchSession();
   }, [sessionId]);
 
+  // Timer starts immediately when timeRemaining is set and auto-submits when expired
   useEffect(() => {
+    if (timeRemaining === 0 && !loading && questions.length > 0 && !submitting) {
+      // Auto-submit when time expires
+      handleSubmitForce();
+      return;
+    }
+
     if (timeRemaining <= 0) return;
 
     const timer = setInterval(() => {
       setTimeRemaining((prev) => {
         if (prev <= 1) {
-          handleSubmit();
-          return 0;
+          return 0; // Will trigger auto-submit
         }
         return prev - 1;
       });
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [timeRemaining]);
+  }, [timeRemaining, loading, questions.length, submitting]);
 
   const fetchSession = async () => {
     try {
@@ -70,7 +77,7 @@ export default function TestInProgress() {
       });
       setAnswers(existingAnswers);
 
-      // 남은 시간 계산
+      // 남은 시간 계산 - 타이머는 세션 시작 시간부터 자동으로 시작
       const startedAt = new Date(session.startedAt);
       const now = new Date();
       const elapsedMinutes = (now.getTime() - startedAt.getTime()) / 1000 / 60;
@@ -117,15 +124,24 @@ export default function TestInProgress() {
       return;
     }
 
+    await submitTest();
+  };
+
+  // Force submit without confirmation (for timeout)
+  const handleSubmitForce = async () => {
+    alert('시간이 종료되었습니다. 테스트가 자동 제출됩니다.');
+    await submitTest();
+  };
+
+  const submitTest = async () => {
     try {
       setSubmitting(true);
 
-      const answersArray: Answer[] = Object.entries(answers).map(
-        ([questionId, answer]) => ({
-          questionId,
-          answer,
-        })
-      );
+      // Include all questions, even unanswered ones (empty string)
+      const answersArray: Answer[] = questions.map((q) => ({
+        questionId: q.id,
+        answer: answers[q.id] || '', // Empty string for unanswered
+      }));
 
       await axios.post(`/api/v1/sessions/${sessionId}/submit`, {
         answers: answersArray,
@@ -136,7 +152,6 @@ export default function TestInProgress() {
     } catch (error) {
       console.error('제출 실패:', error);
       alert('테스트 제출에 실패했습니다.');
-    } finally {
       setSubmitting(false);
     }
   };
@@ -214,7 +229,8 @@ export default function TestInProgress() {
               </div>
               <button
                 onClick={handleSave}
-                className="px-4 py-2 border border-border rounded-md hover:bg-muted transition-colors text-sm"
+                disabled={submitting}
+                className="px-4 py-2 border border-border rounded-md hover:bg-muted transition-colors text-sm disabled:opacity-50"
               >
                 임시저장
               </button>
@@ -258,6 +274,17 @@ export default function TestInProgress() {
               <div className="text-foreground whitespace-pre-wrap leading-relaxed">
                 {currentQuestion.passage}
               </div>
+            </div>
+          )}
+
+          {/* 이미지 (있는 경우) */}
+          {currentQuestion.imageUrl && (
+            <div className="mb-6">
+              <img
+                src={currentQuestion.imageUrl}
+                alt="문제 이미지"
+                className="max-w-full h-auto rounded-lg border border-border"
+              />
             </div>
           )}
 
@@ -324,28 +351,30 @@ export default function TestInProgress() {
           <div className="flex justify-between items-center pt-6 border-t border-border">
             <button
               onClick={() => setCurrentQuestionIndex((prev) => Math.max(0, prev - 1))}
-              disabled={currentQuestionIndex === 0}
+              disabled={currentQuestionIndex === 0 || submitting}
               className="px-6 py-2 border border-border rounded-md hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               ← 이전
             </button>
 
-            <div className="flex gap-2">
-              {questions.map((q, idx) => (
-                <button
-                  key={q.id}
-                  onClick={() => setCurrentQuestionIndex(idx)}
-                  className={`w-8 h-8 rounded-md text-sm font-medium transition-colors ${
-                    idx === currentQuestionIndex
-                      ? 'bg-primary text-primary-foreground'
-                      : answers[q.id]
-                      ? 'bg-accent text-accent-foreground'
-                      : 'border border-border hover:bg-muted'
-                  }`}
-                >
-                  {idx + 1}
-                </button>
-              ))}
+            {/* 문제 번호 드롭다운 선택 */}
+            <div className="flex items-center gap-3">
+              <label htmlFor="question-select" className="text-sm text-muted-foreground">
+                문제 이동:
+              </label>
+              <select
+                id="question-select"
+                value={currentQuestionIndex}
+                onChange={(e) => setCurrentQuestionIndex(Number(e.target.value))}
+                disabled={submitting}
+                className="px-4 py-2 border border-border rounded-md bg-card text-foreground focus:outline-none focus:border-primary disabled:opacity-50"
+              >
+                {questions.map((q, idx) => (
+                  <option key={q.id} value={idx}>
+                    문제 {idx + 1} {answers[q.id] ? '✓' : ''}
+                  </option>
+                ))}
+              </select>
             </div>
 
             {currentQuestionIndex === questions.length - 1 ? (
@@ -363,7 +392,8 @@ export default function TestInProgress() {
                     Math.min(questions.length - 1, prev + 1)
                   )
                 }
-                className="px-6 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+                disabled={submitting}
+                className="px-6 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors disabled:opacity-50"
               >
                 다음 →
               </button>
@@ -375,6 +405,11 @@ export default function TestInProgress() {
         <div className="mt-6 text-center text-sm text-muted-foreground">
           <p>모든 문항에 답변한 후 '제출하기' 버튼을 눌러주세요.</p>
           <p className="mt-1">임시저장을 하면 나중에 이어서 풀 수 있습니다.</p>
+          {timeRemaining < 300 && (
+            <p className="mt-2 text-destructive font-bold">
+              ⚠️ 남은 시간이 5분 미만입니다!
+            </p>
+          )}
         </div>
       </main>
     </div>

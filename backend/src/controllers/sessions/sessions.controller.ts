@@ -274,6 +274,209 @@ export const updateSessionStatus = async (req: AuthRequest, res: Response, next:
 };
 
 /**
+ * Save answers for a session
+ */
+export const saveAnswers = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+    const { answers } = req.body;
+    const userId = req.user?.userId;
+
+    if (!userId) {
+      return next(new ApiError('User not authenticated', 401));
+    }
+
+    // Find session
+    const session = await prisma.testSession.findUnique({
+      where: { id },
+      include: {
+        student: true,
+      },
+    });
+
+    if (!session) {
+      return next(new ApiError('Session not found', 404));
+    }
+
+    // Check authorization
+    if (session.student.userId !== userId && req.user?.role !== 'admin') {
+      return next(new ApiError('Not authorized to update this session', 403));
+    }
+
+    // Save or update answers
+    for (const answer of answers) {
+      await prisma.answer.upsert({
+        where: {
+          sessionId_questionId: {
+            sessionId: id,
+            questionId: answer.questionId,
+          },
+        },
+        update: {
+          studentAnswer: answer.answer,
+        },
+        create: {
+          sessionId: id,
+          questionId: answer.questionId,
+          studentAnswer: answer.answer,
+        },
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Answers saved successfully',
+    });
+  } catch (error) {
+    if (error instanceof ApiError) {
+      return next(error);
+    }
+    console.error('Error saving answers:', error);
+    next(new ApiError('Failed to save answers', 500));
+  }
+};
+
+/**
+ * Submit test session
+ */
+export const submitSession = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+    const { answers } = req.body;
+    const userId = req.user?.userId;
+
+    if (!userId) {
+      return next(new ApiError('User not authenticated', 401));
+    }
+
+    // Find session with template and questions
+    const session = await prisma.testSession.findUnique({
+      where: { id },
+      include: {
+        student: true,
+        template: {
+          include: {
+            questions: true,
+          },
+        },
+      },
+    });
+
+    if (!session) {
+      return next(new ApiError('Session not found', 404));
+    }
+
+    // Check authorization
+    if (session.student.userId !== userId && req.user?.role !== 'admin') {
+      return next(new ApiError('Not authorized to submit this session', 403));
+    }
+
+    // Save final answers
+    const allQuestions = session.template.questions;
+    const answersMap = new Map(answers.map((a: any) => [a.questionId, a.answer]));
+
+    let correctAnswers = 0;
+    let incorrectAnswers = 0;
+    let totalScore = 0;
+    let totalPossible = 0;
+
+    for (const question of allQuestions) {
+      const studentAnswer = answersMap.get(question.id) || '';
+      const isCorrect = studentAnswer.toLowerCase().trim() === question.correctAnswer.toLowerCase().trim();
+
+      if (isCorrect) {
+        correctAnswers++;
+        totalScore += question.points;
+      } else {
+        incorrectAnswers++;
+      }
+
+      totalPossible += question.points;
+
+      // Save answer
+      await prisma.answer.upsert({
+        where: {
+          sessionId_questionId: {
+            sessionId: id,
+            questionId: question.id,
+          },
+        },
+        update: {
+          studentAnswer,
+          isCorrect,
+        },
+        create: {
+          sessionId: id,
+          questionId: question.id,
+          studentAnswer,
+          isCorrect,
+        },
+      });
+    }
+
+    const percentage = totalPossible > 0 ? (totalScore / totalPossible) * 100 : 0;
+
+    // Determine grade level
+    let gradeLevel = 'F';
+    if (percentage >= 90) gradeLevel = 'A';
+    else if (percentage >= 80) gradeLevel = 'B';
+    else if (percentage >= 70) gradeLevel = 'C';
+    else if (percentage >= 60) gradeLevel = 'D';
+
+    // Update session status
+    await prisma.testSession.update({
+      where: { id },
+      data: {
+        status: 'completed',
+        completedAt: new Date(),
+      },
+    });
+
+    // Create or update test result
+    await prisma.testResult.upsert({
+      where: { sessionId: id },
+      update: {
+        totalScore,
+        totalPossible,
+        percentage,
+        gradeLevel,
+        correctAnswers,
+        incorrectAnswers,
+      },
+      create: {
+        sessionId: id,
+        totalScore,
+        totalPossible,
+        percentage,
+        gradeLevel,
+        correctAnswers,
+        incorrectAnswers,
+      },
+    });
+
+    res.json({
+      success: true,
+      data: {
+        totalScore,
+        totalPossible,
+        percentage,
+        gradeLevel,
+        correctAnswers,
+        incorrectAnswers,
+      },
+      message: 'Test submitted successfully',
+    });
+  } catch (error) {
+    if (error instanceof ApiError) {
+      return next(error);
+    }
+    console.error('Error submitting session:', error);
+    console.error('Error details:', JSON.stringify(error, null, 2));
+    next(new ApiError('Failed to submit session', 500));
+  }
+};
+
+/**
  * Start a new test session (using templateId)
  */
 export const startSession = async (req: AuthRequest, res: Response, next: NextFunction) => {
