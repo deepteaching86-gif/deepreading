@@ -33,7 +33,7 @@ export function GradePyramid({ currentGrade, className = '' }: GradePyramidProps
                 className={`
                   pyramid-block relative h-14 rounded-lg transition-all duration-300
                   ${isCurrentLevel
-                    ? 'ring-4 ring-violet-700 ring-offset-2 shadow-2xl scale-105 z-10'
+                    ? 'ring-4 ring-violet-800 ring-offset-2 shadow-2xl scale-105 z-10'
                     : 'hover:scale-105 hover:shadow-lg'
                   }
                 `}
@@ -56,7 +56,7 @@ export function GradePyramid({ currentGrade, className = '' }: GradePyramidProps
                     <div
                       className={`
                         text-xs
-                        ${level.level <= 3 ? 'text-violet-100' : 'text-violet-700'}
+                        ${level.level <= 3 ? 'text-violet-100' : 'text-violet-800'}
                         ${isCurrentLevel ? 'font-semibold' : ''}
                       `}
                     >
@@ -69,8 +69,8 @@ export function GradePyramid({ currentGrade, className = '' }: GradePyramidProps
                 {isCurrentLevel && (
                   <>
                     <div className="absolute -right-12 top-1/2 -translate-y-1/2 flex items-center gap-2 z-20 print:hidden">
-                      <div className="w-8 h-0.5 bg-violet-700"></div>
-                      <div className="bg-violet-700 text-white px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap shadow-lg">
+                      <div className="w-8 h-0.5 bg-violet-800"></div>
+                      <div className="bg-violet-800 text-white px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap shadow-lg">
                         내 위치
                       </div>
                     </div>
@@ -95,7 +95,7 @@ export function GradePyramid({ currentGrade, className = '' }: GradePyramidProps
       {/* 설명 텍스트 */}
       <div className="mt-8 text-center">
         <p className="text-sm text-gray-600">
-          당신은 <span className="font-bold text-violet-700">{GRADE_PYRAMID[currentGrade - 1]?.label}</span> 등급입니다
+          당신은 <span className="font-bold text-violet-800">{GRADE_PYRAMID[currentGrade - 1]?.label}</span> 등급입니다
         </p>
         <p className="text-xs text-gray-500 mt-1">
           {GRADE_PYRAMID[currentGrade - 1]?.description}

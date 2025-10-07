@@ -81,10 +81,13 @@ const TestResultEnhanced = () => {
     const fetchResult = async () => {
       try {
         const response = await axios.get(`/api/v1/sessions/${sessionId}/result`);
+        console.log('API Response:', response.data); // Debug log
         if (response.data.success) {
+          console.log('Category Scores:', response.data.data.result?.categoryScores); // Debug log
           setResult(response.data.data);
         }
       } catch (err: any) {
+        console.error('Fetch error:', err);
         setError(err.response?.data?.message || '결과를 불러오는 데 실패했습니다.');
       } finally {
         setLoading(false);
@@ -108,7 +111,7 @@ const TestResultEnhanced = () => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-violet-700 mb-4"></div>
+          <div className="inline-block animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-violet-800 mb-4"></div>
           <p className="text-lg font-medium text-gray-700">결과를 불러오는 중...</p>
         </div>
       </div>
@@ -125,7 +128,7 @@ const TestResultEnhanced = () => {
             <p className="text-gray-600 mb-6">{error || '결과를 찾을 수 없습니다.'}</p>
             <button
               onClick={() => navigate('/dashboard')}
-              className="px-6 py-3 bg-violet-700 text-white rounded-lg hover:bg-violet-800 transition-colors"
+              className="px-6 py-3 bg-violet-800 text-white rounded-lg hover:bg-violet-800 transition-colors"
             >
               대시보드로 돌아가기
             </button>
@@ -135,11 +138,16 @@ const TestResultEnhanced = () => {
     );
   }
 
-  // Calculate literacy scores
-  const vocabularyScore = result.result.categoryScores.find(c => c.category === 'vocabulary')?.percentage || 0;
-  const readingScore = result.result.categoryScores.find(c => c.category === 'reading')?.percentage || 0;
-  const grammarScore = result.result.categoryScores.find(c => c.category === 'grammar')?.percentage || 0;
-  const reasoningScore = result.result.categoryScores.find(c => c.category === 'reasoning')?.percentage || 0;
+  // Calculate literacy scores - with safety checks
+  const categoryScores = result.result.categoryScores || [];
+  console.log('Processing category scores:', categoryScores); // Debug log
+
+  const vocabularyScore = categoryScores.find(c => c.category === 'vocabulary')?.percentage || 0;
+  const readingScore = categoryScores.find(c => c.category === 'reading')?.percentage || 0;
+  const grammarScore = categoryScores.find(c => c.category === 'grammar')?.percentage || 0;
+  const reasoningScore = categoryScores.find(c => c.category === 'reasoning')?.percentage || 0;
+
+  console.log('Calculated scores:', { vocabularyScore, readingScore, grammarScore, reasoningScore }); // Debug log
 
   const literacyScores: LiteracyScores = {
     vocabulary: vocabularyScore,
@@ -157,13 +165,13 @@ const TestResultEnhanced = () => {
       {
         label: '내 점수',
         data: [vocabularyScore, readingScore, grammarScore, reasoningScore],
-        backgroundColor: 'rgba(109, 40, 217, 0.2)',
-        borderColor: 'rgb(109, 40, 217)',
+        backgroundColor: 'rgba(91, 33, 182, 0.2)',
+        borderColor: 'rgb(91, 33, 182)',
         borderWidth: 2,
-        pointBackgroundColor: 'rgb(109, 40, 217)',
+        pointBackgroundColor: 'rgb(91, 33, 182)',
         pointBorderColor: '#fff',
         pointHoverBackgroundColor: '#fff',
-        pointHoverBorderColor: 'rgb(109, 40, 217)',
+        pointHoverBorderColor: 'rgb(91, 33, 182)',
         pointRadius: 4,
         pointHoverRadius: 6,
       },
@@ -208,8 +216,8 @@ const TestResultEnhanced = () => {
       {
         label: '점수 (%)',
         data: [vocabularyScore, readingScore, grammarScore, reasoningScore],
-        backgroundColor: 'rgba(109, 40, 217, 0.8)',
-        borderColor: 'rgb(109, 40, 217)',
+        backgroundColor: 'rgba(91, 33, 182, 0.8)',
+        borderColor: 'rgb(91, 33, 182)',
         borderWidth: 1,
         borderRadius: 6,
       },
@@ -346,7 +354,7 @@ const TestResultEnhanced = () => {
       <div className="max-w-6xl mx-auto space-y-6">
         {/* Copy Success Alert */}
         {showCopySuccess && (
-          <div className="fixed top-4 right-4 bg-violet-700 text-white px-6 py-3 rounded-lg shadow-lg z-50 no-print">
+          <div className="fixed top-4 right-4 bg-violet-800 text-white px-6 py-3 rounded-lg shadow-lg z-50 no-print">
             ✅ URL이 클립보드에 복사되었습니다!
           </div>
         )}
@@ -375,11 +383,11 @@ const TestResultEnhanced = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="bg-violet-50 rounded-lg p-4 border border-violet-200">
               <div className="text-center">
-                <div className="text-xs font-medium text-violet-700 mb-1">종합 점수</div>
+                <div className="text-xs font-medium text-violet-800 mb-1">종합 점수</div>
                 <div className="text-3xl font-bold text-violet-900 mb-1">
                   {result.result.totalScore}점
                 </div>
-                <div className="text-sm text-violet-700">
+                <div className="text-sm text-violet-800">
                   {result.result.categoryScores.reduce((acc, c) => acc + c.maxScore, 0)}점 만점
                 </div>
               </div>
@@ -427,7 +435,7 @@ const TestResultEnhanced = () => {
               <ul className="space-y-2">
                 {literacyType.strengths.map((strength, idx) => (
                   <li key={idx} className="flex items-start gap-2 text-sm text-gray-700">
-                    <span className="text-violet-700 mt-0.5">✓</span>
+                    <span className="text-violet-800 mt-0.5">✓</span>
                     <span>{strength}</span>
                   </li>
                 ))}
@@ -454,7 +462,7 @@ const TestResultEnhanced = () => {
             <div className="space-y-2">
               {literacyType.recommendations.map((rec, idx) => (
                 <div key={idx} className="flex items-start gap-2 text-sm text-gray-700">
-                  <span className="text-violet-700 font-semibold">{idx + 1}.</span>
+                  <span className="text-violet-800 font-semibold">{idx + 1}.</span>
                   <span>{rec}</span>
                 </div>
               ))}
@@ -518,14 +526,14 @@ const TestResultEnhanced = () => {
                     <span className="text-xs text-gray-600">
                       {cat.score}점 / {cat.maxScore}점
                     </span>
-                    <span className="text-sm font-bold text-violet-700 min-w-[50px] text-right">
+                    <span className="text-sm font-bold text-violet-800 min-w-[50px] text-right">
                       {cat.percentage.toFixed(1)}%
                     </span>
                   </div>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
                   <div
-                    className="h-2 rounded-full bg-violet-700 transition-all duration-500"
+                    className="h-2 rounded-full bg-violet-800 transition-all duration-500"
                     style={{ width: `${cat.percentage}%` }}
                   ></div>
                 </div>
@@ -607,7 +615,7 @@ const TestResultEnhanced = () => {
                     key={idx}
                     className="flex items-start gap-2 text-sm text-gray-700"
                   >
-                    <span className="text-violet-700 font-semibold">{idx + 1}</span>
+                    <span className="text-violet-800 font-semibold">{idx + 1}</span>
                     <span>{rec}</span>
                   </div>
                 ))}
@@ -620,19 +628,19 @@ const TestResultEnhanced = () => {
         <div className="flex flex-col sm:flex-row justify-center gap-4 no-print">
           <button
             onClick={handleCopyUrl}
-            className="px-8 py-3 bg-white text-violet-700 rounded-lg font-semibold hover:bg-violet-50 transition-colors shadow-sm border-2 border-violet-700"
+            className="px-8 py-3 bg-white text-violet-800 rounded-lg font-semibold hover:bg-violet-50 transition-colors shadow-sm border-2 border-violet-800"
           >
             🔗 학부모에게 URL 공유
           </button>
           <button
             onClick={() => window.print()}
-            className="px-8 py-3 bg-white text-violet-700 rounded-lg font-semibold hover:bg-violet-50 transition-colors shadow-sm border-2 border-violet-700"
+            className="px-8 py-3 bg-white text-violet-800 rounded-lg font-semibold hover:bg-violet-50 transition-colors shadow-sm border-2 border-violet-800"
           >
             📄 인쇄하기
           </button>
           <button
             onClick={() => navigate('/dashboard')}
-            className="px-8 py-3 bg-violet-700 text-white rounded-lg font-semibold hover:bg-violet-800 transition-colors shadow-sm"
+            className="px-8 py-3 bg-violet-800 text-white rounded-lg font-semibold hover:bg-violet-800 transition-colors shadow-sm"
           >
             대시보드로 돌아가기
           </button>
