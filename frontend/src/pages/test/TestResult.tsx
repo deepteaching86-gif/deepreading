@@ -265,17 +265,25 @@ export default function TestResult() {
               <span>✨</span> 강점
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {result.strengths.map((strength, idx) => (
+              {result.strengths.map((strength, idx) => {
+                const getCategoryName = (cat: string) => {
+                  const names: Record<string, string> = {
+                    reading_motivation: '읽기 동기',
+                    vocabulary: '어휘력',
+                    reading: '독해력',
+                    grammar: '문법/어법',
+                    reasoning: '추론/사고력',
+                  };
+                  return names[cat] || cat;
+                };
+
+                return (
                 <div
                   key={idx}
                   className="bg-chart-1/10 border border-chart-1/20 rounded-lg p-4"
                 >
                   <div className="font-semibold text-chart-1 mb-1">
-                    {strength.category === 'reading_motivation' && '읽기 동기'}
-                    {strength.category === 'vocabulary' && '어휘력'}
-                    {strength.category === 'reading' && '독해력'}
-                    {strength.category === 'grammar' && '문법/어법'}
-                    {strength.category === 'reasoning' && '추론/사고력'}
+                    {getCategoryName(strength.category)}
                   </div>
                   <div className="text-sm text-foreground">
                     {strength.description}
@@ -291,7 +299,8 @@ export default function TestResult() {
                     </div>
                   )}
                 </div>
-              ))}
+              );
+              })}
             </div>
           </div>
         )}
@@ -303,18 +312,26 @@ export default function TestResult() {
               <span>💡</span> 개선이 필요한 영역
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {result.weaknesses.map((weakness, idx) => (
+              {result.weaknesses.map((weakness, idx) => {
+                const getCategoryName = (cat: string) => {
+                  const names: Record<string, string> = {
+                    reading_motivation: '읽기 동기',
+                    reading_environment: '독서 환경',
+                    vocabulary: '어휘력',
+                    reading: '독해력',
+                    grammar: '문법/어법',
+                    reasoning: '추론/사고력',
+                  };
+                  return names[cat] || cat;
+                };
+
+                return (
                 <div
                   key={idx}
                   className="bg-chart-3/10 border border-chart-3/20 rounded-lg p-4"
                 >
                   <div className="font-semibold text-chart-3 mb-1">
-                    {weakness.category === 'reading_motivation' && '읽기 동기'}
-                    {weakness.category === 'reading_environment' && '독서 환경'}
-                    {weakness.category === 'vocabulary' && '어휘력'}
-                    {weakness.category === 'reading' && '독해력'}
-                    {weakness.category === 'grammar' && '문법/어법'}
-                    {weakness.category === 'reasoning' && '추론/사고력'}
+                    {getCategoryName(weakness.category)}
                   </div>
                   <div className="text-sm text-foreground">
                     {weakness.description}
@@ -330,7 +347,8 @@ export default function TestResult() {
                     </div>
                   )}
                 </div>
-              ))}
+              );
+              })}
             </div>
           </div>
         )}
@@ -342,7 +360,21 @@ export default function TestResult() {
               <span>📌</span> 맞춤형 학습 제안
             </h3>
             <div className="space-y-4">
-              {result.recommendations.map((rec, idx) => (
+              {result.recommendations.map((rec, idx) => {
+                const getRecommendationTitle = (cat: string) => {
+                  const titles: Record<string, string> = {
+                    vocabulary: '어휘력 향상',
+                    reading: '독해력 향상',
+                    grammar: '문법 학습',
+                    reasoning: '사고력 향상',
+                    reading_motivation: '독서 동기 부여',
+                    reading_environment: '독서 환경 개선',
+                    reading_habit: '독서 습관 형성',
+                  };
+                  return titles[cat] || cat;
+                };
+
+                return (
                 <div
                   key={idx}
                   className="border border-border rounded-lg p-5 hover:border-primary/50 transition-colors"
@@ -359,13 +391,7 @@ export default function TestResult() {
                     </div>
                     <div className="flex-1">
                       <div className="font-semibold text-foreground mb-2">
-                        {rec.category === 'vocabulary' && '어휘력 향상'}
-                        {rec.category === 'reading' && '독해력 향상'}
-                        {rec.category === 'grammar' && '문법 학습'}
-                        {rec.category === 'reasoning' && '사고력 향상'}
-                        {rec.category === 'reading_motivation' && '독서 동기 부여'}
-                        {rec.category === 'reading_environment' && '독서 환경 개선'}
-                        {rec.category === 'reading_habit' && '독서 습관 형성'}
+                        {getRecommendationTitle(rec.category)}
                       </div>
                       <p className="text-sm text-muted-foreground mb-3">
                         {rec.suggestion}
@@ -385,7 +411,8 @@ export default function TestResult() {
                     </div>
                   </div>
                 </div>
-              ))}
+              );
+              })}
             </div>
           </div>
         )}

@@ -630,19 +630,35 @@ export const getSessionResult = async (req: AuthRequest, res: Response, next: Ne
     const strengths: any[] = [];
     const weaknesses: any[] = [];
 
+    const getCategoryKoreanName = (cat: string): string => {
+      const names: Record<string, string> = {
+        vocabulary: '어휘력',
+        reading: '독해력',
+        grammar: '문법/어법',
+        reasoning: '추론/사고력',
+        reading_motivation: '읽기 동기',
+        reading_environment: '독서 환경',
+        reading_habit: '독서 습관',
+        writing_motivation: '글쓰기 동기',
+      };
+      return names[cat] || cat;
+    };
+
     Object.entries(categoryScores).forEach(([category, data]) => {
       const percentage = (data.correct / data.total) * 100;
+      const koreanName = getCategoryKoreanName(category);
+
       if (percentage >= 80) {
         strengths.push({
           category,
-          description: `${category} 영역에서 ${percentage.toFixed(1)}%의 정답률을 달성했습니다.`,
+          description: `${koreanName} 영역에서 ${percentage.toFixed(1)}%의 정답률을 달성했습니다.`,
           percentage: percentage.toFixed(1),
           score: data.score,
         });
       } else if (percentage < 60) {
         weaknesses.push({
           category,
-          description: `${category} 영역에서 ${percentage.toFixed(1)}%의 정답률을 보였습니다. 추가 학습이 필요합니다.`,
+          description: `${koreanName} 영역에서 ${percentage.toFixed(1)}%의 정답률을 보였습니다. 추가 학습이 필요합니다.`,
           percentage: percentage.toFixed(1),
           score: data.score,
         });
@@ -652,10 +668,11 @@ export const getSessionResult = async (req: AuthRequest, res: Response, next: Ne
     // Generate recommendations based on weaknesses
     const recommendations: any[] = [];
     weaknesses.forEach((weakness) => {
+      const koreanName = getCategoryKoreanName(weakness.category);
       recommendations.push({
         category: weakness.category,
         priority: weakness.percentage < 50 ? 'high' : 'medium',
-        suggestion: `${weakness.category} 영역 집중 학습을 권장합니다.`,
+        suggestion: `${koreanName} 영역 집중 학습을 권장합니다.`,
         resources: ['교과서 복습', '추가 문제 풀이', '개별 학습 지도'],
       });
     });
