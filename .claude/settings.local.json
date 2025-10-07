@@ -55,7 +55,12 @@
       "Bash(set SUPABASE_ACCESS_TOKEN=sbp_2582f48b9389cfb4b615d3a91c96a4b731015ffd)",
       "Bash(npx:*)",
       "Bash(cmd /c \"set SUPABASE_ACCESS_TOKEN=sbp_2582f48b9389cfb4b615d3a91c96a4b731015ffd && npx -y @supabase/mcp-server-supabase@latest --read-only --project-ref=sxnjeqqvqbhueqbwsnpj\")",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(git reset:*)",
+      "Bash(set NETLIFY_SITE_ID=b1ce6181-d158-42e0-b07f-d19353e0fa70)",
+      "Bash(dir:*)",
+      "Bash(timeout:*)",
+      "Bash(git rm:*)"
     ],
     "deny": [],
     "ask": []

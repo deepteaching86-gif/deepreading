@@ -1,7 +1,0 @@
-backend/src
-backend/node_modules
-backend/.env*
-backend/logs
-backend/tests
-backend/coverage
-backend/prisma/migrations
