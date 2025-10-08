@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from '../../lib/axios';
-import { GradePyramid } from '../../components/GradePyramid';
+import { GradeDistribution } from '../../components/GradeDistribution';
 import { determineLiteracyType, type LiteracyScores } from '../../utils/literacyTypes';
 import {
   Chart as ChartJS,
@@ -719,6 +719,31 @@ const TestResultEnhanced = () => {
             grid-template-columns: 1fr 1fr !important;
           }
 
+          /* Page 1 - 2 column grid for distribution and charts */
+          .print-page-1 .grid.grid-cols-2 {
+            display: grid !important;
+            grid-template-columns: 1fr 1fr !important;
+            gap: 8px !important;
+          }
+
+          .print-page-1 .grid.grid-cols-2 > div {
+            padding: 8px !important;
+          }
+
+          .print-page-1 .grid.grid-cols-2 h2 {
+            font-size: 12px !important;
+            margin-bottom: 6px !important;
+          }
+
+          .print-page-1 .grid.grid-cols-2 h3 {
+            font-size: 9px !important;
+            margin-bottom: 3px !important;
+          }
+
+          .print-page-1 .grid.grid-cols-2 .h-32 {
+            height: 120px !important;
+          }
+
           /* Compress space-y utilities */
           .space-y-4 > * + * {
             margin-top: 6px !important;
@@ -815,13 +840,46 @@ const TestResultEnhanced = () => {
           </div>
         </div>
 
-        {/* Grade Pyramid */}
-        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200 page-break">
-          <h2 className="text-lg font-bold text-gray-900 mb-4">등급 분포도</h2>
-          <p className="text-sm text-gray-600 mb-4">
-            전체 응시자 중 내 위치를 확인해보세요.
-          </p>
-          <GradePyramid currentGrade={result.result.grade} className="mx-auto" />
+        {/* Grade Distribution & Charts - 2 columns */}
+        <div className="grid grid-cols-2 gap-4">
+          {/* Grade Distribution */}
+          <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-200">
+            <h2 className="text-base font-bold text-gray-900 mb-3">등급 분포도</h2>
+            <GradeDistribution currentGrade={result.result.grade} />
+          </div>
+
+          {/* Area Analysis Charts */}
+          <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-200">
+            <h2 className="text-base font-bold text-gray-900 mb-3">영역별 분석</h2>
+            {categoryScores.length > 0 ? (
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <h3 className="text-xs font-semibold text-gray-700 mb-2 text-center">종합 분석</h3>
+                  <div className="h-32 flex items-center justify-center">
+                    {radarData.datasets[0].data.some(d => d > 0) ? (
+                      <Radar data={radarData} options={{...radarOptions, maintainAspectRatio: true}} />
+                    ) : (
+                      <p className="text-gray-500 text-xs">데이터 없음</p>
+                    )}
+                  </div>
+                </div>
+                <div>
+                  <h3 className="text-xs font-semibold text-gray-700 mb-2 text-center">점수 비교</h3>
+                  <div className="h-32 flex items-center justify-center">
+                    {barData.datasets[0].data.some(d => d > 0) ? (
+                      <Bar data={barData} options={{...barOptions, maintainAspectRatio: true}} />
+                    ) : (
+                      <p className="text-gray-500 text-xs">데이터 없음</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-gray-500 text-xs">영역별 데이터가 없습니다.</p>
+              </div>
+            )}
+          </div>
         </div>
         </div>
 
@@ -903,47 +961,10 @@ const TestResultEnhanced = () => {
         </div>
         </div>
 
-        {/* PAGE 3: Charts */}
+        {/* PAGE 3: Category Scores */}
         <div className="print-page-3">
-        {/* Charts */}
-        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200 chart-container">
-          <h2 className="text-lg font-bold text-gray-900 mb-4">영역별 분석</h2>
-          {categoryScores.length > 0 ? (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div>
-                <h3 className="text-sm font-semibold text-gray-700 mb-3 text-center">
-                  종합 분석
-                </h3>
-                <div className="h-64 flex items-center justify-center">
-                  {radarData.datasets[0].data.some(d => d > 0) ? (
-                    <Radar data={radarData} options={radarOptions} />
-                  ) : (
-                    <p className="text-gray-500">데이터를 불러오는 중...</p>
-                  )}
-                </div>
-              </div>
-              <div>
-                <h3 className="text-sm font-semibold text-gray-700 mb-3 text-center">
-                  점수 비교
-                </h3>
-                <div className="h-64 flex items-center justify-center">
-                  {barData.datasets[0].data.some(d => d > 0) ? (
-                    <Bar data={barData} options={barOptions} />
-                  ) : (
-                    <p className="text-gray-500">데이터를 불러오는 중...</p>
-                  )}
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <p className="text-gray-500">영역별 데이터가 없습니다.</p>
-            </div>
-          )}
-        </div>
-
         {/* Category Scores */}
-        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200 page-break">
+        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
           <h2 className="text-lg font-bold text-gray-900 mb-4">영역별 점수</h2>
           {categoryScores.length > 0 ? (
             <div className="space-y-3">
@@ -1056,54 +1077,8 @@ const TestResultEnhanced = () => {
           </div>
         )}
 
-        {/* Essay Feedback */}
-        {result.answers && result.answers.length > 0 && (
-          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200 page-break">
-            <h2 className="text-lg font-bold text-gray-900 mb-4">✍️ 서술형 피드백</h2>
-            <p className="text-sm text-gray-600 mb-4">
-              틀린 서술형 문제에 대한 분석입니다.
-            </p>
-            <div className="space-y-4">
-              {result.answers.map((answer, idx) => (
-                <div
-                  key={idx}
-                  className="bg-violet-50 rounded-lg p-4 border border-violet-200"
-                >
-                  <div className="flex items-start gap-3">
-                    <span className="text-2xl">💡</span>
-                    <div className="flex-1">
-                      <div className="text-sm font-semibold text-gray-900 mb-2">
-                        문제 {answer.questionNumber}번 - {getCategoryName(answer.question.category)}
-                      </div>
-                      <div className="text-xs text-gray-700 mb-2 bg-white rounded p-2 border border-gray-200">
-                        <span className="font-semibold">문제:</span> {answer.question.questionText}
-                      </div>
-                      <div className="text-xs text-gray-700 mb-1">
-                        <span className="font-semibold">{result.student.name} 학생 답변:</span>{' '}
-                        {answer.studentAnswer || '(미응답)'}
-                      </div>
-                      <div className="text-xs text-gray-700 mb-2">
-                        <span className="font-semibold">정답 예시:</span>{' '}
-                        {answer.question.correctAnswer}
-                      </div>
-                      {answer.feedback && (
-                        <div className="bg-white rounded p-3 border border-violet-300">
-                          <div className="text-xs font-semibold text-violet-900 mb-1">선생님 피드백</div>
-                          <div className="text-xs text-gray-700 leading-relaxed">
-                            {answer.feedback.replace(/학생/g, `${result.student.name} 학생`)}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
         {/* Recommendations Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 page-break">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Improvement Points */}
           {result.result.weaknesses.length > 0 && (
             <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
@@ -1137,6 +1112,58 @@ const TestResultEnhanced = () => {
             </div>
           )}
         </div>
+
+        {/* Essay Feedback - Moved to last page */}
+        {result.answers && result.answers.length > 0 && (
+          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+            <h2 className="text-lg font-bold text-gray-900 mb-4">✍️ 서술형 피드백</h2>
+            <p className="text-sm text-gray-600 mb-4">
+              틀린 서술형 문제에 대한 분석입니다.
+            </p>
+            <div className="space-y-4">
+              {result.answers.map((answer, idx) => (
+                <div
+                  key={idx}
+                  className="bg-violet-50 rounded-lg p-4 border border-violet-200"
+                >
+                  <div className="flex items-start gap-3">
+                    <span className="text-2xl">💡</span>
+                    <div className="flex-1">
+                      <div className="text-sm font-semibold text-gray-900 mb-2">
+                        문제 {answer.questionNumber}번 - {getCategoryName(answer.question.category)}
+                      </div>
+                      {(answer.question as any).passage && (
+                        <div className="text-xs text-gray-700 mb-2 bg-white rounded p-2 border border-gray-200">
+                          <span className="font-semibold">지문:</span>
+                          <p className="mt-1">{(answer.question as any).passage}</p>
+                        </div>
+                      )}
+                      <div className="text-xs text-gray-700 mb-2 bg-white rounded p-2 border border-gray-200">
+                        <span className="font-semibold">질문:</span> {answer.question.questionText || (answer.question as any).question || '문제 내용'}
+                      </div>
+                      <div className="text-xs text-gray-700 mb-1">
+                        <span className="font-semibold">{result.student.name} 학생 답변:</span>{' '}
+                        {answer.studentAnswer || '(미응답)'}
+                      </div>
+                      <div className="text-xs text-gray-700 mb-2">
+                        <span className="font-semibold">정답 예시:</span>{' '}
+                        {answer.question.correctAnswer}
+                      </div>
+                      {answer.feedback && (
+                        <div className="bg-white rounded p-3 border border-violet-300">
+                          <div className="text-xs font-semibold text-violet-900 mb-1">선생님 피드백</div>
+                          <div className="text-xs text-gray-700 leading-relaxed">
+                            {answer.feedback.replace(/학생/g, `${result.student.name} 학생`)}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
         </div>
 
         {/* Action Buttons */}
