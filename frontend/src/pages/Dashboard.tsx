@@ -81,8 +81,10 @@ export default function Dashboard() {
         (t: TestTemplate) => t.grade === studentProfile.grade
       );
       setTemplates(gradeTemplates);
-    } catch (error) {
+    } catch (error: any) {
       console.error('데이터 조회 실패:', error);
+      console.error('Error details:', error.response?.data);
+      alert(`데이터 조회 실패: ${error.response?.data?.message || error.message}`);
     } finally {
       setLoading(false);
     }
