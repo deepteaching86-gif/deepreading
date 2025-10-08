@@ -12,42 +12,40 @@ import { httpLogStream } from './config/logger';
 // Create Express app
 const app: Application = express();
 
-// Trust Vercel proxy
+// Trust Render/Netlify proxy
 app.set('trust proxy', 1);
 
 // ===== Middleware =====
 
-// Static files - uploads folder
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
-
-// Security - Configure helmet to work with CORS
-app.use(helmet({
-  crossOriginResourcePolicy: { policy: 'cross-origin' },
-  crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' },
-}));
-
-// CORS - Allow Netlify frontend and local development
+// CORS MUST come before other middleware
+// Allow Netlify frontend and local development
 const allowedOrigins = [
   'https://playful-cocada-a89755.netlify.app',
   'http://localhost:5173',
   'http://localhost:3000',
 ];
 
+console.log('🌐 CORS allowed origins:', allowedOrigins);
+
 // Configure CORS options
 const corsOptions = {
   origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+    console.log('🔍 CORS request from origin:', origin);
+
     // Allow requests with no origin (like mobile apps or curl)
     if (!origin) {
+      console.log('✅ CORS: Allowing request with no origin');
       return callback(null, true);
     }
 
     // Check if origin is in allowed list or matches CORS_ORIGIN env var
     if (allowedOrigins.includes(origin) || origin === env.CORS_ORIGIN) {
+      console.log('✅ CORS: Allowing origin:', origin);
       return callback(null, true);
     }
 
     // Log rejected origins for debugging
-    console.log('CORS blocked origin:', origin);
+    console.log('❌ CORS: Blocked origin:', origin);
     callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
@@ -67,11 +65,20 @@ const corsOptions = {
   optionsSuccessStatus: 204,
 };
 
-// Apply CORS middleware
+// Apply CORS middleware FIRST
 app.use(cors(corsOptions));
 
 // Handle OPTIONS preflight requests explicitly for all routes
 app.options('*', cors(corsOptions));
+
+// Static files - uploads folder
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+
+// Security - Configure helmet to work with CORS
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+  crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' },
+}));
 
 // Body parsing
 app.use(express.json({ limit: '10mb' }));
