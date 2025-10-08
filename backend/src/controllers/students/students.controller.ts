@@ -40,20 +40,6 @@ export const getMyProfile = async (req: AuthRequest, res: Response, next: NextFu
             role: true,
           },
         },
-        parent: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-        teacher: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
       },
     });
 
