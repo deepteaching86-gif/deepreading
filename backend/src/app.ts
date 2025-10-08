@@ -20,8 +20,11 @@ app.set('trust proxy', 1);
 // Static files - uploads folder
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
-// Security
-app.use(helmet());
+// Security - Configure helmet to work with CORS
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+  crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' },
+}));
 
 // CORS - Allow Netlify frontend and local development
 const allowedOrigins = [
@@ -30,16 +33,21 @@ const allowedOrigins = [
   'http://localhost:3000',
 ];
 
-app.use(cors({
-  origin: (origin, callback) => {
+// Configure CORS options
+const corsOptions = {
+  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
     // Allow requests with no origin (like mobile apps or curl)
-    if (!origin) return callback(null, true);
+    if (!origin) {
+      return callback(null, true);
+    }
 
     // Check if origin is in allowed list or matches CORS_ORIGIN env var
     if (allowedOrigins.includes(origin) || origin === env.CORS_ORIGIN) {
       return callback(null, true);
     }
 
+    // Log rejected origins for debugging
+    console.log('CORS blocked origin:', origin);
     callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
@@ -57,10 +65,13 @@ app.use(cors({
   maxAge: 86400, // 24 hours
   preflightContinue: false,
   optionsSuccessStatus: 204,
-}));
+};
 
-// Handle OPTIONS preflight requests explicitly
-app.options('*', cors());
+// Apply CORS middleware
+app.use(cors(corsOptions));
+
+// Handle OPTIONS preflight requests explicitly for all routes
+app.options('*', cors(corsOptions));
 
 // Body parsing
 app.use(express.json({ limit: '10mb' }));
