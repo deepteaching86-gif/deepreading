@@ -765,7 +765,13 @@ const TestResultEnhanced = () => {
             margin-bottom: 3px !important;
           }
 
-          .print-page-1 .grid.grid-cols-2 .h-32 {
+          .print-page-1 .grid.grid-cols-2 .h-32,
+          .print-page-1 .grid.grid-cols-2 .h-64 {
+            height: 120px !important;
+          }
+
+          /* Constrain area analysis section in print */
+          .area-analysis-section .h-64 {
             height: 120px !important;
           }
 
@@ -872,13 +878,13 @@ const TestResultEnhanced = () => {
         </div>
 
         {/* Area Analysis Charts */}
-        <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-200">
+        <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-200 area-analysis-section">
           <h2 className="text-base font-bold text-gray-900 mb-3">영역별 분석</h2>
           {categoryScores.length > 0 ? (
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <h3 className="text-xs font-semibold text-gray-700 mb-2 text-center">종합 분석</h3>
-                <div className="h-32 flex items-center justify-center">
+                <div className="h-64 flex items-center justify-center">
                   {radarData.datasets[0].data.some(d => d > 0) ? (
                     <Radar data={radarData} options={{...radarOptions, maintainAspectRatio: true}} />
                   ) : (
@@ -888,7 +894,7 @@ const TestResultEnhanced = () => {
               </div>
               <div>
                 <h3 className="text-xs font-semibold text-gray-700 mb-2 text-center">점수 비교</h3>
-                <div className="h-32 flex items-center justify-center">
+                <div className="h-64 flex items-center justify-center">
                   {barData.datasets[0].data.some(d => d > 0) ? (
                     <Bar data={barData} options={{...barOptions, maintainAspectRatio: true}} />
                   ) : (
@@ -903,10 +909,10 @@ const TestResultEnhanced = () => {
             </div>
           )}
         </div>
-        </div>
+      </div>
 
-        {/* PAGE 2: Literacy Type + Difficulties */}
-        <div className="print-page-2">
+      {/* PAGE 2: Literacy Type + Difficulties */}
+      <div className="print-page-2">
         {/* Literacy Type */}
         <div className="bg-violet-50 rounded-xl shadow-sm p-6 border border-violet-200">
           <div className="flex items-center gap-3 mb-4">
@@ -981,10 +987,10 @@ const TestResultEnhanced = () => {
             ))}
           </div>
         </div>
-        </div>
+      </div>
 
-        {/* PAGE 3: Category Scores */}
-        <div className="print-page-3">
+      {/* PAGE 3: Category Scores */}
+      <div className="print-page-3">
         {/* Category Scores */}
         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
           <h2 className="text-lg font-bold text-gray-900 mb-4">영역별 점수</h2>
@@ -1020,11 +1026,10 @@ const TestResultEnhanced = () => {
             </div>
           )}
         </div>
+      </div>
 
-        </div>
-
-        {/* PAGE 4: Survey Analysis + AI Feedback + Recommendations */}
-        <div className="print-page-4">
+      {/* PAGE 4: Survey Analysis + AI Feedback + Recommendations */}
+      <div className="print-page-4">
         {/* Survey Analysis */}
         {surveyAnalysis && surveyAnalysis.length > 0 && (
           <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200 page-break">
@@ -1186,10 +1191,10 @@ const TestResultEnhanced = () => {
             </div>
           </div>
         )}
-        </div>
+      </div>
 
-        {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row justify-center gap-4 no-print">
+      {/* Action Buttons */}
+      <div className="flex flex-col sm:flex-row justify-center gap-4 no-print">
           <button
             onClick={handleCopyUrl}
             className="px-8 py-3 bg-white text-violet-800 rounded-lg font-semibold hover:bg-violet-50 transition-colors shadow-sm border-2 border-violet-800"
