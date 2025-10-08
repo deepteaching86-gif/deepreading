@@ -1024,8 +1024,8 @@ const TestResultEnhanced = () => {
               </div>
             </div>
 
-            {/* Detailed Analysis */}
-            <div className="space-y-4">
+            {/* Detailed Analysis - 2 columns */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {surveyAnalysis.map((analysis, idx) => (
                 <div key={idx} className="bg-gradient-to-r from-violet-50 to-blue-50 rounded-lg p-4 border border-violet-200">
                   <div className="flex items-start gap-3">
@@ -1056,12 +1056,12 @@ const TestResultEnhanced = () => {
           </div>
         )}
 
-        {/* AI Feedback */}
+        {/* Essay Feedback */}
         {result.answers && result.answers.length > 0 && (
           <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200 page-break">
-            <h2 className="text-lg font-bold text-gray-900 mb-4">🤖 AI 피드백</h2>
+            <h2 className="text-lg font-bold text-gray-900 mb-4">✍️ 서술형 피드백</h2>
             <p className="text-sm text-gray-600 mb-4">
-              틀린 문제에 대한 AI의 분석입니다.
+              틀린 서술형 문제에 대한 분석입니다.
             </p>
             <div className="space-y-4">
               {result.answers.map((answer, idx) => (
@@ -1079,18 +1079,18 @@ const TestResultEnhanced = () => {
                         <span className="font-semibold">문제:</span> {answer.question.questionText}
                       </div>
                       <div className="text-xs text-gray-700 mb-1">
-                        <span className="font-semibold">내 답변:</span>{' '}
+                        <span className="font-semibold">{result.student.name} 학생 답변:</span>{' '}
                         {answer.studentAnswer || '(미응답)'}
                       </div>
                       <div className="text-xs text-gray-700 mb-2">
-                        <span className="font-semibold">정답:</span>{' '}
+                        <span className="font-semibold">정답 예시:</span>{' '}
                         {answer.question.correctAnswer}
                       </div>
                       {answer.feedback && (
                         <div className="bg-white rounded p-3 border border-violet-300">
-                          <div className="text-xs font-semibold text-violet-900 mb-1">AI 피드백</div>
+                          <div className="text-xs font-semibold text-violet-900 mb-1">선생님 피드백</div>
                           <div className="text-xs text-gray-700 leading-relaxed">
-                            {answer.feedback}
+                            {answer.feedback.replace(/학생/g, `${result.student.name} 학생`)}
                           </div>
                         </div>
                       )}
