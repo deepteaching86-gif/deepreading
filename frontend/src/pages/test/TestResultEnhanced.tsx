@@ -495,24 +495,29 @@ const TestResultEnhanced = () => {
             display: none !important;
           }
 
-          /* Fixed 3-page layout */
+          /* Fixed 3-page layout - NO blank pages */
           .print-page-1,
           .print-page-2,
           .print-page-3 {
             width: 100%;
-            height: 100vh;
+            min-height: 100vh;
             max-height: 100vh;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
+            overflow: visible;
             box-sizing: border-box;
             padding: 20px;
             page-break-after: always;
             break-after: page;
+            page-break-before: avoid;
+            break-before: avoid;
+          }
+
+          .print-page-1 {
+            page-break-before: avoid !important;
           }
 
           .print-page-3 {
             page-break-after: avoid;
+            break-after: avoid;
           }
 
           /* Prevent page breaks inside content blocks */
@@ -521,7 +526,6 @@ const TestResultEnhanced = () => {
           .print-page-3 > * {
             page-break-inside: avoid;
             break-inside: avoid;
-            flex-shrink: 1;
           }
 
           /* Page 1 - Personal Info Section (larger) */
@@ -617,27 +621,31 @@ const TestResultEnhanced = () => {
             font-size: 32px !important;
           }
 
-          /* Charts - compressed */
+          /* Charts - adequate height for clarity */
           .chart-container {
-            max-height: 200px !important;
-            height: 200px !important;
-            padding: 10px !important;
+            max-height: 350px !important;
+            height: 350px !important;
+            padding: 12px !important;
             page-break-inside: avoid;
             break-inside: avoid;
           }
 
           .chart-container h2 {
-            font-size: 13px !important;
-            margin-bottom: 6px !important;
+            font-size: 14px !important;
+            margin-bottom: 8px !important;
           }
 
           .chart-container .h-64 {
-            height: 150px !important;
-            max-height: 150px !important;
+            height: 280px !important;
+            max-height: 280px !important;
           }
 
           .chart-container canvas {
-            max-height: 140px !important;
+            max-height: 260px !important;
+          }
+
+          .chart-container .grid {
+            gap: 12px !important;
           }
 
           /* Grid layouts */
