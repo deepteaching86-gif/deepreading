@@ -62,6 +62,7 @@ interface SessionResult {
     weaknesses: string[];
     recommendations: string[];
     completedAt: string;
+    aiSummary?: string;
     categoryScores: {
       category: string;
       score: number;
@@ -118,30 +119,6 @@ const TestResultEnhanced = () => {
     });
   };
 
-  const generateAISummary = (result: SessionResult): string => {
-    const { totalScore, grade, strengths, weaknesses } = result.result;
-    const gradeNames = ['D', 'C', 'B', 'A', 'S'];
-    const gradeName = gradeNames[grade - 1] || 'D';
-
-    // Determine performance level
-    const percentage = (totalScore / 100) * 100;
-    let performanceLevel = '';
-    if (percentage >= 80) {
-      performanceLevel = '매우 우수한';
-    } else if (percentage >= 60) {
-      performanceLevel = '양호한';
-    } else if (percentage >= 40) {
-      performanceLevel = '보통';
-    } else {
-      performanceLevel = '개선이 필요한';
-    }
-
-    // Get primary strength and weakness
-    const primaryStrength = strengths[0] || '기본적인 독해 능력';
-    const primaryWeakness = weaknesses[0] || '심화 학습';
-
-    return `학생은 ${gradeName}등급으로 ${performanceLevel} 문해력 수준을 보이고 있습니다. 특히 ${primaryStrength} 영역에서 강점을 나타내며, ${primaryWeakness} 부분에서 추가 학습이 권장됩니다. 꾸준한 독서와 맞춤형 학습을 통해 더욱 향상될 수 있습니다.`;
-  };
 
   if (loading) {
     return (
@@ -695,9 +672,19 @@ const TestResultEnhanced = () => {
             padding: 8px !important;
           }
 
-          /* Pyramid sizing */
+          /* Pyramid sizing - smaller to fit page */
           .print-page-1 svg {
-            max-height: 250px !important;
+            max-height: 180px !important;
+          }
+
+          /* Chart grid - ensure 2 charts side-by-side */
+          .print-page-3 .chart-container .grid.grid-cols-1 {
+            grid-template-columns: 1fr 1fr !important;
+            display: grid !important;
+          }
+
+          .print-page-3 .chart-container .lg\\:grid-cols-2 {
+            grid-template-columns: 1fr 1fr !important;
           }
         }
       `}</style>
@@ -712,11 +699,11 @@ const TestResultEnhanced = () => {
 
         {/* PAGE 1: Personal Info + Scores + Pyramid */}
         <div className="print-page-1">
-        {/* Personal Info Section - Larger */}
+        {/* Personal Info Section - Includes everything */}
         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200 personal-info">
-          <h1 className="text-2xl font-bold text-gray-900 mb-3">문해력 진단 결과</h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">문해력 진단 결과</h1>
 
-          <div className="grid grid-cols-2 gap-4 mb-4">
+          <div className="grid grid-cols-3 gap-4 mb-4">
             <div>
               <div className="text-sm text-gray-600 mb-1">학생 이름</div>
               <div className="student-name text-lg font-semibold text-gray-900">
@@ -731,50 +718,37 @@ const TestResultEnhanced = () => {
                   : '미등록'}
               </div>
             </div>
+            <div>
+              <div className="text-sm text-gray-600 mb-1">응시 일시</div>
+              <div className="text-base font-medium text-gray-900">
+                {new Date(result.result.completedAt).toLocaleDateString('ko-KR', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                })}
+              </div>
+            </div>
           </div>
 
-          <div className="mb-4">
-            <div className="text-sm text-gray-600 mb-1">응시 일시</div>
-            <div className="text-base font-medium text-gray-900">
-              {new Date(result.result.completedAt).toLocaleDateString('ko-KR', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-              })}
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            <div className="bg-violet-50 rounded-lg p-3 border border-violet-200">
+              <div className="text-xs font-medium text-violet-800 mb-1">종합 점수</div>
+              <div className="text-2xl font-bold text-violet-900">
+                {result.result.totalScore}점 <span className="text-sm font-normal">/ {result.result.categoryScores.reduce((acc, c) => acc + c.maxScore, 0)}점</span>
+              </div>
+            </div>
+            <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+              <div className="text-xs font-medium text-gray-700 mb-1">종합 등급</div>
+              <div className="text-2xl font-bold text-gray-900">
+                {result.result.grade}등급 <span className="text-sm font-normal text-gray-600">({getGradeLabel(result.result.grade)})</span>
+              </div>
             </div>
           </div>
 
           {/* AI Summary */}
           <div className="ai-summary">
             <div className="text-sm font-semibold text-gray-800 mb-2">📊 전반적인 결과 요약</div>
-            <p className="text-gray-700">{generateAISummary(result)}</p>
-          </div>
-        </div>
-
-        {/* Score and Grade Cards - 2 in a row */}
-        <div className="score-cards">
-          <div className="bg-violet-50 rounded-lg p-4 border border-violet-200">
-            <div className="text-center">
-              <div className="text-xs font-medium text-violet-800 mb-1">종합 점수</div>
-              <div className="text-3xl font-bold text-violet-900 mb-1">
-                {result.result.totalScore}점
-              </div>
-              <div className="text-sm text-violet-800">
-                {result.result.categoryScores.reduce((acc, c) => acc + c.maxScore, 0)}점 만점
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-            <div className="text-center">
-              <div className="text-xs font-medium text-gray-700 mb-1">종합 등급</div>
-              <div className="text-3xl font-bold text-gray-900 mb-1">
-                {result.result.grade}등급
-              </div>
-              <div className="text-sm text-gray-600">{getGradeLabel(result.result.grade)}</div>
-            </div>
+            <p className="text-gray-700">{result.result.aiSummary || "AI 요약 생성 중..."}</p>
           </div>
         </div>
 

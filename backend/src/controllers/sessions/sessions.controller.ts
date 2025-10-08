@@ -3,7 +3,7 @@ import { Request, Response, NextFunction } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { ApiError } from '../../errors/api-error';
 import { nanoid } from 'nanoid';
-import { gradeEssayWithAI } from '../../services/openai.service';
+import { gradeEssayWithAI, generateResultSummary } from '../../services/openai.service';
 
 const prisma = new PrismaClient();
 
@@ -875,10 +875,23 @@ export const getSessionResult = async (req: AuthRequest, res: Response, next: Ne
       },
     });
 
+    // Generate AI summary
+    const maxScore = result.categoryScores.reduce((acc, c) => acc + c.maxScore, 0);
+    const aiSummary = await generateResultSummary({
+      grade: result.grade,
+      totalScore: result.totalScore,
+      maxScore,
+      strengths: result.strengths,
+      weaknesses: result.weaknesses,
+    });
+
     res.json({
       success: true,
       data: {
-        result,
+        result: {
+          ...result,
+          aiSummary,
+        },
         template: session.template,
         student: {
           name: session.student.user.name,
