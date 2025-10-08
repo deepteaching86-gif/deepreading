@@ -169,9 +169,12 @@ export default function TestInProgress() {
 
       alert('테스트가 제출되었습니다. 채점 중입니다...');
       navigate(`/test/result/${sessionId}`);
-    } catch (error) {
+    } catch (error: any) {
       console.error('제출 실패:', error);
-      alert('테스트 제출에 실패했습니다.');
+      console.error('Error response:', error.response);
+      console.error('Error message:', error.message);
+      console.error('Error details:', error.response?.data);
+      alert(`테스트 제출에 실패했습니다.\n${error.response?.data?.message || error.message || '알 수 없는 오류'}`);
       setSubmitting(false);
     }
   };

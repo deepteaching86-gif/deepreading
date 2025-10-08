@@ -58,10 +58,26 @@ export const getSessionReport = async (req: AuthRequest, res: Response, next: Ne
       return next(new ApiError('Not scored yet', 400));
     }
 
+    // Filter out survey categories (only include actual test questions)
+    const surveyCategories = [
+      'reading_motivation',
+      'writing_motivation',
+      'reading_environment',
+      'reading_habit',
+      'reading_preference',
+      'digital_literacy',
+      'critical_thinking',
+      'reading_attitude'
+    ];
+
+    const testAnswers = session.answers.filter(
+      (answer) => !surveyCategories.includes(answer.question.category)
+    );
+
     // Calculate category scores
     const categoryScores: Record<string, { earned: number; total: number }> = {};
 
-    session.answers.forEach((answer) => {
+    testAnswers.forEach((answer) => {
       const category = answer.question.category;
       if (!categoryScores[category]) {
         categoryScores[category] = { earned: 0, total: 0 };
@@ -73,6 +89,8 @@ export const getSessionReport = async (req: AuthRequest, res: Response, next: Ne
     res.json({
       success: true,
       data: {
+        resultId: session.result.id,
+        sessionId: session.id,
         student: {
           name: session.student.user.name,
           email: session.student.user.email,
@@ -94,7 +112,7 @@ export const getSessionReport = async (req: AuthRequest, res: Response, next: Ne
           incorrectAnswers: session.result.incorrectAnswers,
         },
         categoryScores,
-        answers: session.answers.map((a) => ({
+        answers: testAnswers.map((a) => ({
           questionNumber: a.questionNumber,
           questionText: a.question.questionText,
           questionType: a.question.questionType,

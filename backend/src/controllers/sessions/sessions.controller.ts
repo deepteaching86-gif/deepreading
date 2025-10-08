@@ -563,16 +563,18 @@ export const submitSession = async (req: AuthRequest, res: Response, next: NextF
       percentile = (lowerScores / sameGradeScores.length) * 100;
     }
 
-    // Determine grade level (1-9 scale, not letter grades)
-    let gradeLevel = 1;
-    if (percentage >= 90) gradeLevel = 9;
-    else if (percentage >= 80) gradeLevel = 8;
-    else if (percentage >= 70) gradeLevel = 7;
-    else if (percentage >= 60) gradeLevel = 6;
-    else if (percentage >= 50) gradeLevel = 5;
-    else if (percentage >= 40) gradeLevel = 4;
-    else if (percentage >= 30) gradeLevel = 3;
-    else if (percentage >= 20) gradeLevel = 2;
+    // Determine grade level (1-9 scale)
+    // 1등급(최고) ~ 9등급(최하)
+    let gradeLevel = 9; // Default to lowest grade
+    if (percentage >= 96) gradeLevel = 1;       // 96% 이상 → 1등급
+    else if (percentage >= 89) gradeLevel = 2;  // 89-95% → 2등급
+    else if (percentage >= 77) gradeLevel = 3;  // 77-88% → 3등급
+    else if (percentage >= 60) gradeLevel = 4;  // 60-76% → 4등급
+    else if (percentage >= 40) gradeLevel = 5;  // 40-59% → 5등급
+    else if (percentage >= 23) gradeLevel = 6;  // 23-39% → 6등급
+    else if (percentage >= 11) gradeLevel = 7;  // 11-22% → 7등급
+    else if (percentage >= 4) gradeLevel = 8;   // 4-10% → 8등급
+    // else gradeLevel = 9;                     // 0-3% → 9등급
 
     // Update session status
     await prisma.testSession.update({

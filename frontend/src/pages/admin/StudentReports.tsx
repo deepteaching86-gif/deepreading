@@ -14,6 +14,8 @@ interface SessionListItem {
 }
 
 interface SessionReport {
+  resultId: string;
+  sessionId: string;
   student: {
     name: string;
     email: string;
@@ -201,6 +203,16 @@ const StudentReports: React.FC = () => {
                   <div className="flex justify-between items-start mb-6">
                     <h2 className="text-2xl font-bold text-foreground">학생 리포트 상세</h2>
                     <div className="flex gap-2">
+                      <button
+                        onClick={() => {
+                          if (selectedSession?.resultId) {
+                            window.open(`/report/${selectedSession.resultId}`, '_blank');
+                          }
+                        }}
+                        className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium"
+                      >
+                        📄 학생 레포트 보기
+                      </button>
                       <button
                         onClick={() => {
                           setSelectedSession(null);
