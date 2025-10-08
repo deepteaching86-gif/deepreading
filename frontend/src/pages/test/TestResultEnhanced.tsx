@@ -736,13 +736,44 @@ const TestResultEnhanced = () => {
           .print-page-3 .bg-white,
           .print-page-3 .bg-violet-50,
           .print-page-3 .bg-gradient-to-r {
-            padding: 6pt !important;
-            margin-bottom: 3pt !important;
+            padding: 4pt !important;
+            margin-bottom: 2pt !important;
           }
 
           .print-page-3 .grid.lg\\:grid-cols-2 {
             grid-template-columns: 1fr 1fr !important;
             gap: 4pt !important;
+          }
+
+          /* 독서 태도 섹션 최적화 */
+          .print-page-3 h2 {
+            font-size: 10pt !important;
+            margin-bottom: 3pt !important;
+          }
+
+          .print-page-3 h3 {
+            font-size: 8pt !important;
+            margin-bottom: 2pt !important;
+          }
+
+          .print-page-3 p,
+          .print-page-3 div {
+            font-size: 7.5pt !important;
+            line-height: 1.2 !important;
+          }
+
+          /* 막대 그래프 최적화 */
+          .print-page-3 .h-2 {
+            height: 1pt !important;
+          }
+
+          /* 분석 카드 간격 축소 */
+          .print-page-3 .space-y-3 > * + * {
+            margin-top: 2pt !important;
+          }
+
+          .print-page-3 .gap-4 {
+            gap: 2pt !important;
           }
 
           /* === 리스트 === */
@@ -979,11 +1010,7 @@ const TestResultEnhanced = () => {
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
                       <div
-                        className={`h-2 rounded-full transition-all duration-500 ${
-                          analysis.score >= 4.0 ? 'bg-green-600' :
-                          analysis.score >= 3.0 ? 'bg-blue-600' :
-                          'bg-orange-600'
-                        }`}
+                        className="h-2 rounded-full transition-all duration-500 bg-violet-600"
                         style={{ width: `${(analysis.score / 5) * 100}%` }}
                       ></div>
                     </div>
@@ -992,8 +1019,8 @@ const TestResultEnhanced = () => {
               </div>
             </div>
 
-            {/* Detailed Analysis - 2 columns */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Detailed Analysis - 1 column */}
+            <div className="grid grid-cols-1 gap-4">
               {surveyAnalysis.map((analysis, idx) => (
                 <div key={idx} className="bg-gradient-to-r from-violet-50 to-blue-50 rounded-lg p-4 border border-violet-200">
                   <div className="flex items-start gap-3">
