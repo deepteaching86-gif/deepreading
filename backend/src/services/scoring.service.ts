@@ -255,17 +255,18 @@ export class ScoringService {
 
   /**
    * 등급 계산 (1-9등급)
+   * 1등급(최고) ~ 9등급(최하)
    */
   private calculateGradeLevel(percentage: number): number {
-    if (percentage >= 96) return 1;
-    if (percentage >= 89) return 2;
-    if (percentage >= 77) return 3;
-    if (percentage >= 60) return 4;
-    if (percentage >= 40) return 5;
-    if (percentage >= 23) return 6;
-    if (percentage >= 11) return 7;
-    if (percentage >= 4) return 8;
-    return 9;
+    if (percentage >= 96) return 1;  // 96% 이상 → 1등급
+    if (percentage >= 89) return 2;  // 89-95% → 2등급
+    if (percentage >= 77) return 3;  // 77-88% → 3등급
+    if (percentage >= 60) return 4;  // 60-76% → 4등급
+    if (percentage >= 40) return 5;  // 40-59% → 5등급
+    if (percentage >= 23) return 6;  // 23-39% → 6등급
+    if (percentage >= 11) return 7;  // 11-22% → 7등급
+    if (percentage >= 4) return 8;   // 4-10% → 8등급
+    return 9;                        // 0-3% → 9등급
   }
 
   /**

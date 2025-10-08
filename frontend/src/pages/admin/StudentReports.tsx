@@ -93,6 +93,11 @@ const StudentReports: React.FC = () => {
       reading: '독해력',
       grammar: '문법/어법',
       reasoning: '추론/사고력',
+      reading_motivation: '독서 동기',
+      writing_motivation: '쓰기 동기',
+      reading_environment: '독서 환경',
+      reading_habit: '독서 습관',
+      reading_preference: '독서 선호도',
     };
     return names[category] || category;
   };
@@ -198,16 +203,6 @@ const StudentReports: React.FC = () => {
                   <div className="flex justify-between items-start mb-6">
                     <h2 className="text-2xl font-bold text-foreground">학생 리포트 상세</h2>
                     <div className="flex gap-2">
-                      <button
-                        onClick={() => {
-                          if (selectedSessionId) {
-                            window.open(`/test/result/${selectedSessionId}`, '_blank');
-                          }
-                        }}
-                        className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium"
-                      >
-                        📄 학생 레포트 보기
-                      </button>
                       <button
                         onClick={() => {
                           setSelectedSession(null);
