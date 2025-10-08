@@ -56,6 +56,7 @@ const BulkUpload: React.FC = () => {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
+        timeout: 300000, // 5분 (300초) - AI 채점 시간 고려
       });
 
       setResults(response.data.results);
