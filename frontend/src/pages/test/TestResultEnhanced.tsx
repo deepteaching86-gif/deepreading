@@ -478,65 +478,153 @@ const TestResultEnhanced = () => {
     <div className="min-h-screen bg-white py-8 px-4">
       <style>{`
         @media print {
-          body {
+          * {
             print-color-adjust: exact;
             -webkit-print-color-adjust: exact;
           }
+
+          body {
+            margin: 0;
+            padding: 0;
+          }
+
           .no-print {
             display: none !important;
           }
 
-          /* Page 1: Header + Grade Pyramid */
+          /* Fixed 2-page layout */
+          .print-page-1,
+          .print-page-2 {
+            width: 100%;
+            height: 100vh;
+            max-height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+            padding: 16px;
+          }
+
           .print-page-1 {
             page-break-after: always;
             break-after: page;
-            height: auto;
-            max-height: 100vh;
-          }
-          .print-page-1 .page-break {
-            page-break-inside: avoid;
-            break-inside: avoid;
-            max-height: 45vh;
           }
 
-          /* Page 2: Literacy Type + Difficulties */
           .print-page-2 {
-            page-break-after: always;
-            break-after: page;
-            height: auto;
-            max-height: 100vh;
-          }
-          .print-page-2 .page-break {
-            page-break-inside: avoid;
-            break-inside: avoid;
-            max-height: 48vh;
+            page-break-after: avoid;
+            break-after: avoid;
           }
 
-          /* Page 3: Analysis Charts + Improvement + Guide */
-          .print-page-3 {
-            height: auto;
-            max-height: 100vh;
-          }
-          .print-page-3 .page-break {
+          /* Prevent page breaks inside content blocks */
+          .print-page-1 > *,
+          .print-page-2 > * {
             page-break-inside: avoid;
             break-inside: avoid;
-            max-height: 30vh;
-          }
-          .print-page-3 .chart-container {
-            max-height: 25vh;
+            flex-shrink: 1;
           }
 
-          .page-break {
-            page-break-inside: avoid;
-            break-inside: avoid;
+          /* Ultra-compress all cards */
+          .print-page-1 .bg-white,
+          .print-page-1 .bg-violet-50,
+          .print-page-2 .bg-white,
+          .print-page-2 .bg-violet-50 {
+            padding: 8px !important;
+            margin-bottom: 6px !important;
+            border-radius: 8px !important;
           }
+
+          /* Compress headings */
+          .print-page-1 h1 {
+            font-size: 18px !important;
+            margin-bottom: 4px !important;
+          }
+
+          .print-page-1 h2,
+          .print-page-2 h2 {
+            font-size: 13px !important;
+            margin-bottom: 6px !important;
+          }
+
+          .print-page-1 h3,
+          .print-page-2 h3 {
+            font-size: 11px !important;
+            margin-bottom: 4px !important;
+          }
+
+          /* Compress text */
+          .print-page-1 p,
+          .print-page-2 p,
+          .print-page-1 li,
+          .print-page-2 li,
+          .print-page-1 span,
+          .print-page-2 span {
+            font-size: 9px !important;
+            line-height: 1.2 !important;
+          }
+
+          /* Emoji sizing */
+          .print-page-2 .text-5xl {
+            font-size: 32px !important;
+          }
+
+          /* Ultra-compress charts */
           .chart-container {
+            max-height: 140px !important;
+            height: 140px !important;
+            padding: 6px !important;
             page-break-inside: avoid;
             break-inside: avoid;
           }
+
+          .chart-container h2 {
+            font-size: 12px !important;
+            margin-bottom: 4px !important;
+          }
+
+          .chart-container .h-64 {
+            height: 100px !important;
+            max-height: 100px !important;
+          }
+
+          .chart-container canvas {
+            max-height: 90px !important;
+          }
+
+          /* Grid layouts - minimal spacing */
           .grid {
+            gap: 6px !important;
             page-break-inside: avoid;
             break-inside: avoid;
+          }
+
+          /* Space reduction */
+          .space-y-3 {
+            gap: 4px !important;
+          }
+
+          .space-y-6 {
+            gap: 6px !important;
+          }
+
+          .mb-4 {
+            margin-bottom: 6px !important;
+          }
+
+          .mb-3 {
+            margin-bottom: 4px !important;
+          }
+
+          .p-6 {
+            padding: 8px !important;
+          }
+
+          .p-4 {
+            padding: 6px !important;
+          }
+
+          /* Pyramid sizing */
+          .print-page-1 svg {
+            max-height: 200px !important;
           }
         }
       `}</style>
@@ -608,10 +696,10 @@ const TestResultEnhanced = () => {
         </div>
         </div>
 
-        {/* PAGE 2: Literacy Type + Difficulties */}
+        {/* PAGE 2: All Content */}
         <div className="print-page-2">
         {/* Literacy Type */}
-        <div className="bg-violet-50 rounded-xl shadow-sm p-6 border border-violet-200 page-break">
+        <div className="bg-violet-50 rounded-xl shadow-sm p-6 border border-violet-200">
           <div className="flex items-center gap-3 mb-4">
             <span className="text-5xl">{literacyType.emoji}</span>
             <div>
@@ -667,7 +755,7 @@ const TestResultEnhanced = () => {
         </div>
 
         {/* Difficulty Challenges */}
-        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200 page-break">
+        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
           <h2 className="text-lg font-bold text-gray-900 mb-4">⚠️ 약점으로 인한 어려움</h2>
           <p className="text-sm text-gray-600 mb-4">
             현재 문해력 수준에서 겪을 수 있는 구체적인 어려움입니다.
@@ -684,12 +772,9 @@ const TestResultEnhanced = () => {
             ))}
           </div>
         </div>
-        </div>
 
-        {/* PAGE 3: Analysis Charts + Improvement + Guide */}
-        <div className="print-page-3">
         {/* Charts */}
-        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200 chart-container page-break">
+        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200 chart-container">
           <h2 className="text-lg font-bold text-gray-900 mb-4">영역별 분석</h2>
           {categoryScores.length > 0 ? (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
