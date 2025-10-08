@@ -666,8 +666,12 @@ export const getSessionResult = async (req: AuthRequest, res: Response, next: Ne
             question: {
               select: {
                 questionNumber: true,
+                questionText: true,
+                questionType: true,
+                correctAnswer: true,
                 category: true,
                 points: true,
+                passage: true,
               },
             },
           },

@@ -482,328 +482,287 @@ const TestResultEnhanced = () => {
     <div className="min-h-screen bg-white py-8 px-4">
       <style>{`
         @media print {
+          /* === 기본 설정 === */
           * {
-            print-color-adjust: exact;
-            -webkit-print-color-adjust: exact;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            color-adjust: exact !important;
             box-sizing: border-box !important;
           }
 
+          @page {
+            size: A4;
+            margin: 15mm;
+          }
+
+          html, body {
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 210mm;
+            background: white !important;
+          }
+
           body {
-            margin: 0;
-            padding: 0;
+            font-size: 10pt;
           }
 
-          /* Prevent all transforms and ensure proper sizing */
-          div, section, article {
-            transform: none !important;
-            max-width: 100% !important;
-          }
-
-          .no-print {
+          /* === 화면 전용 요소 숨김 === */
+          .no-print,
+          button,
+          .fixed,
+          nav,
+          header:not(.print-header),
+          footer:not(.print-footer) {
             display: none !important;
           }
 
-          /* Fixed 4-page layout - NO blank pages */
-          .print-page-1,
-          .print-page-2,
-          .print-page-3,
-          .print-page-4 {
-            width: 100%;
-            height: 100vh;
-            max-height: 100vh;
-            overflow: hidden;
-            box-sizing: border-box;
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            page-break-before: avoid;
-            break-before: avoid;
-            transform: none !important; /* Prevent any transforms */
-            zoom: 1 !important; /* Prevent browser zoom scaling */
-          }
-
+          /* === 페이지 구조 === */
           .print-page-1,
           .print-page-2,
           .print-page-3 {
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            page-break-inside: avoid;
+            break-inside: avoid;
+          }
+
+          .print-page-1,
+          .print-page-2 {
             page-break-after: always;
             break-after: page;
           }
 
-          .print-page-4 {
+          .print-page-3 {
             page-break-after: avoid;
             break-after: avoid;
           }
 
-          /* Prevent page breaks inside content blocks */
-          .print-page-1 > *,
-          .print-page-2 > *,
-          .print-page-3 > *,
-          .print-page-4 > * {
-            page-break-inside: avoid;
-            break-inside: avoid;
-            flex-shrink: 1;
-          }
-
-          /* Page 1 - Personal Info Section (larger) */
-          .print-page-1 .personal-info {
-            padding: 16px !important;
-            margin-bottom: 12px !important;
-          }
-
-          .print-page-1 .personal-info h1 {
-            font-size: 22px !important;
-            margin-bottom: 8px !important;
-          }
-
-          .print-page-1 .personal-info .student-name {
-            font-size: 16px !important;
-            font-weight: 600 !important;
-          }
-
-          .print-page-1 .personal-info .grade-info {
-            font-size: 14px !important;
-          }
-
-          .print-page-1 .personal-info .ai-summary {
-            font-size: 12px !important;
-            line-height: 1.5 !important;
-            margin-top: 8px !important;
-            padding: 12px !important;
-            background: #f3f4f6 !important;
-            border-radius: 8px !important;
-          }
-
-          /* Score cards - 2 in a row, smaller */
-          .print-page-1 .score-cards {
-            display: grid !important;
-            grid-template-columns: 1fr 1fr !important;
-            gap: 12px !important;
-            margin-bottom: 12px !important;
-          }
-
-          .print-page-1 .score-cards > div {
-            padding: 10px !important;
-          }
-
-          .print-page-1 .score-cards .text-3xl {
-            font-size: 24px !important;
-          }
-
-          /* Compress other cards - prevent scaling and overlap */
-          .print-page-1 .bg-white,
-          .print-page-2 .bg-white,
-          .print-page-2 .bg-violet-50,
-          .print-page-3 .bg-white,
-          .print-page-4 .bg-white {
-            padding: 8px !important;
-            margin-bottom: 6px !important;
-            border-radius: 6px !important;
-            transform: none !important; /* Prevent transforms */
-            position: relative !important; /* Ensure proper stacking */
-            box-sizing: border-box !important; /* Include padding in width */
-            max-width: 100% !important; /* Prevent overflow */
-            overflow: hidden !important; /* Clip content that exceeds bounds */
-          }
-
-          /* Headings */
-          .print-page-1 h2,
-          .print-page-2 h2,
-          .print-page-3 h2,
-          .print-page-4 h2 {
-            font-size: 13px !important;
-            margin-bottom: 5px !important;
-          }
-
-          .print-page-2 h2.text-xl {
-            font-size: 15px !important;
-          }
-
-          .print-page-1 h3,
-          .print-page-2 h3,
-          .print-page-3 h3,
-          .print-page-4 h3 {
-            font-size: 10px !important;
-            margin-bottom: 3px !important;
-          }
-
-          /* Text */
-          .print-page-1 p,
-          .print-page-2 p,
-          .print-page-3 p,
-          .print-page-4 p,
-          .print-page-1 li,
-          .print-page-2 li,
-          .print-page-3 li,
-          .print-page-4 li,
-          .print-page-1 span,
-          .print-page-2 span,
-          .print-page-3 span,
-          .print-page-4 span {
-            font-size: 9px !important;
-            line-height: 1.25 !important;
-          }
-
-          /* Emoji sizing */
-          .print-page-2 .text-5xl {
-            font-size: 32px !important;
-          }
-
-          /* Charts - maintain aspect ratio */
-          .chart-container {
-            flex: 1;
-            min-height: 0;
-            padding: 10px !important;
-            page-break-inside: avoid;
-            break-inside: avoid;
-            display: flex;
-            flex-direction: column;
-          }
-
-          .chart-container h2 {
-            font-size: 13px !important;
-            margin-bottom: 6px !important;
-            flex-shrink: 0;
-          }
-
-          .chart-container .grid {
-            gap: 10px !important;
-            flex: 1;
-            min-height: 0;
-          }
-
-          .chart-container .h-64 {
-            height: 100% !important;
-            max-height: none !important;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-          }
-
-          .chart-container canvas {
+          /* === 컨테이너 === */
+          .max-w-6xl,
+          .container {
             max-width: 100% !important;
-            max-height: 100% !important;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+          }
+
+          .space-y-6 {
+            gap: 0 !important;
+          }
+
+          .space-y-6 > * + * {
+            margin-top: 0 !important;
+          }
+
+          /* === 카드 스타일 === */
+          .bg-white,
+          .bg-violet-50,
+          .bg-gradient-to-r {
+            page-break-inside: avoid;
+            break-inside: avoid;
+            margin-bottom: 6pt !important;
+            padding: 8pt !important;
+            border: 0.5pt solid #e5e7eb !important;
+            border-radius: 2pt !important;
+            box-shadow: none !important;
+            background: white !important;
+          }
+
+          .bg-violet-50 {
+            background: #f5f3ff !important;
+            border-color: #c4b5fd !important;
+          }
+
+          .rounded-xl,
+          .rounded-lg {
+            border-radius: 2pt !important;
+          }
+
+          .shadow-sm,
+          .shadow,
+          .shadow-lg {
+            box-shadow: none !important;
+          }
+
+          /* === 타이포그래피 === */
+          h1 {
+            font-size: 14pt !important;
+            margin-bottom: 6pt !important;
+            margin-top: 0 !important;
+            page-break-after: avoid;
+          }
+
+          h2 {
+            font-size: 11pt !important;
+            margin-bottom: 4pt !important;
+            margin-top: 6pt !important;
+            page-break-after: avoid;
+          }
+
+          h3 {
+            font-size: 9pt !important;
+            margin-bottom: 3pt !important;
+            margin-top: 4pt !important;
+            page-break-after: avoid;
+          }
+
+          p, li, span, div {
+            font-size: 8.5pt !important;
+            line-height: 1.3 !important;
+          }
+
+          /* === 레이아웃 === */
+          .grid {
+            display: grid !important;
+            gap: 4pt !important;
+            page-break-inside: avoid;
+            break-inside: avoid;
+            max-width: 100% !important;
+          }
+
+          .grid-cols-2 {
+            grid-template-columns: 1fr 1fr !important;
+          }
+
+          .grid-cols-3 {
+            grid-template-columns: 1fr 1fr 1fr !important;
+          }
+
+          .grid > * {
+            min-width: 0 !important;
+            min-height: 0 !important;
+            overflow: hidden !important;
+          }
+
+          /* === 간격 조정 === */
+          .space-y-2 > * + * {
+            margin-top: 2pt !important;
+          }
+
+          .space-y-3 > * + * {
+            margin-top: 3pt !important;
+          }
+
+          .space-y-4 > * + * {
+            margin-top: 4pt !important;
+          }
+
+          .mb-2 {
+            margin-bottom: 2pt !important;
+          }
+
+          .mb-3 {
+            margin-bottom: 3pt !important;
+          }
+
+          .mb-4 {
+            margin-bottom: 4pt !important;
+          }
+
+          .mb-6 {
+            margin-bottom: 6pt !important;
+          }
+
+          .p-4 {
+            padding: 6pt !important;
+          }
+
+          .p-6 {
+            padding: 8pt !important;
+          }
+
+          /* === 차트 최적화 === */
+          .chart-container {
+            page-break-inside: avoid;
+            break-inside: avoid;
+          }
+
+          .h-32 {
+            height: 100pt !important;
+          }
+
+          .h-64 {
+            height: 140pt !important;
+          }
+
+          canvas {
+            max-width: 100% !important;
+            max-height: 140pt !important;
             width: auto !important;
             height: auto !important;
             object-fit: contain;
           }
 
-          /* Grid layouts - prevent overflow and overlap */
-          .grid {
-            gap: 8px !important;
-            page-break-inside: avoid;
-            break-inside: avoid;
-            box-sizing: border-box !important;
+          svg {
             max-width: 100% !important;
+            max-height: 120pt !important;
+            width: auto !important;
+            height: auto !important;
           }
 
-          /* Prevent grid items from overflowing */
-          .grid > * {
-            min-width: 0 !important; /* Allow flex items to shrink below content size */
-            min-height: 0 !important;
-            overflow: hidden !important;
-            box-sizing: border-box !important;
-          }
-
-          /* Space reduction */
-          .space-y-3 {
-            gap: 4px !important;
-          }
-
-          .space-y-6 {
-            gap: 8px !important;
-          }
-
-          .mb-4 {
-            margin-bottom: 6px !important;
-          }
-
-          .mb-3 {
-            margin-bottom: 4px !important;
-          }
-
-          .p-6 {
-            padding: 10px !important;
-          }
-
-          .p-4 {
-            padding: 8px !important;
-          }
-
-          /* Pyramid sizing - smaller to fit page */
-          .print-page-1 svg {
-            max-height: 160px !important;
-          }
-
-          /* Chart grid - ensure 2 charts side-by-side */
-          .print-page-3 .chart-container .grid.grid-cols-1 {
-            grid-template-columns: 1fr 1fr !important;
-            display: grid !important;
-          }
-
-          .print-page-3 .chart-container .lg\\:grid-cols-2 {
-            grid-template-columns: 1fr 1fr !important;
-          }
-
-          /* Page 1 - 2 column grid for distribution and charts */
-          .print-page-1 .grid.grid-cols-2 {
-            display: grid !important;
-            grid-template-columns: 1fr 1fr !important;
-            gap: 8px !important;
-          }
-
-          .print-page-1 .grid.grid-cols-2 > div {
-            padding: 8px !important;
-          }
-
-          .print-page-1 .grid.grid-cols-2 h2 {
-            font-size: 12px !important;
-            margin-bottom: 6px !important;
-          }
-
-          .print-page-1 .grid.grid-cols-2 h3 {
-            font-size: 9px !important;
-            margin-bottom: 3px !important;
-          }
-
-          .print-page-1 .grid.grid-cols-2 .h-32,
-          .print-page-1 .grid.grid-cols-2 .h-64 {
-            height: 120px !important;
-          }
-
-          /* Constrain area analysis section in print */
+          /* 영역별 분석 차트 높이 증가 */
           .area-analysis-section .h-64 {
-            height: 120px !important;
+            height: 180pt !important;
           }
 
-          /* Compress space-y utilities */
-          .space-y-4 > * + * {
-            margin-top: 6px !important;
+          .area-analysis-section canvas {
+            max-height: 180pt !important;
           }
 
-          .space-y-3 > * + * {
-            margin-top: 4px !important;
+          /* Pyramid 높이 최적화 */
+          .print-page-1 svg {
+            max-height: 140pt !important;
           }
 
-          .space-y-2 > * + * {
-            margin-top: 3px !important;
+          /* === 이모지 크기 === */
+          .text-5xl {
+            font-size: 24pt !important;
           }
 
-          /* Page 4 specific compression */
-          .print-page-4 .bg-white {
-            flex-shrink: 1;
-            min-height: 0;
+          .text-3xl {
+            font-size: 18pt !important;
           }
 
-          .print-page-4 .bg-violet-50,
-          .print-page-4 .bg-gradient-to-r {
-            padding: 6px !important;
-            margin-bottom: 4px !important;
+          .text-2xl {
+            font-size: 14pt !important;
           }
 
-          /* Recommendation grid - compress for page 4 */
-          .print-page-4 .grid.lg\\:grid-cols-2 {
+          .text-xl {
+            font-size: 12pt !important;
+          }
+
+          /* === Page 3 최적화 === */
+          .print-page-3 .bg-white,
+          .print-page-3 .bg-violet-50,
+          .print-page-3 .bg-gradient-to-r {
+            padding: 6pt !important;
+            margin-bottom: 3pt !important;
+          }
+
+          .print-page-3 .grid.lg\\:grid-cols-2 {
             grid-template-columns: 1fr 1fr !important;
-            gap: 8px !important;
+            gap: 4pt !important;
+          }
+
+          /* === 리스트 === */
+          ul, ol {
+            margin: 2pt 0 !important;
+            padding-left: 12pt !important;
+          }
+
+          li {
+            margin: 1pt 0 !important;
+          }
+
+          /* === 색상 보존 === */
+          .bg-green-50,
+          .bg-red-50,
+          .bg-blue-50,
+          .bg-yellow-50,
+          .bg-purple-50 {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
           }
         }
       `}</style>
@@ -989,47 +948,8 @@ const TestResultEnhanced = () => {
         </div>
       </div>
 
-      {/* PAGE 3: Category Scores */}
+      {/* PAGE 3: Survey Analysis + AI Feedback + Recommendations (was page 4) */}
       <div className="print-page-3">
-        {/* Category Scores */}
-        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
-          <h2 className="text-lg font-bold text-gray-900 mb-4">영역별 점수</h2>
-          {categoryScores.length > 0 ? (
-            <div className="space-y-3">
-              {categoryScores.map((cat, idx) => (
-                <div key={idx}>
-                  <div className="flex justify-between items-center mb-1">
-                    <span className="text-sm font-medium text-gray-900">
-                      {getCategoryName(cat.category)}
-                    </span>
-                    <div className="flex items-center gap-3">
-                      <span className="text-xs text-gray-600">
-                        {cat.score}점 / {cat.maxScore}점
-                      </span>
-                      <span className="text-sm font-bold text-violet-800 min-w-[50px] text-right">
-                        {cat.percentage.toFixed(1)}%
-                      </span>
-                    </div>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div
-                      className="h-2 rounded-full bg-violet-800 transition-all duration-500"
-                      style={{ width: `${cat.percentage}%` }}
-                    ></div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-8">
-              <p className="text-gray-500">영역별 점수 데이터가 없습니다.</p>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* PAGE 4: Survey Analysis + AI Feedback + Recommendations */}
-      <div className="print-page-4">
         {/* Survey Analysis */}
         {surveyAnalysis && surveyAnalysis.length > 0 && (
           <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200 page-break">
