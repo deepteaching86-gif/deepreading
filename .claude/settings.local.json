@@ -61,7 +61,8 @@
       "Bash(dir:*)",
       "Bash(timeout:*)",
       "Bash(git rm:*)",
-      "Bash(findstr:*)"
+      "Bash(findstr:*)",
+      "Bash(del /F frontendsrcnul)"
     ],
     "deny": [],
     "ask": []

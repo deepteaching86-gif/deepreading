@@ -47,6 +47,7 @@ model Student {
   schoolName  String?   @map("school_name") @db.VarChar(200)
   className   String?   @map("class_name") @db.VarChar(50)
   birthDate   DateTime? @map("birth_date") @db.Date
+  parentPhone String?   @map("parent_phone") @db.VarChar(20)
   parentId    String?   @map("parent_id") @db.Uuid
   teacherId   String?   @map("teacher_id") @db.Uuid
   createdAt   DateTime  @default(now()) @map("created_at")

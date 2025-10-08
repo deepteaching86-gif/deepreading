@@ -289,6 +289,7 @@ export default function AdminDashboard() {
                     ))}
                   </tbody>
                 </table>
+                </div>
               </div>
             )}
           </section>
@@ -405,6 +406,21 @@ export default function AdminDashboard() {
                 <div>
                   <h3 className="font-semibold text-foreground">학생 리포트</h3>
                   <p className="text-sm text-muted-foreground">학생별 상세 리포트 조회</p>
+                </div>
+              </div>
+            </Link>
+
+            <Link
+              to="/admin/users"
+              className="bg-card rounded-lg shadow-sm p-6 border border-border hover:border-primary transition-colors"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+                  <span className="text-2xl">👥</span>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-foreground">전체 회원 관리</h3>
+                  <p className="text-sm text-muted-foreground">사용자 정보 조회 및 수정</p>
                 </div>
               </div>
             </Link>

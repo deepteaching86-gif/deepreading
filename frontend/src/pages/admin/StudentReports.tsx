@@ -52,6 +52,7 @@ interface SessionReport {
 const StudentReports: React.FC = () => {
   const [sessions, setSessions] = useState<SessionListItem[]>([]);
   const [selectedSession, setSelectedSession] = useState<SessionReport | null>(null);
+  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [detailLoading, setDetailLoading] = useState(false);
 
@@ -75,6 +76,7 @@ const StudentReports: React.FC = () => {
   const fetchSessionReport = async (sessionId: string) => {
     try {
       setDetailLoading(true);
+      setSelectedSessionId(sessionId);
       const response = await axios.get(`/api/v1/admin/reports/sessions/${sessionId}`);
       setSelectedSession(response.data.data);
     } catch (error) {
@@ -198,13 +200,8 @@ const StudentReports: React.FC = () => {
                     <div className="flex gap-2">
                       <button
                         onClick={() => {
-                          // Get the session ID from the selectedSession (we need to find it)
-                          const sessionId = sessions.find(s =>
-                            s.studentEmail === selectedSession.student.email &&
-                            s.completedAt === selectedSession.test.completedAt
-                          )?.id;
-                          if (sessionId) {
-                            window.open(`/test/result/${sessionId}`, '_blank');
+                          if (selectedSessionId) {
+                            window.open(`/test/result/${selectedSessionId}`, '_blank');
                           }
                         }}
                         className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium"
@@ -212,7 +209,10 @@ const StudentReports: React.FC = () => {
                         📄 학생 레포트 보기
                       </button>
                       <button
-                        onClick={() => setSelectedSession(null)}
+                        onClick={() => {
+                          setSelectedSession(null);
+                          setSelectedSessionId(null);
+                        }}
                         className="text-muted-foreground hover:text-foreground text-2xl font-bold"
                       >
                         ×

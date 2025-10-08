@@ -73,6 +73,10 @@ interface SessionResult {
     title: string;
     description: string;
   };
+  student: {
+    name: string;
+    email: string;
+  };
   answers: Answer[];
   surveyResponses?: SurveyResponse[];
 }
@@ -481,6 +485,47 @@ const TestResultEnhanced = () => {
           .no-print {
             display: none !important;
           }
+
+          /* Page 1: Header + Grade Pyramid */
+          .print-page-1 {
+            page-break-after: always;
+            break-after: page;
+            height: auto;
+            max-height: 100vh;
+          }
+          .print-page-1 .page-break {
+            page-break-inside: avoid;
+            break-inside: avoid;
+            max-height: 45vh;
+          }
+
+          /* Page 2: Literacy Type + Difficulties */
+          .print-page-2 {
+            page-break-after: always;
+            break-after: page;
+            height: auto;
+            max-height: 100vh;
+          }
+          .print-page-2 .page-break {
+            page-break-inside: avoid;
+            break-inside: avoid;
+            max-height: 48vh;
+          }
+
+          /* Page 3: Analysis Charts + Improvement + Guide */
+          .print-page-3 {
+            height: auto;
+            max-height: 100vh;
+          }
+          .print-page-3 .page-break {
+            page-break-inside: avoid;
+            break-inside: avoid;
+            max-height: 30vh;
+          }
+          .print-page-3 .chart-container {
+            max-height: 25vh;
+          }
+
           .page-break {
             page-break-inside: avoid;
             break-inside: avoid;
@@ -504,12 +549,15 @@ const TestResultEnhanced = () => {
           </div>
         )}
 
+        {/* PAGE 1: Header + Grade Pyramid */}
+        <div className="print-page-1">
         {/* Header */}
         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200 page-break">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h1 className="text-2xl font-bold text-gray-900 mb-1">문해력 진단 결과</h1>
               <p className="text-sm text-gray-600">{result.template.title}</p>
+              <p className="text-sm text-gray-700 mt-1">학생: {result.student.name}</p>
             </div>
             <div className="text-right">
               <div className="text-xs text-gray-500 mb-1">완료 일시</div>
@@ -558,7 +606,10 @@ const TestResultEnhanced = () => {
           </p>
           <GradePyramid currentGrade={result.result.grade} className="mx-auto" />
         </div>
+        </div>
 
+        {/* PAGE 2: Literacy Type + Difficulties */}
+        <div className="print-page-2">
         {/* Literacy Type */}
         <div className="bg-violet-50 rounded-xl shadow-sm p-6 border border-violet-200 page-break">
           <div className="flex items-center gap-3 mb-4">
@@ -633,7 +684,10 @@ const TestResultEnhanced = () => {
             ))}
           </div>
         </div>
+        </div>
 
+        {/* PAGE 3: Analysis Charts + Improvement + Guide */}
+        <div className="print-page-3">
         {/* Charts */}
         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200 chart-container page-break">
           <h2 className="text-lg font-bold text-gray-900 mb-4">영역별 분석</h2>
@@ -861,6 +915,7 @@ const TestResultEnhanced = () => {
               </div>
             </div>
           )}
+        </div>
         </div>
 
         {/* Action Buttons */}

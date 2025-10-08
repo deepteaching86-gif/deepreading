@@ -13,4 +13,9 @@ router.get('/users/recent', authenticateToken, adminController.getRecentUsers);
 // Grade-level statistics
 router.get('/stats/by-grade', authenticateToken, adminController.getStatsByGrade);
 
+// User management
+router.get('/users', authenticateToken, adminController.getAllUsers);
+router.put('/users/:userId', authenticateToken, adminController.updateUser);
+router.delete('/users/:userId', authenticateToken, adminController.deleteUser);
+
 export default router;

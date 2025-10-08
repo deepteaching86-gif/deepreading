@@ -10,6 +10,8 @@ export default function Register() {
     name: '',
     role: 'student' as 'student' | 'teacher' | 'parent',
     grade: 1,
+    schoolName: '',
+    parentPhone: '',
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -43,6 +45,8 @@ export default function Register() {
         name: formData.name,
         role: formData.role,
         grade: formData.role === 'student' ? formData.grade : undefined,
+        schoolName: formData.role === 'student' ? formData.schoolName : undefined,
+        parentPhone: formData.role === 'student' ? formData.parentPhone : undefined,
       });
 
       alert('회원가입이 완료되었습니다. 로그인해주세요.');
@@ -123,28 +127,61 @@ export default function Register() {
             </div>
 
             {formData.role === 'student' && (
-              <div>
-                <label className="block text-sm font-medium text-card-foreground mb-1">
-                  학년
-                </label>
-                <select
-                  name="grade"
-                  value={formData.grade}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary bg-input text-foreground"
-                >
-                  {[1, 2, 3, 4, 5, 6].map((grade) => (
-                    <option key={grade} value={grade}>
-                      초등 {grade}학년
-                    </option>
-                  ))}
-                  {[7, 8, 9].map((grade) => (
-                    <option key={grade} value={grade}>
-                      중등 {grade - 6}학년
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-card-foreground mb-1">
+                    학년
+                  </label>
+                  <select
+                    name="grade"
+                    value={formData.grade}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary bg-input text-foreground"
+                  >
+                    {[1, 2, 3, 4, 5, 6].map((grade) => (
+                      <option key={grade} value={grade}>
+                        초등 {grade}학년
+                      </option>
+                    ))}
+                    {[7, 8, 9].map((grade) => (
+                      <option key={grade} value={grade}>
+                        중등 {grade - 6}학년
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-card-foreground mb-1">
+                    학교명
+                  </label>
+                  <input
+                    type="text"
+                    name="schoolName"
+                    value={formData.schoolName}
+                    onChange={handleChange}
+                    required
+                    className="w-full px-4 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary bg-input text-foreground"
+                    placeholder="예: 서울초등학교"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-card-foreground mb-1">
+                    학부모 휴대폰 번호
+                  </label>
+                  <input
+                    type="tel"
+                    name="parentPhone"
+                    value={formData.parentPhone}
+                    onChange={handleChange}
+                    required
+                    pattern="[0-9]{3}-[0-9]{4}-[0-9]{4}"
+                    className="w-full px-4 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary bg-input text-foreground"
+                    placeholder="010-1234-5678"
+                  />
+                </div>
+              </>
             )}
 
             <div>

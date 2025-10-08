@@ -8,7 +8,7 @@ const prisma = new PrismaClient();
 
 export const register = async (req: Request, res: Response) => {
   try {
-    const { email, password, name, role = 'student', phone, grade } = req.body;
+    const { email, password, name, role = 'student', phone, grade, schoolName, parentPhone } = req.body;
 
     // Validation
     if (!email || !password || !name) {
@@ -69,6 +69,8 @@ export const register = async (req: Request, res: Response) => {
           data: {
             userId: user.id,
             grade: parseInt(grade),
+            schoolName: schoolName || null,
+            parentPhone: parentPhone || null,
           },
         });
       }

@@ -230,3 +230,148 @@ export const getStatsByGrade = async (req: AuthRequest, res: Response, next: Nex
     next(new ApiError('Failed to fetch grade statistics', 500));
   }
 };
+
+/**
+ * Get all users for admin management
+ */
+export const getAllUsers = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.user?.userId;
+
+    if (!userId) {
+      return next(new ApiError('User not authenticated', 401));
+    }
+
+    if (req.user?.role !== 'admin') {
+      return next(new ApiError('Only admins can access this endpoint', 403));
+    }
+
+    const users = await prisma.user.findMany({
+      include: {
+        student: true,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    res.json({
+      success: true,
+      data: users,
+      message: 'Users retrieved successfully',
+    });
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    next(new ApiError('Failed to fetch users', 500));
+  }
+};
+
+/**
+ * Update user information
+ */
+export const updateUser = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const adminUserId = req.user?.userId;
+    const { userId } = req.params;
+    const { name, email, phone, grade, schoolName, parentPhone } = req.body;
+
+    if (!adminUserId) {
+      return next(new ApiError('User not authenticated', 401));
+    }
+
+    if (req.user?.role !== 'admin') {
+      return next(new ApiError('Only admins can update users', 403));
+    }
+
+    // Check if user exists
+    const existingUser = await prisma.user.findUnique({
+      where: { id: userId },
+      include: { student: true },
+    });
+
+    if (!existingUser) {
+      return next(new ApiError('User not found', 404));
+    }
+
+    // Update user in transaction
+    const updatedUser = await prisma.$transaction(async (tx) => {
+      // Update user basic info
+      const user = await tx.user.update({
+        where: { id: userId },
+        data: {
+          name,
+          email,
+          phone,
+        },
+      });
+
+      // Update student info if user is a student
+      if (existingUser.role === 'student' && existingUser.student) {
+        await tx.student.update({
+          where: { id: existingUser.student.id },
+          data: {
+            grade: grade ? parseInt(grade) : undefined,
+            schoolName: schoolName || null,
+            parentPhone: parentPhone || null,
+          },
+        });
+      }
+
+      return user;
+    });
+
+    res.json({
+      success: true,
+      data: updatedUser,
+      message: 'User updated successfully',
+    });
+  } catch (error) {
+    console.error('Error updating user:', error);
+    next(new ApiError('Failed to update user', 500));
+  }
+};
+
+/**
+ * Delete user
+ */
+export const deleteUser = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const adminUserId = req.user?.userId;
+    const { userId } = req.params;
+
+    if (!adminUserId) {
+      return next(new ApiError('User not authenticated', 401));
+    }
+
+    if (req.user?.role !== 'admin') {
+      return next(new ApiError('Only admins can delete users', 403));
+    }
+
+    // Prevent admin from deleting themselves
+    if (adminUserId === userId) {
+      return next(new ApiError('Cannot delete your own account', 400));
+    }
+
+    // Check if user exists
+    const existingUser = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!existingUser) {
+      return next(new ApiError('User not found', 404));
+    }
+
+    // Delete user (cascade will handle student and sessions)
+    await prisma.user.delete({
+      where: { id: userId },
+    });
+
+    res.json({
+      success: true,
+      message: 'User deleted successfully',
+    });
+  } catch (error) {
+    console.error('Error deleting user:', error);
+    next(new ApiError('Failed to delete user', 500));
+  }
+};

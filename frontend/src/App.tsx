@@ -18,6 +18,7 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminGradingManagement from './pages/admin/GradingManagement';
 import AdminBulkUpload from './pages/admin/BulkUpload';
 import AdminStudentReports from './pages/admin/StudentReports';
+import AdminUserManagement from './pages/admin/UserManagement';
 import ParentDashboard from './pages/parent/ParentDashboard';
 import TeacherDashboard from './pages/teacher/TeacherDashboard';
 import DetailedReportEnhanced from './pages/DetailedReportEnhanced';
@@ -132,6 +133,14 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['admin']}>
                 <AdminStudentReports />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/users"
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AdminUserManagement />
               </ProtectedRoute>
             }
           />
