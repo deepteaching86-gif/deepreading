@@ -42,6 +42,7 @@ interface Answer {
     questionType: string;
     correctAnswer: string;
     category: string;
+    passage?: string; // Include passage for reading comprehension questions
   };
 }
 
@@ -484,11 +485,18 @@ const TestResultEnhanced = () => {
           * {
             print-color-adjust: exact;
             -webkit-print-color-adjust: exact;
+            box-sizing: border-box !important;
           }
 
           body {
             margin: 0;
             padding: 0;
+          }
+
+          /* Prevent all transforms and ensure proper sizing */
+          div, section, article {
+            transform: none !important;
+            max-width: 100% !important;
           }
 
           .no-print {
@@ -510,6 +518,8 @@ const TestResultEnhanced = () => {
             flex-direction: column;
             page-break-before: avoid;
             break-before: avoid;
+            transform: none !important; /* Prevent any transforms */
+            zoom: 1 !important; /* Prevent browser zoom scaling */
           }
 
           .print-page-1,
@@ -579,7 +589,7 @@ const TestResultEnhanced = () => {
             font-size: 24px !important;
           }
 
-          /* Compress other cards */
+          /* Compress other cards - prevent scaling and overlap */
           .print-page-1 .bg-white,
           .print-page-2 .bg-white,
           .print-page-2 .bg-violet-50,
@@ -588,6 +598,11 @@ const TestResultEnhanced = () => {
             padding: 8px !important;
             margin-bottom: 6px !important;
             border-radius: 6px !important;
+            transform: none !important; /* Prevent transforms */
+            position: relative !important; /* Ensure proper stacking */
+            box-sizing: border-box !important; /* Include padding in width */
+            max-width: 100% !important; /* Prevent overflow */
+            overflow: hidden !important; /* Clip content that exceeds bounds */
           }
 
           /* Headings */
@@ -672,11 +687,21 @@ const TestResultEnhanced = () => {
             object-fit: contain;
           }
 
-          /* Grid layouts */
+          /* Grid layouts - prevent overflow and overlap */
           .grid {
             gap: 8px !important;
             page-break-inside: avoid;
             break-inside: avoid;
+            box-sizing: border-box !important;
+            max-width: 100% !important;
+          }
+
+          /* Prevent grid items from overflowing */
+          .grid > * {
+            min-width: 0 !important; /* Allow flex items to shrink below content size */
+            min-height: 0 !important;
+            overflow: hidden !important;
+            box-sizing: border-box !important;
           }
 
           /* Space reduction */
@@ -840,46 +865,43 @@ const TestResultEnhanced = () => {
           </div>
         </div>
 
-        {/* Grade Distribution & Charts - 2 columns */}
-        <div className="grid grid-cols-2 gap-4">
-          {/* Grade Distribution */}
-          <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-200">
-            <h2 className="text-base font-bold text-gray-900 mb-3">등급 분포도</h2>
-            <GradeDistribution currentGrade={result.result.grade} />
-          </div>
+        {/* Grade Distribution */}
+        <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-200">
+          <h2 className="text-base font-bold text-gray-900 mb-3">등급 분포도</h2>
+          <GradeDistribution currentGrade={result.result.grade} />
+        </div>
 
-          {/* Area Analysis Charts */}
-          <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-200">
-            <h2 className="text-base font-bold text-gray-900 mb-3">영역별 분석</h2>
-            {categoryScores.length > 0 ? (
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <h3 className="text-xs font-semibold text-gray-700 mb-2 text-center">종합 분석</h3>
-                  <div className="h-32 flex items-center justify-center">
-                    {radarData.datasets[0].data.some(d => d > 0) ? (
-                      <Radar data={radarData} options={{...radarOptions, maintainAspectRatio: true}} />
-                    ) : (
-                      <p className="text-gray-500 text-xs">데이터 없음</p>
-                    )}
-                  </div>
-                </div>
-                <div>
-                  <h3 className="text-xs font-semibold text-gray-700 mb-2 text-center">점수 비교</h3>
-                  <div className="h-32 flex items-center justify-center">
-                    {barData.datasets[0].data.some(d => d > 0) ? (
-                      <Bar data={barData} options={{...barOptions, maintainAspectRatio: true}} />
-                    ) : (
-                      <p className="text-gray-500 text-xs">데이터 없음</p>
-                    )}
-                  </div>
+        {/* Area Analysis Charts */}
+        <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-200">
+          <h2 className="text-base font-bold text-gray-900 mb-3">영역별 분석</h2>
+          {categoryScores.length > 0 ? (
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <h3 className="text-xs font-semibold text-gray-700 mb-2 text-center">종합 분석</h3>
+                <div className="h-32 flex items-center justify-center">
+                  {radarData.datasets[0].data.some(d => d > 0) ? (
+                    <Radar data={radarData} options={{...radarOptions, maintainAspectRatio: true}} />
+                  ) : (
+                    <p className="text-gray-500 text-xs">데이터 없음</p>
+                  )}
                 </div>
               </div>
-            ) : (
-              <div className="text-center py-8">
-                <p className="text-gray-500 text-xs">영역별 데이터가 없습니다.</p>
+              <div>
+                <h3 className="text-xs font-semibold text-gray-700 mb-2 text-center">점수 비교</h3>
+                <div className="h-32 flex items-center justify-center">
+                  {barData.datasets[0].data.some(d => d > 0) ? (
+                    <Bar data={barData} options={{...barOptions, maintainAspectRatio: true}} />
+                  ) : (
+                    <p className="text-gray-500 text-xs">데이터 없음</p>
+                  )}
+                </div>
               </div>
-            )}
-          </div>
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-gray-500 text-xs">영역별 데이터가 없습니다.</p>
+            </div>
+          )}
         </div>
         </div>
 
@@ -1132,14 +1154,14 @@ const TestResultEnhanced = () => {
                       <div className="text-sm font-semibold text-gray-900 mb-2">
                         문제 {answer.questionNumber}번 - {getCategoryName(answer.question.category)}
                       </div>
-                      {(answer.question as any).passage && (
+                      {answer.question.passage && (
                         <div className="text-xs text-gray-700 mb-2 bg-white rounded p-2 border border-gray-200">
                           <span className="font-semibold">지문:</span>
-                          <p className="mt-1">{(answer.question as any).passage}</p>
+                          <p className="mt-1 whitespace-pre-wrap">{answer.question.passage}</p>
                         </div>
                       )}
                       <div className="text-xs text-gray-700 mb-2 bg-white rounded p-2 border border-gray-200">
-                        <span className="font-semibold">질문:</span> {answer.question.questionText || (answer.question as any).question || '문제 내용'}
+                        <span className="font-semibold">질문:</span> {answer.question.questionText}
                       </div>
                       <div className="text-xs text-gray-700 mb-1">
                         <span className="font-semibold">{result.student.name} 학생 답변:</span>{' '}

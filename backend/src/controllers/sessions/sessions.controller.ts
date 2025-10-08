@@ -851,6 +851,7 @@ export const getSessionResult = async (req: AuthRequest, res: Response, next: Ne
           questionType: a.question.questionType,
           correctAnswer: a.question.correctAnswer,
           category: a.question.category,
+          passage: a.question.passage, // Include passage for reading comprehension questions
         },
       }));
 
