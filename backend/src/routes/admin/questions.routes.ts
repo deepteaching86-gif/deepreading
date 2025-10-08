@@ -14,7 +14,10 @@ import {
 
 const router = Router();
 
-// 모든 라우트에 인증 및 관리자 권한 필요
+// POST /api/admin/questions/upload-image - 이미지 업로드 (multer를 먼저 실행)
+router.post('/upload-image', authenticateToken, requireAdmin, upload.single('image'), uploadImage);
+
+// 나머지 라우트에 인증 및 관리자 권한 필요
 router.use(authenticateToken);
 router.use(requireAdmin);
 
@@ -23,9 +26,6 @@ router.get('/', getAllQuestions);
 
 // GET /api/admin/questions/template/:templateCode - 특정 테스트 템플릿의 문항 조회
 router.get('/template/:templateCode', getQuestionsByTemplate);
-
-// POST /api/admin/questions/upload-image - 이미지 업로드
-router.post('/upload-image', upload.single('image'), uploadImage);
 
 // GET /api/admin/questions/:id - 특정 문항 조회
 router.get('/:id', getQuestionById);

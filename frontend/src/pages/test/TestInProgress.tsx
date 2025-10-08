@@ -301,7 +301,9 @@ export default function TestInProgress() {
           {currentQuestion.imageUrl && (
             <div className="mb-6">
               <img
-                src={currentQuestion.imageUrl}
+                src={currentQuestion.imageUrl.startsWith('http')
+                  ? currentQuestion.imageUrl
+                  : `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${currentQuestion.imageUrl}`}
                 alt="문제 이미지"
                 className="max-w-full h-auto rounded-lg border border-border"
               />

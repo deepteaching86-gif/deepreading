@@ -1010,7 +1010,9 @@ const TestResultEnhanced = () => {
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
                       <div
-                        className="h-2 rounded-full transition-all duration-500 bg-violet-600"
+                        className={`h-2 rounded-full transition-all duration-500 ${
+                          analysis.score >= 3.0 ? 'bg-violet-600' : 'bg-red-800'
+                        }`}
                         style={{ width: `${(analysis.score / 5) * 100}%` }}
                       ></div>
                     </div>
