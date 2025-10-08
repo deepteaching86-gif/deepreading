@@ -52,7 +52,6 @@ interface SessionReport {
 const StudentReports: React.FC = () => {
   const [sessions, setSessions] = useState<SessionListItem[]>([]);
   const [selectedSession, setSelectedSession] = useState<SessionReport | null>(null);
-  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [detailLoading, setDetailLoading] = useState(false);
 
@@ -76,7 +75,6 @@ const StudentReports: React.FC = () => {
   const fetchSessionReport = async (sessionId: string) => {
     try {
       setDetailLoading(true);
-      setSelectedSessionId(sessionId);
       const response = await axios.get(`/api/v1/admin/reports/sessions/${sessionId}`);
       setSelectedSession(response.data.data);
     } catch (error) {
@@ -206,7 +204,6 @@ const StudentReports: React.FC = () => {
                       <button
                         onClick={() => {
                           setSelectedSession(null);
-                          setSelectedSessionId(null);
                         }}
                         className="text-muted-foreground hover:text-foreground text-2xl font-bold"
                       >
