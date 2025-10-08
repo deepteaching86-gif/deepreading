@@ -63,8 +63,11 @@ export default function Dashboard() {
     try {
       setLoading(true);
 
+      console.log('Fetching student profile...');
+
       // Fetch student profile
       const profileRes = await axios.get('/api/v1/students/me/profile');
+      console.log('Profile response:', profileRes.data);
       const studentProfile = profileRes.data.data;
       setProfile(studentProfile);
 
