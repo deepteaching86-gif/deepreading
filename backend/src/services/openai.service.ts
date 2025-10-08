@@ -165,6 +165,7 @@ export async function gradeEssaysBatch(essays: GradeEssayParams[]): Promise<Grad
 }
 
 interface GenerateSummaryParams {
+  studentName: string;
   grade: number;
   totalScore: number;
   maxScore: number;
@@ -176,14 +177,14 @@ interface GenerateSummaryParams {
  * AI를 사용하여 문해력 진단 결과 요약 생성
  */
 export async function generateResultSummary(params: GenerateSummaryParams): Promise<string> {
-  const { grade, totalScore, maxScore, strengths, weaknesses } = params;
+  const { studentName, grade, totalScore, maxScore, strengths, weaknesses } = params;
 
   if (!OPENAI_API_KEY) {
     // Fallback summary without AI
     const percentage = ((totalScore / maxScore) * 100).toFixed(1);
     const primaryStrength = strengths[0] || '기본적인 독해 능력';
     const primaryWeakness = weaknesses[0] || '심화 학습';
-    return `학생은 ${grade}등급으로 ${percentage}%의 정답률을 보였습니다. ${primaryStrength} 영역에서 강점을 나타내며, ${primaryWeakness} 부분에서 추가 학습이 권장됩니다.`;
+    return `${studentName} 학생은 ${grade}등급으로 ${percentage}%의 정답률을 보였습니다. ${primaryStrength} 영역에서 강점을 나타내며, ${primaryWeakness} 부분에서 추가 학습이 권장됩니다.`;
   }
 
   try {
@@ -193,6 +194,9 @@ export async function generateResultSummary(params: GenerateSummaryParams): Prom
 당신은 초등학교 및 중학교 문해력 평가 전문가입니다.
 다음 학생의 문해력 진단 결과를 바탕으로 2-3문장의 간결하고 명확한 요약을 작성해주세요.
 
+## 학생 정보
+- 이름: ${studentName}
+
 ## 평가 결과
 - 등급: ${grade}등급 (1등급이 최상위, 5등급이 최하위)
 - 점수: ${totalScore}점 / ${maxScore}점 (정답률 ${percentage}%)
@@ -200,10 +204,11 @@ export async function generateResultSummary(params: GenerateSummaryParams): Prom
 - 약점 영역: ${weaknesses.join(', ') || '없음'}
 
 ## 작성 가이드
-1. 첫 문장: 등급과 전반적인 수준 평가 (예: "학생은 ${grade}등급으로 우수한/양호한/보통/개선이 필요한 문해력 수준을 보입니다.")
+1. 첫 문장: "${studentName} 학생은 ${grade}등급으로 우수한/양호한/보통/개선이 필요한 문해력 수준을 보입니다." 형식으로 시작
 2. 두 번째 문장: 주요 강점 언급
 3. 세 번째 문장: 개선 영역과 격려의 메시지
 
+**중요**: 반드시 "${studentName} 학생은"으로 문장을 시작하세요.
 학부모가 이해하기 쉽고, 학생에게 동기를 부여할 수 있도록 긍정적이고 구체적으로 작성해주세요.
 요약문만 반환하고, 추가 설명이나 서론은 포함하지 마세요.
 `;
@@ -243,6 +248,6 @@ export async function generateResultSummary(params: GenerateSummaryParams): Prom
     const percentage = ((totalScore / maxScore) * 100).toFixed(1);
     const primaryStrength = strengths[0] || '기본적인 독해 능력';
     const primaryWeakness = weaknesses[0] || '심화 학습';
-    return `학생은 ${grade}등급으로 ${percentage}%의 정답률을 보였습니다. ${primaryStrength} 영역에서 강점을 나타내며, ${primaryWeakness} 부분에서 추가 학습이 권장됩니다.`;
+    return `${studentName} 학생은 ${grade}등급으로 ${percentage}%의 정답률을 보였습니다. ${primaryStrength} 영역에서 강점을 나타내며, ${primaryWeakness} 부분에서 추가 학습이 권장됩니다.`;
   }
 }

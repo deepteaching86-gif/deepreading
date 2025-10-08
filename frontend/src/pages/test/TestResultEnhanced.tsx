@@ -495,27 +495,31 @@ const TestResultEnhanced = () => {
             display: none !important;
           }
 
-          /* Fixed 3-page layout - NO blank pages */
+          /* Fixed 4-page layout - NO blank pages */
           .print-page-1,
           .print-page-2,
-          .print-page-3 {
+          .print-page-3,
+          .print-page-4 {
             width: 100%;
-            min-height: 100vh;
+            height: 100vh;
             max-height: 100vh;
-            overflow: visible;
+            overflow: hidden;
             box-sizing: border-box;
-            padding: 20px;
-            page-break-after: always;
-            break-after: page;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
             page-break-before: avoid;
             break-before: avoid;
           }
 
-          .print-page-1 {
-            page-break-before: avoid !important;
+          .print-page-1,
+          .print-page-2,
+          .print-page-3 {
+            page-break-after: always;
+            break-after: page;
           }
 
-          .print-page-3 {
+          .print-page-4 {
             page-break-after: avoid;
             break-after: avoid;
           }
@@ -523,9 +527,11 @@ const TestResultEnhanced = () => {
           /* Prevent page breaks inside content blocks */
           .print-page-1 > *,
           .print-page-2 > *,
-          .print-page-3 > * {
+          .print-page-3 > *,
+          .print-page-4 > * {
             page-break-inside: avoid;
             break-inside: avoid;
+            flex-shrink: 1;
           }
 
           /* Page 1 - Personal Info Section (larger) */
@@ -577,43 +583,49 @@ const TestResultEnhanced = () => {
           .print-page-1 .bg-white,
           .print-page-2 .bg-white,
           .print-page-2 .bg-violet-50,
-          .print-page-3 .bg-white {
-            padding: 10px !important;
-            margin-bottom: 8px !important;
-            border-radius: 8px !important;
+          .print-page-3 .bg-white,
+          .print-page-4 .bg-white {
+            padding: 8px !important;
+            margin-bottom: 6px !important;
+            border-radius: 6px !important;
           }
 
           /* Headings */
           .print-page-1 h2,
           .print-page-2 h2,
-          .print-page-3 h2 {
-            font-size: 14px !important;
-            margin-bottom: 6px !important;
+          .print-page-3 h2,
+          .print-page-4 h2 {
+            font-size: 13px !important;
+            margin-bottom: 5px !important;
           }
 
           .print-page-2 h2.text-xl {
-            font-size: 16px !important;
+            font-size: 15px !important;
           }
 
           .print-page-1 h3,
           .print-page-2 h3,
-          .print-page-3 h3 {
-            font-size: 11px !important;
-            margin-bottom: 4px !important;
+          .print-page-3 h3,
+          .print-page-4 h3 {
+            font-size: 10px !important;
+            margin-bottom: 3px !important;
           }
 
           /* Text */
           .print-page-1 p,
           .print-page-2 p,
           .print-page-3 p,
+          .print-page-4 p,
           .print-page-1 li,
           .print-page-2 li,
           .print-page-3 li,
+          .print-page-4 li,
           .print-page-1 span,
           .print-page-2 span,
-          .print-page-3 span {
-            font-size: 10px !important;
-            line-height: 1.3 !important;
+          .print-page-3 span,
+          .print-page-4 span {
+            font-size: 9px !important;
+            line-height: 1.25 !important;
           }
 
           /* Emoji sizing */
@@ -621,31 +633,43 @@ const TestResultEnhanced = () => {
             font-size: 32px !important;
           }
 
-          /* Charts - adequate height for clarity */
+          /* Charts - maintain aspect ratio */
           .chart-container {
-            max-height: 350px !important;
-            height: 350px !important;
-            padding: 12px !important;
+            flex: 1;
+            min-height: 0;
+            padding: 10px !important;
             page-break-inside: avoid;
             break-inside: avoid;
+            display: flex;
+            flex-direction: column;
           }
 
           .chart-container h2 {
-            font-size: 14px !important;
-            margin-bottom: 8px !important;
-          }
-
-          .chart-container .h-64 {
-            height: 280px !important;
-            max-height: 280px !important;
-          }
-
-          .chart-container canvas {
-            max-height: 260px !important;
+            font-size: 13px !important;
+            margin-bottom: 6px !important;
+            flex-shrink: 0;
           }
 
           .chart-container .grid {
-            gap: 12px !important;
+            gap: 10px !important;
+            flex: 1;
+            min-height: 0;
+          }
+
+          .chart-container .h-64 {
+            height: 100% !important;
+            max-height: none !important;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+
+          .chart-container canvas {
+            max-width: 100% !important;
+            max-height: 100% !important;
+            width: auto !important;
+            height: auto !important;
+            object-fit: contain;
           }
 
           /* Grid layouts */
@@ -682,7 +706,7 @@ const TestResultEnhanced = () => {
 
           /* Pyramid sizing - smaller to fit page */
           .print-page-1 svg {
-            max-height: 180px !important;
+            max-height: 160px !important;
           }
 
           /* Chart grid - ensure 2 charts side-by-side */
@@ -693,6 +717,37 @@ const TestResultEnhanced = () => {
 
           .print-page-3 .chart-container .lg\\:grid-cols-2 {
             grid-template-columns: 1fr 1fr !important;
+          }
+
+          /* Compress space-y utilities */
+          .space-y-4 > * + * {
+            margin-top: 6px !important;
+          }
+
+          .space-y-3 > * + * {
+            margin-top: 4px !important;
+          }
+
+          .space-y-2 > * + * {
+            margin-top: 3px !important;
+          }
+
+          /* Page 4 specific compression */
+          .print-page-4 .bg-white {
+            flex-shrink: 1;
+            min-height: 0;
+          }
+
+          .print-page-4 .bg-violet-50,
+          .print-page-4 .bg-gradient-to-r {
+            padding: 6px !important;
+            margin-bottom: 4px !important;
+          }
+
+          /* Recommendation grid - compress for page 4 */
+          .print-page-4 .grid.lg\\:grid-cols-2 {
+            grid-template-columns: 1fr 1fr !important;
+            gap: 8px !important;
           }
         }
       `}</style>
@@ -848,7 +903,7 @@ const TestResultEnhanced = () => {
         </div>
         </div>
 
-        {/* PAGE 3: Charts + Analysis + Recommendations */}
+        {/* PAGE 3: Charts */}
         <div className="print-page-3">
         {/* Charts */}
         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200 chart-container">
@@ -923,6 +978,10 @@ const TestResultEnhanced = () => {
           )}
         </div>
 
+        </div>
+
+        {/* PAGE 4: Survey Analysis + AI Feedback + Recommendations */}
+        <div className="print-page-4">
         {/* Survey Analysis */}
         {surveyAnalysis && surveyAnalysis.length > 0 && (
           <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200 page-break">

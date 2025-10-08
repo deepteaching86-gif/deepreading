@@ -875,9 +875,10 @@ export const getSessionResult = async (req: AuthRequest, res: Response, next: Ne
       },
     });
 
-    // Generate AI summary
+    // Generate AI summary with student name
     const maxScore = result.categoryScores.reduce((acc, c) => acc + c.maxScore, 0);
     const aiSummary = await generateResultSummary({
+      studentName: session.student.user.name,
       grade: result.grade,
       totalScore: result.totalScore,
       maxScore,
