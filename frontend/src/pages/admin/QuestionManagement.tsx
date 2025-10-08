@@ -430,7 +430,9 @@ const QuestionManagement: React.FC = () => {
                     {selectedQuestion.imageUrl && (
                       <div className="relative inline-block">
                         <img
-                          src={selectedQuestion.imageUrl}
+                          src={selectedQuestion.imageUrl.startsWith('http')
+                            ? selectedQuestion.imageUrl
+                            : `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${selectedQuestion.imageUrl}`}
                           alt="문제 이미지"
                           className="max-w-md max-h-64 rounded-lg border border-border"
                         />
@@ -762,7 +764,9 @@ const QuestionManagement: React.FC = () => {
                     {newQuestion.imageUrl && (
                       <div className="relative inline-block">
                         <img
-                          src={newQuestion.imageUrl}
+                          src={newQuestion.imageUrl.startsWith('http')
+                            ? newQuestion.imageUrl
+                            : `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${newQuestion.imageUrl}`}
                           alt="문제 이미지"
                           className="max-w-md max-h-64 rounded-lg border border-border"
                         />
