@@ -678,6 +678,7 @@ export const getSessionResult = async (req: AuthRequest, res: Response, next: Ne
         student: {
           select: {
             userId: true,
+            grade: true,
             user: {
               select: {
                 name: true,
@@ -882,6 +883,7 @@ export const getSessionResult = async (req: AuthRequest, res: Response, next: Ne
         student: {
           name: session.student.user.name,
           email: session.student.user.email,
+          grade: session.student.grade,
         },
         answers: answersWithFeedback,
         surveyResponses: surveyResponses.map((sr: any) => ({

@@ -76,6 +76,7 @@ interface SessionResult {
   student: {
     name: string;
     email: string;
+    grade?: number;
   };
   answers: Answer[];
   surveyResponses?: SurveyResponse[];
@@ -115,6 +116,31 @@ const TestResultEnhanced = () => {
       setShowCopySuccess(true);
       setTimeout(() => setShowCopySuccess(false), 3000);
     });
+  };
+
+  const generateAISummary = (result: SessionResult): string => {
+    const { totalScore, grade, strengths, weaknesses } = result.result;
+    const gradeNames = ['D', 'C', 'B', 'A', 'S'];
+    const gradeName = gradeNames[grade - 1] || 'D';
+
+    // Determine performance level
+    const percentage = (totalScore / 100) * 100;
+    let performanceLevel = '';
+    if (percentage >= 80) {
+      performanceLevel = '매우 우수한';
+    } else if (percentage >= 60) {
+      performanceLevel = '양호한';
+    } else if (percentage >= 40) {
+      performanceLevel = '보통';
+    } else {
+      performanceLevel = '개선이 필요한';
+    }
+
+    // Get primary strength and weakness
+    const primaryStrength = strengths[0] || '기본적인 독해 능력';
+    const primaryWeakness = weaknesses[0] || '심화 학습';
+
+    return `학생은 ${gradeName}등급으로 ${performanceLevel} 문해력 수준을 보이고 있습니다. 특히 ${primaryStrength} 영역에서 강점을 나타내며, ${primaryWeakness} 부분에서 추가 학습이 권장됩니다. 꾸준한 독서와 맞춤형 학습을 통해 더욱 향상될 수 있습니다.`;
   };
 
   if (loading) {
@@ -492,9 +518,10 @@ const TestResultEnhanced = () => {
             display: none !important;
           }
 
-          /* Fixed 2-page layout */
+          /* Fixed 3-page layout */
           .print-page-1,
-          .print-page-2 {
+          .print-page-2,
+          .print-page-3 {
             width: 100%;
             height: 100vh;
             max-height: 100vh;
@@ -502,64 +529,110 @@ const TestResultEnhanced = () => {
             display: flex;
             flex-direction: column;
             box-sizing: border-box;
-            padding: 16px;
-          }
-
-          .print-page-1 {
+            padding: 20px;
             page-break-after: always;
             break-after: page;
           }
 
-          .print-page-2 {
+          .print-page-3 {
             page-break-after: avoid;
-            break-after: avoid;
           }
 
           /* Prevent page breaks inside content blocks */
           .print-page-1 > *,
-          .print-page-2 > * {
+          .print-page-2 > *,
+          .print-page-3 > * {
             page-break-inside: avoid;
             break-inside: avoid;
             flex-shrink: 1;
           }
 
-          /* Ultra-compress all cards */
-          .print-page-1 .bg-white,
-          .print-page-1 .bg-violet-50,
-          .print-page-2 .bg-white,
-          .print-page-2 .bg-violet-50 {
-            padding: 8px !important;
-            margin-bottom: 6px !important;
+          /* Page 1 - Personal Info Section (larger) */
+          .print-page-1 .personal-info {
+            padding: 16px !important;
+            margin-bottom: 12px !important;
+          }
+
+          .print-page-1 .personal-info h1 {
+            font-size: 22px !important;
+            margin-bottom: 8px !important;
+          }
+
+          .print-page-1 .personal-info .student-name {
+            font-size: 16px !important;
+            font-weight: 600 !important;
+          }
+
+          .print-page-1 .personal-info .grade-info {
+            font-size: 14px !important;
+          }
+
+          .print-page-1 .personal-info .ai-summary {
+            font-size: 12px !important;
+            line-height: 1.5 !important;
+            margin-top: 8px !important;
+            padding: 12px !important;
+            background: #f3f4f6 !important;
             border-radius: 8px !important;
           }
 
-          /* Compress headings */
-          .print-page-1 h1 {
-            font-size: 18px !important;
-            margin-bottom: 4px !important;
+          /* Score cards - 2 in a row, smaller */
+          .print-page-1 .score-cards {
+            display: grid !important;
+            grid-template-columns: 1fr 1fr !important;
+            gap: 12px !important;
+            margin-bottom: 12px !important;
           }
 
+          .print-page-1 .score-cards > div {
+            padding: 10px !important;
+          }
+
+          .print-page-1 .score-cards .text-3xl {
+            font-size: 24px !important;
+          }
+
+          /* Compress other cards */
+          .print-page-1 .bg-white,
+          .print-page-2 .bg-white,
+          .print-page-2 .bg-violet-50,
+          .print-page-3 .bg-white {
+            padding: 10px !important;
+            margin-bottom: 8px !important;
+            border-radius: 8px !important;
+          }
+
+          /* Headings */
           .print-page-1 h2,
-          .print-page-2 h2 {
-            font-size: 13px !important;
+          .print-page-2 h2,
+          .print-page-3 h2 {
+            font-size: 14px !important;
             margin-bottom: 6px !important;
           }
 
+          .print-page-2 h2.text-xl {
+            font-size: 16px !important;
+          }
+
           .print-page-1 h3,
-          .print-page-2 h3 {
+          .print-page-2 h3,
+          .print-page-3 h3 {
             font-size: 11px !important;
             margin-bottom: 4px !important;
           }
 
-          /* Compress text */
+          /* Text */
           .print-page-1 p,
           .print-page-2 p,
+          .print-page-3 p,
           .print-page-1 li,
           .print-page-2 li,
+          .print-page-3 li,
           .print-page-1 span,
-          .print-page-2 span {
-            font-size: 9px !important;
-            line-height: 1.2 !important;
+          .print-page-2 span,
+          .print-page-3 span {
+            font-size: 10px !important;
+            line-height: 1.3 !important;
           }
 
           /* Emoji sizing */
@@ -567,32 +640,32 @@ const TestResultEnhanced = () => {
             font-size: 32px !important;
           }
 
-          /* Ultra-compress charts */
+          /* Charts - compressed */
           .chart-container {
-            max-height: 140px !important;
-            height: 140px !important;
-            padding: 6px !important;
+            max-height: 200px !important;
+            height: 200px !important;
+            padding: 10px !important;
             page-break-inside: avoid;
             break-inside: avoid;
           }
 
           .chart-container h2 {
-            font-size: 12px !important;
-            margin-bottom: 4px !important;
+            font-size: 13px !important;
+            margin-bottom: 6px !important;
           }
 
           .chart-container .h-64 {
-            height: 100px !important;
-            max-height: 100px !important;
+            height: 150px !important;
+            max-height: 150px !important;
           }
 
           .chart-container canvas {
-            max-height: 90px !important;
+            max-height: 140px !important;
           }
 
-          /* Grid layouts - minimal spacing */
+          /* Grid layouts */
           .grid {
-            gap: 6px !important;
+            gap: 8px !important;
             page-break-inside: avoid;
             break-inside: avoid;
           }
@@ -603,7 +676,7 @@ const TestResultEnhanced = () => {
           }
 
           .space-y-6 {
-            gap: 6px !important;
+            gap: 8px !important;
           }
 
           .mb-4 {
@@ -615,16 +688,16 @@ const TestResultEnhanced = () => {
           }
 
           .p-6 {
-            padding: 8px !important;
+            padding: 10px !important;
           }
 
           .p-4 {
-            padding: 6px !important;
+            padding: 8px !important;
           }
 
           /* Pyramid sizing */
           .print-page-1 svg {
-            max-height: 200px !important;
+            max-height: 250px !important;
           }
         }
       `}</style>
@@ -637,51 +710,70 @@ const TestResultEnhanced = () => {
           </div>
         )}
 
-        {/* PAGE 1: Header + Grade Pyramid */}
+        {/* PAGE 1: Personal Info + Scores + Pyramid */}
         <div className="print-page-1">
-        {/* Header */}
-        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200 page-break">
-          <div className="flex items-center justify-between mb-4">
+        {/* Personal Info Section - Larger */}
+        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200 personal-info">
+          <h1 className="text-2xl font-bold text-gray-900 mb-3">문해력 진단 결과</h1>
+
+          <div className="grid grid-cols-2 gap-4 mb-4">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900 mb-1">문해력 진단 결과</h1>
-              <p className="text-sm text-gray-600">{result.template.title}</p>
-              <p className="text-sm text-gray-700 mt-1">학생: {result.student.name}</p>
+              <div className="text-sm text-gray-600 mb-1">학생 이름</div>
+              <div className="student-name text-lg font-semibold text-gray-900">
+                {result.student.name}
+              </div>
             </div>
-            <div className="text-right">
-              <div className="text-xs text-gray-500 mb-1">완료 일시</div>
-              <div className="text-sm font-medium text-gray-700">
-                {new Date(result.result.completedAt).toLocaleDateString('ko-KR', {
-                  month: 'long',
-                  day: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })}
+            <div>
+              <div className="text-sm text-gray-600 mb-1">학년</div>
+              <div className="grade-info text-base font-medium text-gray-900">
+                {result.student.grade ?
+                  (result.student.grade <= 6 ? `초등 ${result.student.grade}학년` : `중등 ${result.student.grade - 6}학년`)
+                  : '미등록'}
               </div>
             </div>
           </div>
 
-          {/* Score and Grade */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-violet-50 rounded-lg p-4 border border-violet-200">
-              <div className="text-center">
-                <div className="text-xs font-medium text-violet-800 mb-1">종합 점수</div>
-                <div className="text-3xl font-bold text-violet-900 mb-1">
-                  {result.result.totalScore}점
-                </div>
-                <div className="text-sm text-violet-800">
-                  {result.result.categoryScores.reduce((acc, c) => acc + c.maxScore, 0)}점 만점
-                </div>
+          <div className="mb-4">
+            <div className="text-sm text-gray-600 mb-1">응시 일시</div>
+            <div className="text-base font-medium text-gray-900">
+              {new Date(result.result.completedAt).toLocaleDateString('ko-KR', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+              })}
+            </div>
+          </div>
+
+          {/* AI Summary */}
+          <div className="ai-summary">
+            <div className="text-sm font-semibold text-gray-800 mb-2">📊 전반적인 결과 요약</div>
+            <p className="text-gray-700">{generateAISummary(result)}</p>
+          </div>
+        </div>
+
+        {/* Score and Grade Cards - 2 in a row */}
+        <div className="score-cards">
+          <div className="bg-violet-50 rounded-lg p-4 border border-violet-200">
+            <div className="text-center">
+              <div className="text-xs font-medium text-violet-800 mb-1">종합 점수</div>
+              <div className="text-3xl font-bold text-violet-900 mb-1">
+                {result.result.totalScore}점
+              </div>
+              <div className="text-sm text-violet-800">
+                {result.result.categoryScores.reduce((acc, c) => acc + c.maxScore, 0)}점 만점
               </div>
             </div>
+          </div>
 
-            <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-              <div className="text-center">
-                <div className="text-xs font-medium text-gray-700 mb-1">종합 등급</div>
-                <div className="text-3xl font-bold text-gray-900 mb-1">
-                  {result.result.grade}등급
-                </div>
-                <div className="text-sm text-gray-600">{getGradeLabel(result.result.grade)}</div>
+          <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+            <div className="text-center">
+              <div className="text-xs font-medium text-gray-700 mb-1">종합 등급</div>
+              <div className="text-3xl font-bold text-gray-900 mb-1">
+                {result.result.grade}등급
               </div>
+              <div className="text-sm text-gray-600">{getGradeLabel(result.result.grade)}</div>
             </div>
           </div>
         </div>
@@ -696,7 +788,7 @@ const TestResultEnhanced = () => {
         </div>
         </div>
 
-        {/* PAGE 2: All Content */}
+        {/* PAGE 2: Literacy Type + Difficulties */}
         <div className="print-page-2">
         {/* Literacy Type */}
         <div className="bg-violet-50 rounded-xl shadow-sm p-6 border border-violet-200">
@@ -772,7 +864,10 @@ const TestResultEnhanced = () => {
             ))}
           </div>
         </div>
+        </div>
 
+        {/* PAGE 3: Charts + Analysis + Recommendations */}
+        <div className="print-page-3">
         {/* Charts */}
         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200 chart-container">
           <h2 className="text-lg font-bold text-gray-900 mb-4">영역별 분석</h2>
