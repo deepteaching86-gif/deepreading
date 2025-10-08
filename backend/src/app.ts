@@ -44,6 +44,12 @@ const corsOptions = {
       return callback(null, true);
     }
 
+    // Allow all Netlify subdomains
+    if (origin.includes('.netlify.app')) {
+      console.log('✅ CORS: Allowing Netlify subdomain:', origin);
+      return callback(null, true);
+    }
+
     // Log rejected origins for debugging
     console.log('❌ CORS: Blocked origin:', origin);
     callback(new Error('Not allowed by CORS'));

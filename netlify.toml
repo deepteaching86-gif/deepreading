@@ -38,8 +38,8 @@
 
 # Production context - use Render backend
 [context.production.environment]
-  VITE_API_URL = "https://literacy-backend-mdbn.onrender.com"
+  VITE_API_URL = "https://literacy-backend.onrender.com"
 
 # Preview context - use Render backend
 [context.branch-deploy.environment]
-  VITE_API_URL = "https://literacy-backend-mdbn.onrender.com"
+  VITE_API_URL = "https://literacy-backend.onrender.com"
