@@ -111,8 +111,11 @@ export async function calculateStudentPercentile(
   category: QuestionCategory,
   studentScore: number
 ): Promise<number> {
-  const peerStats = await prisma.peerStatistics.findUnique({
-    where: { grade_category: { grade, category } },
+  const peerStats = await prisma.peerStatistics.findFirst({
+    where: {
+      grade,
+      category: category
+    },
   });
 
   if (!peerStats) return 50; // 기본값

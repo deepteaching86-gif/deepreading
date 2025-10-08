@@ -86,6 +86,23 @@ export const getSessionReport = async (req: AuthRequest, res: Response, next: Ne
       categoryScores[category].total += answer.question.points;
     });
 
+    // Get survey responses
+    const surveyResponses = await prisma.surveyResponse.findMany({
+      where: { sessionId: session.id },
+      include: {
+        question: {
+          select: {
+            category: true,
+            questionText: true,
+            questionNumber: true,
+          },
+        },
+      },
+      orderBy: {
+        questionNumber: 'asc',
+      },
+    });
+
     res.json({
       success: true,
       data: {
@@ -123,6 +140,12 @@ export const getSessionReport = async (req: AuthRequest, res: Response, next: Ne
           pointsEarned: a.pointsEarned,
           totalPoints: a.question.points,
           feedback: a.feedback,
+        })),
+        surveyResponses: surveyResponses.map((r) => ({
+          questionNumber: r.questionNumber,
+          questionText: r.question.questionText,
+          category: r.question.category,
+          response: r.response,
         })),
       },
     });

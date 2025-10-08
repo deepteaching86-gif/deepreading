@@ -49,6 +49,12 @@ interface SessionReport {
     totalPoints: number;
     feedback?: string;
   }>;
+  surveyResponses: Array<{
+    questionNumber: number;
+    questionText: string;
+    category: string;
+    response: string;
+  }>;
 }
 
 const StudentReports: React.FC = () => {
@@ -334,6 +340,32 @@ const StudentReports: React.FC = () => {
                       ))}
                     </div>
                   </div>
+
+                  {/* 설문 응답 */}
+                  {selectedSession.surveyResponses && selectedSession.surveyResponses.length > 0 && (
+                    <div className="bg-muted/30 rounded-lg p-6">
+                      <h3 className="text-lg font-semibold mb-4 text-foreground">설문 응답</h3>
+                      <div className="space-y-4 max-h-[400px] overflow-y-auto">
+                        {selectedSession.surveyResponses.map((response) => (
+                          <div
+                            key={response.questionNumber}
+                            className="p-4 rounded-lg border border-muted bg-background"
+                          >
+                            <div className="flex justify-between items-start mb-2">
+                              <span className="font-semibold text-foreground">
+                                {response.questionNumber}. {getCategoryName(response.category)}
+                              </span>
+                            </div>
+                            <div className="text-sm text-muted-foreground mb-2">{response.questionText}</div>
+                            <div className="text-sm">
+                              <span className="text-muted-foreground">응답:</span>
+                              <span className="ml-2 text-foreground font-medium">{response.response || '(미응답)'}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </>
               )}
             </div>
