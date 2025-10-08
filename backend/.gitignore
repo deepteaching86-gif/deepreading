@@ -36,7 +36,7 @@ yarn-error.log*
 Thumbs.db
 
 # Uploads
-uploads/
+# uploads/  # Commented to include question images
 temp/
 
 # Testing
