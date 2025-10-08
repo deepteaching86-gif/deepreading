@@ -111,17 +111,19 @@ export async function calculateStudentPercentile(
   category: QuestionCategory,
   studentScore: number
 ): Promise<number> {
-  const peerStats = await prisma.peerStatistics.findFirst({
-    where: {
-      grade,
-      category: category
-    },
-  });
+  // Use raw query to avoid TEXT vs enum comparison error
+  const results: any[] = await prisma.$queryRaw`
+    SELECT * FROM peer_statistics
+    WHERE grade = ${grade} AND category = ${category}::text
+    LIMIT 1
+  `;
+
+  const peerStats = results.length > 0 ? results[0] : null;
 
   if (!peerStats) return 50; // 기본값
 
-  const mean = parseFloat(peerStats.avgScore.toString());
-  const stdDev = parseFloat(peerStats.stdDeviation.toString());
+  const mean = parseFloat(peerStats.avg_score.toString());
+  const stdDev = parseFloat(peerStats.std_deviation.toString());
 
   // Z-score 계산
   const zScore = (studentScore - mean) / stdDev;
