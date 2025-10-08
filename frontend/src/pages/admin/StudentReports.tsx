@@ -211,8 +211,8 @@ const StudentReports: React.FC = () => {
                     <div className="flex gap-2">
                       <button
                         onClick={() => {
-                          if (selectedSession?.resultId) {
-                            window.open(`/report/${selectedSession.resultId}`, '_blank');
+                          if (selectedSession?.sessionId) {
+                            window.open(`/test/result/${selectedSession.sessionId}`, '_blank');
                           }
                         }}
                         className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium"

@@ -700,8 +700,9 @@ export const getSessionResult = async (req: AuthRequest, res: Response, next: Ne
       throw new ApiError('Session not found', 404);
     }
 
-    // Verify ownership
-    if (session.student.userId !== userId) {
+    // Verify ownership (students can only view their own, admin/parent/teacher can view any)
+    const userRole = req.user?.role;
+    if (userRole === 'student' && session.student.userId !== userId) {
       throw new ApiError('Unauthorized access to session', 403);
     }
 
@@ -899,6 +900,7 @@ export const getSessionResult = async (req: AuthRequest, res: Response, next: Ne
         result: {
           ...result,
           aiSummary,
+          resultId: session.result.id, // Add resultId for navigation to detailed report
         },
         template: session.template,
         student: {

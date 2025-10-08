@@ -22,6 +22,7 @@ interface TestSession {
     grade: number;
   };
   result?: {
+    id: string; // resultId for navigation to detailed report
     percentage: number;
     gradeLevel: number;
     totalScore: number;

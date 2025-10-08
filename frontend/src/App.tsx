@@ -79,7 +79,7 @@ function App() {
           <Route
             path="/test/result/:sessionId"
             element={
-              <ProtectedRoute allowedRoles={['student']}>
+              <ProtectedRoute allowedRoles={['student', 'admin', 'parent', 'teacher']}>
                 <TestResultEnhanced />
               </ProtectedRoute>
             }
