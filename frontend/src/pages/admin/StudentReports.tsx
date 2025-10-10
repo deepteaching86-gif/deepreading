@@ -252,6 +252,22 @@ const StudentReports: React.FC = () => {
                           <span className="ml-2 text-foreground font-medium">{selectedSession.student.schoolName}</span>
                         </div>
                       )}
+                      <div>
+                        <span className="text-muted-foreground text-sm">제출 일시:</span>
+                        <span className="ml-2 text-foreground font-medium">
+                          {new Date(selectedSession.test.completedAt).toLocaleDateString('ko-KR', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                          })}
+                          {' '}
+                          {new Date(selectedSession.test.completedAt).toLocaleTimeString('ko-KR', {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            hour12: true,
+                          })}
+                        </span>
+                      </div>
                     </div>
                   </div>
 

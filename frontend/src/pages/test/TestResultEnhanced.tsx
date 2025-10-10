@@ -828,12 +828,19 @@ const TestResultEnhanced = () => {
               </div>
             </div>
             <div>
-              <div className="text-sm text-gray-600 mb-1">응시 일시</div>
+              <div className="text-sm text-gray-600 mb-1">제출 일시</div>
               <div className="text-base font-medium text-gray-900">
                 {new Date(result.result.completedAt).toLocaleDateString('ko-KR', {
                   year: 'numeric',
                   month: 'long',
                   day: 'numeric',
+                })}
+              </div>
+              <div className="text-sm text-gray-600 mt-1">
+                {new Date(result.result.completedAt).toLocaleTimeString('ko-KR', {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  hour12: true,
                 })}
               </div>
             </div>

@@ -133,20 +133,38 @@ export default function TestInProgress() {
           answer,
         }));
 
+      console.log('Attempting to save answers:', answersArray);
+      console.log('Session ID:', sessionId);
+
       if (answersArray.length === 0) {
         alert('저장할 답안이 없습니다.');
         return;
       }
 
-      await axios.post(`/api/v1/sessions/${sessionId}/answers`, {
+      const response = await axios.post(`/api/v1/sessions/${sessionId}/answers`, {
         answers: answersArray,
+      }, {
+        timeout: 150000, // 150 seconds for save operation
       });
 
-      alert(`${answersArray.length}개의 답안이 저장되었습니다.`);
+      console.log('Save response:', response.data);
+      alert(`✅ ${answersArray.length}개의 답안이 저장되었습니다.`);
     } catch (error: any) {
       console.error('저장 실패:', error);
+      console.error('Error response:', error.response);
+      console.error('Error message:', error.message);
       console.error('Error details:', error.response?.data);
-      alert(`답안 저장에 실패했습니다.\n${error.response?.data?.message || error.message || '알 수 없는 오류'}`);
+
+      let errorMessage = '답안 저장에 실패했습니다.';
+      if (error.code === 'ECONNABORTED') {
+        errorMessage += '\n\n⏱️ 시간 초과: 네트워크 연결을 확인해주세요.';
+      } else if (error.response?.data?.message) {
+        errorMessage += `\n\n${error.response.data.message}`;
+      } else if (error.message) {
+        errorMessage += `\n\n${error.message}`;
+      }
+
+      alert(errorMessage);
     }
   };
 
@@ -156,6 +174,12 @@ export default function TestInProgress() {
     }
 
     await submitTest();
+  };
+
+  const handleExit = () => {
+    if (confirm('테스트를 종료하시겠습니까?\n\n⚠️ 경고: 모든 문제 풀이 내용이 삭제되며 복구할 수 없습니다.\n\n임시저장 버튼을 눌러 답안을 저장한 후 나가는 것을 권장합니다.')) {
+      navigate('/dashboard');
+    }
   };
 
   // Force submit without confirmation (for timeout)
@@ -193,9 +217,11 @@ export default function TestInProgress() {
         });
       }, (120000 / questions.length)); // Distribute over 120 seconds max
 
-      // Submit to server
+      // Submit to server with extended timeout for AI grading
       await axios.post(`/api/v1/sessions/${sessionId}/submit`, {
         answers: answersArray,
+      }, {
+        timeout: 150000, // 150 seconds (2.5 minutes) to allow for AI grading
       });
 
       clearInterval(progressInterval);
@@ -312,7 +338,14 @@ export default function TestInProgress() {
                 disabled={submitting}
                 className="px-4 py-2 border border-border rounded-md hover:bg-muted transition-colors text-sm disabled:opacity-50"
               >
-                임시저장
+                💾 임시저장
+              </button>
+              <button
+                onClick={handleExit}
+                disabled={submitting}
+                className="px-4 py-2 border border-destructive text-destructive rounded-md hover:bg-destructive hover:text-destructive-foreground transition-colors text-sm disabled:opacity-50"
+              >
+                🚪 나가기
               </button>
             </div>
           </div>
@@ -366,6 +399,19 @@ export default function TestInProgress() {
                   : `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${currentQuestion.imageUrl}`}
                 alt="문제 이미지"
                 className="max-w-full h-auto rounded-lg border border-border"
+                onError={(e) => {
+                  console.error('Image failed to load:', currentQuestion.imageUrl);
+                  // Hide broken image
+                  (e.target as HTMLImageElement).style.display = 'none';
+                  // Show a placeholder message
+                  const parent = (e.target as HTMLImageElement).parentElement;
+                  if (parent && !parent.querySelector('.image-error-message')) {
+                    const errorMsg = document.createElement('div');
+                    errorMsg.className = 'image-error-message p-4 bg-muted rounded-lg text-muted-foreground text-sm';
+                    errorMsg.textContent = '📷 이미지를 불러올 수 없습니다.';
+                    parent.appendChild(errorMsg);
+                  }
+                }}
               />
             </div>
           )}

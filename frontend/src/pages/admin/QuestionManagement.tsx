@@ -141,6 +141,14 @@ const QuestionManagement: React.FC = () => {
   };
 
   const handleImageUpload = async (file: File, isEdit: boolean = false) => {
+    console.log('=== Frontend Image Upload ===');
+    console.log('File info:', {
+      name: file.name,
+      type: file.type,
+      size: file.size,
+      isEdit: isEdit,
+    });
+
     if (!file.type.match(/^image\/(png|jpeg|jpg)$/)) {
       alert('PNG 또는 JPEG 형식의 이미지만 업로드 가능합니다.');
       return;
@@ -156,29 +164,38 @@ const QuestionManagement: React.FC = () => {
       const formData = new FormData();
       formData.append('image', file);
 
+      console.log('Sending FormData to /api/v1/admin/questions/upload-image');
+
       const response = await axios.post('/api/v1/admin/questions/upload-image', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
 
+      console.log('Upload response:', response.data);
+
       const imageUrl = response.data.data.imageUrl;
 
+      console.log('Image URL received:', imageUrl);
+
       if (isEdit && selectedQuestion) {
+        console.log('Updating selectedQuestion with imageUrl');
         setSelectedQuestion({
           ...selectedQuestion,
           imageUrl,
         });
       } else {
+        console.log('Updating newQuestion with imageUrl');
         setNewQuestion({
           ...newQuestion,
           imageUrl,
         });
       }
 
-      alert('이미지가 업로드되었습니다.');
+      alert('✅ 이미지가 업로드되었습니다.\n\n이미지 URL: ' + imageUrl);
     } catch (error: any) {
       console.error('이미지 업로드 실패:', error);
+      console.error('Error response:', error.response);
       alert(error.response?.data?.message || '이미지 업로드에 실패했습니다.');
     } finally {
       setUploadingImage(false);
@@ -435,6 +452,10 @@ const QuestionManagement: React.FC = () => {
                             : `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${selectedQuestion.imageUrl}`}
                           alt="문제 이미지"
                           className="max-w-md max-h-64 rounded-lg border border-border"
+                          onError={(e) => {
+                            console.error('이미지 로드 실패:', selectedQuestion.imageUrl);
+                            (e.target as HTMLImageElement).src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><rect fill="%23eee" width="200" height="200"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="%23999">이미지 없음</text></svg>';
+                          }}
                         />
                         <button
                           onClick={() =>
@@ -769,6 +790,10 @@ const QuestionManagement: React.FC = () => {
                             : `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${newQuestion.imageUrl}`}
                           alt="문제 이미지"
                           className="max-w-md max-h-64 rounded-lg border border-border"
+                          onError={(e) => {
+                            console.error('이미지 로드 실패:', newQuestion.imageUrl);
+                            (e.target as HTMLImageElement).src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><rect fill="%23eee" width="200" height="200"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="%23999">이미지 없음</text></svg>';
+                          }}
                         />
                         <button
                           onClick={() =>

@@ -196,15 +196,30 @@ export const getQuestionById = async (req: Request, res: Response) => {
 // 이미지 업로드
 export const uploadImage = async (req: Request, res: Response) => {
   try {
+    console.log('=== Image Upload Request ===');
+    console.log('File received:', req.file ? 'Yes' : 'No');
+
     if (!req.file) {
+      console.log('Error: No file in request');
       return res.status(400).json({
         success: false,
         message: '이미지 파일이 없습니다.',
       });
     }
 
+    console.log('File details:', {
+      filename: req.file.filename,
+      originalname: req.file.originalname,
+      mimetype: req.file.mimetype,
+      size: req.file.size,
+      path: req.file.path,
+    });
+
     // 이미지 URL 생성 (Render의 경우 public URL 사용)
     const imageUrl = `/uploads/questions/${req.file.filename}`;
+
+    console.log('Generated imageUrl:', imageUrl);
+    console.log('File saved to:', req.file.path);
 
     return res.json({
       success: true,
