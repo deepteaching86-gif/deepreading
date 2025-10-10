@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from '../../lib/axios';
+import { SubmissionProgressModal } from '../../components/SubmissionProgressModal';
 
 interface Question {
   id: string;
@@ -30,6 +31,9 @@ export default function TestInProgress() {
   const [timeRemaining, setTimeRemaining] = useState(0);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [submissionStage, setSubmissionStage] = useState<'submitting' | 'grading' | 'calculating' | 'complete' | 'error'>('submitting');
+  const [gradingProgress, setGradingProgress] = useState(0);
+  const [submissionError, setSubmissionError] = useState<string>('');
 
   useEffect(() => {
     fetchSession();
@@ -121,21 +125,28 @@ export default function TestInProgress() {
 
   const handleSave = async () => {
     try {
-      const answersArray: Answer[] = Object.entries(answers).map(
-        ([questionId, answer]) => ({
+      // Only save non-empty answers
+      const answersArray: Answer[] = Object.entries(answers)
+        .filter(([_, answer]) => answer && answer.trim() !== '')
+        .map(([questionId, answer]) => ({
           questionId,
           answer,
-        })
-      );
+        }));
+
+      if (answersArray.length === 0) {
+        alert('저장할 답안이 없습니다.');
+        return;
+      }
 
       await axios.post(`/api/v1/sessions/${sessionId}/answers`, {
         answers: answersArray,
       });
 
-      alert('답안이 저장되었습니다.');
-    } catch (error) {
+      alert(`${answersArray.length}개의 답안이 저장되었습니다.`);
+    } catch (error: any) {
       console.error('저장 실패:', error);
-      alert('답안 저장에 실패했습니다.');
+      console.error('Error details:', error.response?.data);
+      alert(`답안 저장에 실패했습니다.\n${error.response?.data?.message || error.message || '알 수 없는 오류'}`);
     }
   };
 
@@ -156,6 +167,8 @@ export default function TestInProgress() {
   const submitTest = async () => {
     try {
       setSubmitting(true);
+      setSubmissionStage('submitting');
+      setSubmissionError('');
 
       // Include all questions, even unanswered ones (empty string)
       const answersArray: Answer[] = questions.map((q) => ({
@@ -163,19 +176,53 @@ export default function TestInProgress() {
         answer: answers[q.id] || '', // Empty string for unanswered
       }));
 
+      // Stage 1: Submitting answers
+      await new Promise(resolve => setTimeout(resolve, 500)); // Brief delay for UI feedback
+
+      // Stage 2: Grading
+      setSubmissionStage('grading');
+
+      // Simulate grading progress (actual grading happens on server)
+      const progressInterval = setInterval(() => {
+        setGradingProgress((prev) => {
+          if (prev >= questions.length) {
+            clearInterval(progressInterval);
+            return questions.length;
+          }
+          return prev + 1;
+        });
+      }, (120000 / questions.length)); // Distribute over 120 seconds max
+
+      // Submit to server
       await axios.post(`/api/v1/sessions/${sessionId}/submit`, {
         answers: answersArray,
       });
 
-      alert('테스트가 제출되었습니다. 채점 중입니다...');
+      clearInterval(progressInterval);
+      setGradingProgress(questions.length);
+
+      // Stage 3: Calculating
+      setSubmissionStage('calculating');
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      // Stage 4: Complete
+      setSubmissionStage('complete');
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
       navigate(`/test/result/${sessionId}`);
     } catch (error: any) {
       console.error('제출 실패:', error);
       console.error('Error response:', error.response);
       console.error('Error message:', error.message);
       console.error('Error details:', error.response?.data);
-      alert(`테스트 제출에 실패했습니다.\n${error.response?.data?.message || error.message || '알 수 없는 오류'}`);
-      setSubmitting(false);
+
+      setSubmissionStage('error');
+      setSubmissionError(error.response?.data?.message || error.message || '알 수 없는 오류가 발생했습니다');
+
+      // Allow retry after 3 seconds
+      setTimeout(() => {
+        setSubmitting(false);
+      }, 3000);
     }
   };
 
@@ -227,7 +274,17 @@ export default function TestInProgress() {
   const answeredCount = Object.keys(answers).length;
 
   return (
-    <div className="min-h-screen bg-background">
+    <>
+      {/* Submission Progress Modal */}
+      <SubmissionProgressModal
+        isOpen={submitting}
+        totalQuestions={questions.length}
+        currentQuestion={gradingProgress}
+        stage={submissionStage}
+        error={submissionError}
+      />
+
+      <div className="min-h-screen bg-background">
       {/* 상단 헤더 */}
       <header className="bg-card shadow-sm border-b border-border sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 py-4">
@@ -438,5 +495,6 @@ export default function TestInProgress() {
         </div>
       </main>
     </div>
+    </>
   );
 }

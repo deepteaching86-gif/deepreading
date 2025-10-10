@@ -92,6 +92,7 @@ ${points}점
           'Content-Type': 'application/json',
           Authorization: `Bearer ${OPENAI_API_KEY}`,
         },
+        timeout: 120000, // 120 seconds for AI grading
       }
     );
 
@@ -235,7 +236,7 @@ export async function generateResultSummary(params: GenerateSummaryParams): Prom
           'Content-Type': 'application/json',
           Authorization: `Bearer ${OPENAI_API_KEY}`,
         },
-        timeout: 30000,
+        timeout: 120000, // 120 seconds for AI summary
       }
     );
 
