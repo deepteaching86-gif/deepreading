@@ -70,6 +70,8 @@ const QuestionAnalytics = () => {
   const [filterQuality, setFilterQuality] = useState<string>('all');
   const [sortBy, setSortBy] = useState<'correctRate' | 'discrimination' | 'attempts'>('correctRate');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [selectedQuestion, setSelectedQuestion] = useState<QuestionStats | null>(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -445,7 +447,13 @@ const QuestionAnalytics = () => {
                       {getQualityBadge(question.qualityFlag)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      <button className="text-primary hover:text-primary/80 font-medium">
+                      <button
+                        onClick={() => {
+                          setSelectedQuestion(question);
+                          setShowDetailModal(true);
+                        }}
+                        className="text-primary hover:text-primary/80 font-medium"
+                      >
                         상세보기
                       </button>
                     </td>
@@ -478,6 +486,124 @@ const QuestionAnalytics = () => {
           </div>
         </div>
       </div>
+
+      {/* Detail Modal */}
+      {showDetailModal && selectedQuestion && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-card rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-card border-b border-border px-6 py-4 flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-foreground">
+                문항 #{selectedQuestion.questionNumber} 상세 분석
+              </h2>
+              <button
+                onClick={() => setShowDetailModal(false)}
+                className="text-muted-foreground hover:text-foreground text-2xl"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="p-6 space-y-6">
+              {/* Question Info */}
+              <div className="bg-muted/30 rounded-lg p-4">
+                <h3 className="font-semibold text-foreground mb-2">문항 내용</h3>
+                <p className="text-foreground">{selectedQuestion.questionText}</p>
+                <div className="mt-3 flex items-center gap-4 text-sm text-muted-foreground">
+                  <span>영역: {getCategoryName(selectedQuestion.category)}</span>
+                  <span>난이도: {selectedQuestion.difficulty}</span>
+                  <span>템플릿: {selectedQuestion.templateTitle}</span>
+                </div>
+              </div>
+
+              {/* Statistics Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                  <div className="text-sm text-blue-600 mb-1">총 응시 횟수</div>
+                  <div className="text-2xl font-bold text-blue-900">{selectedQuestion.totalAttempts}회</div>
+                </div>
+                <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+                  <div className="text-sm text-green-600 mb-1">정답률</div>
+                  <div className="text-2xl font-bold text-green-900">{selectedQuestion.correctRate.toFixed(1)}%</div>
+                  <div className="text-xs text-green-600 mt-1">
+                    {selectedQuestion.correctAttempts}/{selectedQuestion.totalAttempts} 정답
+                  </div>
+                </div>
+                <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
+                  <div className="text-sm text-purple-600 mb-1">변별도</div>
+                  <div className="text-2xl font-bold text-purple-900">{selectedQuestion.discrimination.toFixed(2)}</div>
+                </div>
+              </div>
+
+              {/* Quality Badge */}
+              <div className="flex items-center gap-3">
+                <span className="text-sm font-medium text-foreground">품질 평가:</span>
+                {getQualityBadge(selectedQuestion.qualityFlag)}
+              </div>
+
+              {/* Performance by Group */}
+              <div>
+                <h3 className="font-semibold text-foreground mb-3">집단별 성취도</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+                    <div className="text-sm text-green-600 mb-1">상위 27% 학생</div>
+                    <div className="text-xl font-bold text-green-900">
+                      {selectedQuestion.topStudentsCorrectRate.toFixed(1)}%
+                    </div>
+                  </div>
+                  <div className="bg-orange-50 rounded-lg p-4 border border-orange-200">
+                    <div className="text-sm text-orange-600 mb-1">하위 27% 학생</div>
+                    <div className="text-xl font-bold text-orange-900">
+                      {selectedQuestion.bottomStudentsCorrectRate.toFixed(1)}%
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-3 text-sm text-muted-foreground">
+                  💡 변별도 = (상위집단 정답률 - 하위집단 정답률) = {selectedQuestion.discrimination.toFixed(2)}
+                </div>
+              </div>
+
+              {/* Common Wrong Answers */}
+              {selectedQuestion.commonWrongAnswers.length > 0 && (
+                <div>
+                  <h3 className="font-semibold text-foreground mb-3">많이 틀린 오답 (Top 5)</h3>
+                  <div className="space-y-2">
+                    {selectedQuestion.commonWrongAnswers.map((wrong, idx) => (
+                      <div
+                        key={idx}
+                        className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-center justify-between"
+                      >
+                        <div>
+                          <span className="font-medium text-red-900">{wrong.answer}</span>
+                          <span className="text-sm text-red-600 ml-2">({wrong.count}명)</span>
+                        </div>
+                        <div className="text-sm font-semibold text-red-700">
+                          {wrong.percentage.toFixed(1)}%
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Last Used */}
+              {selectedQuestion.lastUsed && (
+                <div className="text-sm text-muted-foreground">
+                  최근 사용: {new Date(selectedQuestion.lastUsed).toLocaleDateString('ko-KR')}
+                </div>
+              )}
+            </div>
+
+            <div className="sticky bottom-0 bg-card border-t border-border px-6 py-4">
+              <button
+                onClick={() => setShowDetailModal(false)}
+                className="w-full bg-primary text-primary-foreground py-2 px-4 rounded-lg hover:bg-primary/90 font-medium"
+              >
+                닫기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
