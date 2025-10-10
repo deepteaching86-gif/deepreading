@@ -68,7 +68,8 @@
       "Bash(taskkill:*)",
       "Bash(cmd /c:*)",
       "Bash(find:*)",
-      "Read(//c/Users/owner/Downloads/**)"
+      "Read(//c/Users/owner/Downloads/**)",
+      "Bash(copy:*)"
     ],
     "deny": [],
     "ask": []

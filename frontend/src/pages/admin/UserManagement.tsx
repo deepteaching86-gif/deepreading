@@ -228,7 +228,7 @@ export default function UserManagement() {
       {/* Users Table */}
       <div className="bg-card rounded-lg shadow overflow-hidden border border-border">
         <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-          <table className="min-w-full divide-y divide-border" style={{ minWidth: '800px' }}>
+          <table className="w-full divide-y divide-border">
             <thead className="bg-muted">
               <tr>
                 <th className="px-6 py-3 text-left">
