@@ -36,6 +36,8 @@ export default function UserManagement() {
   });
   const [filterRole, setFilterRole] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
+  const [selectAll, setSelectAll] = useState(false);
 
   useEffect(() => {
     fetchUsers();
@@ -93,6 +95,51 @@ export default function UserManagement() {
     }
   };
 
+  const handleSelectAll = () => {
+    if (selectAll) {
+      setSelectedUsers(new Set());
+    } else {
+      const allUserIds = new Set(filteredUsers.map(u => u.id));
+      setSelectedUsers(allUserIds);
+    }
+    setSelectAll(!selectAll);
+  };
+
+  const handleSelectUser = (userId: string) => {
+    const newSelected = new Set(selectedUsers);
+    if (newSelected.has(userId)) {
+      newSelected.delete(userId);
+    } else {
+      newSelected.add(userId);
+    }
+    setSelectedUsers(newSelected);
+    setSelectAll(newSelected.size === filteredUsers.length);
+  };
+
+  const handleDeleteSelected = async () => {
+    if (selectedUsers.size === 0) {
+      alert('삭제할 사용자를 선택해주세요.');
+      return;
+    }
+
+    if (!confirm(`선택한 ${selectedUsers.size}명의 사용자를 삭제하시겠습니까?`)) return;
+
+    try {
+      const deletePromises = Array.from(selectedUsers).map(userId =>
+        axios.delete(`/api/v1/admin/users/${userId}`)
+      );
+      await Promise.all(deletePromises);
+      alert(`${selectedUsers.size}명의 사용자가 삭제되었습니다.`);
+      setSelectedUsers(new Set());
+      setSelectAll(false);
+      fetchUsers();
+    } catch (error: any) {
+      console.error('일괄 삭제 실패:', error);
+      alert('일부 사용자 삭제에 실패했습니다.');
+      fetchUsers();
+    }
+  };
+
   const getRoleLabel = (role: string) => {
     const labels: Record<string, string> = {
       student: '학생',
@@ -120,12 +167,13 @@ export default function UserManagement() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-foreground">전체 회원 관리</h1>
-        <p className="text-muted-foreground mt-2">모든 사용자의 정보를 조회하고 관리합니다.</p>
-      </div>
+    <div className="min-h-screen bg-background p-4 sm:p-6 lg:p-8">
+      <div className="max-w-7xl mx-auto space-y-6">
+        {/* Header */}
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">전체 회원 관리</h1>
+          <p className="text-muted-foreground mt-2">모든 사용자의 정보를 조회하고 관리합니다.</p>
+        </div>
 
       {/* Filters */}
       <div className="bg-card rounded-lg shadow p-4 border border-border">
@@ -157,17 +205,40 @@ export default function UserManagement() {
         </div>
       </div>
 
-      {/* User Count */}
-      <div className="text-sm text-muted-foreground">
-        총 {filteredUsers.length}명의 사용자
+      {/* User Count & Bulk Actions */}
+      <div className="flex justify-between items-center">
+        <div className="text-sm text-muted-foreground">
+          총 {filteredUsers.length}명의 사용자
+          {selectedUsers.size > 0 && (
+            <span className="ml-2 text-primary font-medium">
+              ({selectedUsers.size}명 선택됨)
+            </span>
+          )}
+        </div>
+        {selectedUsers.size > 0 && (
+          <button
+            onClick={handleDeleteSelected}
+            className="px-4 py-2 bg-destructive text-destructive-foreground rounded-lg hover:bg-destructive/90 transition-colors font-medium"
+          >
+            선택한 회원 삭제 ({selectedUsers.size})
+          </button>
+        )}
       </div>
 
       {/* Users Table */}
       <div className="bg-card rounded-lg shadow overflow-hidden border border-border">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-border">
+        <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+          <table className="min-w-full divide-y divide-border" style={{ minWidth: '800px' }}>
             <thead className="bg-muted">
               <tr>
+                <th className="px-6 py-3 text-left">
+                  <input
+                    type="checkbox"
+                    checked={selectAll}
+                    onChange={handleSelectAll}
+                    className="w-4 h-4 text-primary border-border rounded focus:ring-primary"
+                  />
+                </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   이름
                 </th>
@@ -194,6 +265,14 @@ export default function UserManagement() {
             <tbody className="bg-card divide-y divide-border">
               {filteredUsers.map((user) => (
                 <tr key={user.id} className="hover:bg-muted/50 transition-colors">
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <input
+                      type="checkbox"
+                      checked={selectedUsers.has(user.id)}
+                      onChange={() => handleSelectUser(user.id)}
+                      className="w-4 h-4 text-primary border-border rounded focus:ring-primary"
+                    />
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-foreground">{user.name}</div>
                   </td>
@@ -347,6 +426,7 @@ export default function UserManagement() {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }

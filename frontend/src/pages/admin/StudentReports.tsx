@@ -148,6 +148,9 @@ const StudentReports: React.FC = () => {
                     등급
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    응시 일시
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     작업
                   </th>
                 </tr>
@@ -180,6 +183,26 @@ const StudentReports: React.FC = () => {
                       }`}>
                         {getGradeLevelText(session.gradeLevel)}
                       </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-card-foreground">
+                      {session.completedAt ? (
+                        <>
+                          <div>{new Date(session.completedAt).toLocaleDateString('ko-KR', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                          })}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {new Date(session.completedAt).toLocaleTimeString('ko-KR', {
+                              hour: '2-digit',
+                              minute: '2-digit',
+                              hour12: true,
+                            })}
+                          </div>
+                        </>
+                      ) : (
+                        <span className="text-muted-foreground text-xs">일정 데이터 없음</span>
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       <button

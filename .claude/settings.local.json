@@ -67,7 +67,8 @@
       "Bash(netstat:*)",
       "Bash(taskkill:*)",
       "Bash(cmd /c:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Read(//c/Users/owner/Downloads/**)"
     ],
     "deny": [],
     "ask": []
