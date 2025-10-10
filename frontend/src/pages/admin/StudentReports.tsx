@@ -125,7 +125,8 @@ const StudentReports: React.FC = () => {
           </div>
         ) : (
           <div className="bg-card rounded-lg shadow-md overflow-hidden border border-border mb-6">
-            <table className="min-w-full divide-y divide-border">
+            <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+              <table className="min-w-full divide-y divide-border" style={{ minWidth: '700px' }}>
               <thead className="bg-muted">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
@@ -192,6 +193,7 @@ const StudentReports: React.FC = () => {
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
         )}
 

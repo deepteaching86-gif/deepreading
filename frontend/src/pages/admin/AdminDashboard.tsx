@@ -111,17 +111,17 @@ export default function AdminDashboard() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="bg-card shadow-sm border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex justify-between items-center">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0">
             <div>
-              <h1 className="text-2xl font-bold text-primary">관리자 대시보드</h1>
-              <p className="text-sm text-muted-foreground mt-1">
+              <h1 className="text-xl sm:text-2xl font-bold text-primary">관리자 대시보드</h1>
+              <p className="text-xs sm:text-sm text-muted-foreground mt-1">
                 안녕하세요, <span className="font-medium text-foreground">{user?.name}</span>님
               </p>
             </div>
             <button
               onClick={handleLogout}
-              className="px-4 py-2 border border-border rounded-lg hover:bg-muted transition-colors text-card-foreground"
+              className="px-3 sm:px-4 py-1.5 sm:py-2 border border-border rounded-lg hover:bg-muted transition-colors text-card-foreground text-sm"
             >
               로그아웃
             </button>

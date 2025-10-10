@@ -321,8 +321,8 @@ const QuestionAnalytics = () => {
         </div>
 
         {/* Filters */}
-        <div className="bg-card rounded-lg shadow-sm p-6 border border-border mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="bg-card rounded-lg shadow-sm p-4 sm:p-6 border border-border mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
               <label className="block text-sm font-medium text-foreground mb-2">테스트 템플릿</label>
               <select
@@ -384,8 +384,8 @@ const QuestionAnalytics = () => {
 
         {/* Questions Table */}
         <div className="bg-card rounded-lg shadow-sm border border-border overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-border">
+          <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+            <table className="min-w-full divide-y divide-border" style={{ minWidth: '800px' }}>
               <thead className="bg-muted">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
@@ -507,11 +507,11 @@ const QuestionAnalytics = () => {
 
       {/* Detail Modal */}
       {showDetailModal && selectedQuestion && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-card rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-card border-b border-border px-6 py-4 flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-foreground">
-                문항 #{selectedQuestion.questionNumber} 상세 분석
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4">
+          <div className="bg-card rounded-lg shadow-xl max-w-4xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-card border-b border-border px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
+              <h2 className="text-lg sm:text-2xl font-bold text-foreground">
+                문항 #{selectedQuestion.questionNumber} 상세
               </h2>
               <button
                 onClick={() => setShowDetailModal(false)}
@@ -521,7 +521,7 @@ const QuestionAnalytics = () => {
               </button>
             </div>
 
-            <div className="p-6 space-y-6">
+            <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
               {/* Question Info */}
               <div className="bg-muted/30 rounded-lg p-4">
                 <h3 className="font-semibold text-foreground mb-2">문항 내용</h3>
