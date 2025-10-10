@@ -14,6 +14,7 @@ import TestSurvey from './pages/test/TestSurvey';
 import TestInProgress from './pages/test/TestInProgress';
 import TestResultEnhanced from './pages/test/TestResultEnhanced';
 import AdminQuestionManagement from './pages/admin/QuestionManagement';
+import AdminQuestionAnalytics from './pages/admin/QuestionAnalytics';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminGradingManagement from './pages/admin/GradingManagement';
 import AdminBulkUpload from './pages/admin/BulkUpload';
@@ -109,6 +110,14 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['admin']}>
                 <AdminQuestionManagement />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/question-analytics"
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AdminQuestionAnalytics />
               </ProtectedRoute>
             }
           />

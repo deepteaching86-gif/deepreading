@@ -121,6 +121,7 @@ app.get('/health', (_req, res) => {
 
 // API routes
 import adminQuestionsRoutes from './routes/admin/questions.routes';
+import adminQuestionAnalyticsRoutes from './routes/admin/question-analytics.routes';
 import adminSeedRoutes from './routes/admin/seed.routes';
 import adminRoutes from './routes/admin/admin.routes';
 import adminGradingRoutes from './routes/admin/grading.routes';
@@ -138,6 +139,7 @@ import migrationRoutes from './routes/migration.routes';
 // For Render backend: full paths including /api prefix
 app.use(`/api/${env.API_VERSION}/auth`, authRoutes);
 app.use(`/api/${env.API_VERSION}/admin/questions`, adminQuestionsRoutes);
+app.use(`/api/${env.API_VERSION}/admin/question-analytics`, adminQuestionAnalyticsRoutes);
 app.use(`/api/${env.API_VERSION}/admin/seed`, adminSeedRoutes);
 app.use(`/api/${env.API_VERSION}/admin/grading`, adminGradingRoutes);
 app.use(`/api/${env.API_VERSION}/admin/bulk-upload`, adminBulkUploadRoutes);

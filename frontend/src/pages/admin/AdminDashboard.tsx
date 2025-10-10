@@ -359,8 +359,23 @@ export default function AdminDashboard() {
                   <span className="text-2xl">📚</span>
                 </div>
                 <div>
-                  <h3 className="font-semibold text-foreground">문제 관리</h3>
-                  <p className="text-sm text-muted-foreground">문제 추가 및 수정</p>
+                  <h3 className="font-semibold text-foreground">문항 관리</h3>
+                  <p className="text-sm text-muted-foreground">문항 추가 및 수정</p>
+                </div>
+              </div>
+            </Link>
+
+            <Link
+              to="/admin/question-analytics"
+              className="bg-card rounded-lg shadow-sm p-6 border border-border hover:border-primary transition-colors"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-violet-100 rounded-lg flex items-center justify-center">
+                  <span className="text-2xl">📊</span>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-foreground">문항 품질 분석</h3>
+                  <p className="text-sm text-muted-foreground">정답률 및 변별도 분석</p>
                 </div>
               </div>
             </Link>

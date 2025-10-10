@@ -66,7 +66,8 @@
       "Bash(DATABASE_URL=\"postgresql://postgres.sxnjeqqvqbhueqbwsnpj:DeepReading2025%21%40%23%24SecureDB@db.sxnjeqqvqbhueqbwsnpj.supabase.co:5432/postgres\" npx prisma migrate deploy)",
       "Bash(netstat:*)",
       "Bash(taskkill:*)",
-      "Bash(cmd /c:*)"
+      "Bash(cmd /c:*)",
+      "Bash(find:*)"
     ],
     "deny": [],
     "ask": []
