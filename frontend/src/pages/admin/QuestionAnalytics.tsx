@@ -83,8 +83,11 @@ const QuestionAnalytics = () => {
         axios.get('/api/v1/admin/question-analytics/templates'),
       ]);
 
-      setQuestions(questionsRes.data.data);
-      setTemplates(templatesRes.data.data);
+      console.log('Questions response:', questionsRes.data);
+      console.log('Templates response:', templatesRes.data);
+
+      setQuestions(questionsRes.data.data || []);
+      setTemplates(templatesRes.data.data || []);
 
       // Mock data fallback for development
       /* const mockQuestions: QuestionStats[] = [
@@ -152,11 +155,16 @@ const QuestionAnalytics = () => {
 
       // setQuestions(mockQuestions);
       // setTemplates(mockTemplates); */
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to fetch analytics:', error);
+      console.error('Error details:', error.response?.data);
+      console.error('Error status:', error.response?.status);
+
       // Use empty arrays on error
       setQuestions([]);
       setTemplates([]);
+
+      alert('데이터를 불러오는데 실패했습니다. 콘솔을 확인해주세요.');
     } finally {
       setLoading(false);
     }
