@@ -37,7 +37,7 @@ interface QuestionStats {
   correctRate: number;
   avgScore: number;
   discrimination: number; // 변별도
-  qualityFlag: 'excellent' | 'good' | 'review' | 'revise';
+  qualityFlag: 'excellent' | 'good' | 'review' | 'revise' | 'insufficient';
   topStudentsCorrectRate: number;
   bottomStudentsCorrectRate: number;
   commonWrongAnswers: Array<{
@@ -59,6 +59,7 @@ interface TemplateStats {
     good: number;
     review: number;
     revise: number;
+    insufficient: number;
   };
 }
 
@@ -178,6 +179,7 @@ const QuestionAnalytics = () => {
       good: { bg: 'bg-blue-100', text: 'text-blue-800', label: '양호' },
       review: { bg: 'bg-yellow-100', text: 'text-yellow-800', label: '검토' },
       revise: { bg: 'bg-red-100', text: 'text-red-800', label: '수정필요' },
+      insufficient: { bg: 'bg-gray-100', text: 'text-gray-800', label: '응시수 부족' },
     };
     const badge = badges[flag as keyof typeof badges] || badges.good;
     return (
@@ -215,21 +217,32 @@ const QuestionAnalytics = () => {
       return sortOrder === 'asc' ? aVal - bVal : bVal - aVal;
     });
 
-  // Chart data
+  // Chart data - Calculate quality distribution from all questions
+  const qualityDistribution = {
+    excellent: 0,
+    good: 0,
+    review: 0,
+    revise: 0,
+    insufficient: 0,
+  };
+
+  questions.forEach((q) => {
+    qualityDistribution[q.qualityFlag]++;
+  });
+
   const qualityDistributionData = {
-    labels: ['우수', '양호', '검토', '수정필요'],
+    labels: ['우수', '양호', '검토', '수정필요', '응시수 부족'],
     datasets: [
       {
         label: '문항 수',
-        data: templates.length > 0
-          ? [
-              templates[0].qualityDistribution.excellent,
-              templates[0].qualityDistribution.good,
-              templates[0].qualityDistribution.review,
-              templates[0].qualityDistribution.revise,
-            ]
-          : [0, 0, 0, 0],
-        backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#ef4444'],
+        data: [
+          qualityDistribution.excellent,
+          qualityDistribution.good,
+          qualityDistribution.review,
+          qualityDistribution.revise,
+          qualityDistribution.insufficient,
+        ],
+        backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#9ca3af'],
       },
     ],
   };
@@ -338,6 +351,7 @@ const QuestionAnalytics = () => {
                 <option value="good">양호</option>
                 <option value="review">검토</option>
                 <option value="revise">수정필요</option>
+                <option value="insufficient">응시수 부족</option>
               </select>
             </div>
 
@@ -431,17 +445,21 @@ const QuestionAnalytics = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
-                      <span
-                        className={`font-semibold ${
-                          question.discrimination >= 0.4
-                            ? 'text-green-600'
-                            : question.discrimination >= 0.2
-                            ? 'text-yellow-600'
-                            : 'text-red-600'
-                        }`}
-                      >
-                        {question.discrimination.toFixed(2)}
-                      </span>
+                      {question.totalAttempts < 30 ? (
+                        <span className="text-gray-500 text-xs">(응시수 부족)</span>
+                      ) : (
+                        <span
+                          className={`font-semibold ${
+                            question.discrimination >= 0.4
+                              ? 'text-green-600'
+                              : question.discrimination >= 0.2
+                              ? 'text-yellow-600'
+                              : 'text-red-600'
+                          }`}
+                        >
+                          {question.discrimination.toFixed(2)}
+                        </span>
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       {getQualityBadge(question.qualityFlag)}

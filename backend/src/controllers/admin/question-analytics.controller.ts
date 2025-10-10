@@ -14,7 +14,7 @@ interface QuestionStats {
   correctRate: number;
   avgScore: number;
   discrimination: number;
-  qualityFlag: 'excellent' | 'good' | 'review' | 'revise';
+  qualityFlag: 'excellent' | 'good' | 'review' | 'revise' | 'insufficient';
   topStudentsCorrectRate: number;
   bottomStudentsCorrectRate: number;
   commonWrongAnswers: Array<{
@@ -103,9 +103,11 @@ export const getQuestionAnalytics = async (req: Request, res: Response) => {
           : 0;
 
       // Determine quality flag
-      let qualityFlag: 'excellent' | 'good' | 'review' | 'revise' = 'good';
+      let qualityFlag: 'excellent' | 'good' | 'review' | 'revise' | 'insufficient' = 'good';
 
-      if (correctRate >= 95 || correctRate <= 10) {
+      if (totalAttempts < 30) {
+        qualityFlag = 'insufficient'; // 응시수 부족
+      } else if (correctRate >= 95 || correctRate <= 10) {
         qualityFlag = 'revise'; // 너무 쉽거나 어려움
       } else if (discrimination < 0.2) {
         qualityFlag = 'revise'; // 변별도 낮음
@@ -212,6 +214,7 @@ export const getTemplateAnalytics = async (_req: Request, res: Response) => {
         good: 0,
         review: 0,
         revise: 0,
+        insufficient: 0,
       };
 
       let totalCorrectRate = 0;
@@ -255,7 +258,9 @@ export const getTemplateAnalytics = async (_req: Request, res: Response) => {
         questionsWithStats++;
 
         // Determine quality flag
-        if (correctRate >= 95 || correctRate <= 10 || discrimination < 0.2) {
+        if (totalAttempts < 30) {
+          qualityDistribution.insufficient++;
+        } else if (correctRate >= 95 || correctRate <= 10 || discrimination < 0.2) {
           qualityDistribution.revise++;
         } else if (correctRate >= 90 || correctRate <= 30) {
           qualityDistribution.review++;
