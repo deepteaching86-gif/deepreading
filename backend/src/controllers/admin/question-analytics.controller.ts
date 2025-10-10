@@ -34,12 +34,18 @@ export const getQuestionAnalytics = async (req: Request, res: Response) => {
     const { templateCode } = req.query;
 
     // Build where clause
-    const where: any = {};
+    const where: any = {
+      // Exclude reading_attitude (동기부여 설문) from analytics
+      category: {
+        not: 'reading_attitude',
+      },
+    };
+
     if (templateCode && templateCode !== 'all') {
       where.template = { templateCode: templateCode as string };
     }
 
-    // Get all questions with their answers
+    // Get all questions with their answers (excluding reading_attitude)
     const questions = await prisma.question.findMany({
       where,
       include: {
@@ -189,6 +195,12 @@ export const getTemplateAnalytics = async (_req: Request, res: Response) => {
     const templates = await prisma.testTemplate.findMany({
       include: {
         questions: {
+          where: {
+            // Exclude reading_attitude (동기부여 설문) from analytics
+            category: {
+              not: 'reading_attitude',
+            },
+          },
           include: {
             answers: {
               include: {
@@ -205,7 +217,10 @@ export const getTemplateAnalytics = async (_req: Request, res: Response) => {
     });
 
     const templateStats = templates.map((template) => {
-      const questions = template.questions;
+      // Filter out reading_attitude questions
+      const questions = template.questions.filter(
+        (q) => q.category !== 'reading_attitude'
+      );
       const totalQuestions = questions.length;
 
       // Calculate quality distribution
@@ -332,6 +347,14 @@ export const getQuestionDetail = async (req: Request, res: Response) => {
       return res.status(404).json({
         success: false,
         message: '문항을 찾을 수 없습니다.',
+      });
+    }
+
+    // Check if it's a reading_attitude question (동기부여 설문)
+    if (question.category === 'reading_attitude') {
+      return res.status(400).json({
+        success: false,
+        message: '동기부여 설문 문항은 품질 분석 대상이 아닙니다.',
       });
     }
 
