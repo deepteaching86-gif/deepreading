@@ -4,7 +4,14 @@ import jwt from 'jsonwebtoken';
 import { PrismaClient } from '@prisma/client';
 import { env } from '../../config/env';
 
-const prisma = new PrismaClient();
+// Initialize Prisma with pgBouncer-compatible settings
+const prisma = new PrismaClient({
+  datasources: {
+    db: {
+      url: process.env.DATABASE_URL,
+    },
+  },
+});
 
 export const register = async (req: Request, res: Response) => {
   try {

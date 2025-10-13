@@ -12,7 +12,14 @@ import {
   VisionErrorCode
 } from '../../types/vision.types';
 
-const prisma = new PrismaClient();
+// Initialize Prisma with pgBouncer-compatible settings
+const prisma = new PrismaClient({
+  datasources: {
+    db: {
+      url: process.env.DATABASE_URL,
+    },
+  },
+});
 
 /**
  * GET /api/v1/vision/admin/sessions
