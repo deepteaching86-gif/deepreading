@@ -3,7 +3,14 @@ import { Request, Response, NextFunction } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { ApiError } from '../../errors/api-error';
 
-const prisma = new PrismaClient();
+// Initialize Prisma with pgBouncer-compatible settings
+const prisma = new PrismaClient({
+  datasources: {
+    db: {
+      url: process.env.DATABASE_URL,
+    },
+  },
+});
 
 // Extend Express Request type
 interface AuthRequest extends Request {
