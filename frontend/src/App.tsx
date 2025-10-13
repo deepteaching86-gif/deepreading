@@ -25,6 +25,10 @@ import TeacherDashboard from './pages/teacher/TeacherDashboard';
 import DetailedReportEnhanced from './pages/DetailedReportEnhanced';
 import Unauthorized from './pages/Unauthorized';
 
+// Vision TEST Pages
+import { VisionTestPage } from './pages/student/VisionTestPage';
+import { VisionTestReport } from './pages/student/VisionTestReport';
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -82,6 +86,24 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['student', 'admin', 'parent', 'teacher']}>
                 <TestResultEnhanced />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Vision TEST Routes */}
+          <Route
+            path="/student/vision/test/:sessionId"
+            element={
+              <ProtectedRoute allowedRoles={['student']}>
+                <VisionTestPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/student/vision/result/:sessionId"
+            element={
+              <ProtectedRoute allowedRoles={['student', 'admin', 'parent', 'teacher']}>
+                <VisionTestReport />
               </ProtectedRoute>
             }
           />
