@@ -35,6 +35,8 @@ model User {
   student  Student?
   asParent Student[] @relation("ParentToStudent")
   asTeacher Student[] @relation("TeacherToStudent")
+  visionCalibrations VisionCalibration[]
+  visionAdjustments VisionCalibrationAdjustment[]
 
   @@map("users")
 }
@@ -107,6 +109,11 @@ model TestTemplate {
   timeLimit      Int?      @map("time_limit") @db.Integer // 분 단위
   status         String    @default("active") @db.VarChar(20)
   isActive       Boolean   @default(true) @map("is_active")
+
+  // Vision TEST 확장
+  templateType   String    @default("standard") @map("template_type") @db.VarChar(20) // "standard" | "vision"
+  visionConfig   Json?     @map("vision_config") @db.JsonB // Vision 템플릿 설정
+
   createdAt      DateTime  @default(now()) @map("created_at")
 
   // Relations
@@ -114,6 +121,7 @@ model TestTemplate {
   sessions   TestSession[]
   statistics Statistic[]
 
+  @@index([templateType])
   @@map("test_templates")
 }
 
@@ -170,6 +178,7 @@ model TestSession {
   answers         Answer[]
   result          TestResult?
   surveyResponses SurveyResponse[]
+  visionSession   VisionTestSession?
 
   @@index([studentId])
   @@index([sessionCode])
@@ -325,4 +334,132 @@ model AuditLog {
   @@index([userId])
   @@index([createdAt])
   @@map("audit_logs")
+}
+
+// ===== Vision TEST Models =====
+
+// Vision TEST Session (1:1 with TestSession)
+model VisionTestSession {
+  id                String   @id @default(uuid()) @db.Uuid
+  sessionId         String   @unique @map("session_id") @db.Uuid
+  calibrationId     String?  @map("calibration_id") @db.Uuid
+  calibrationScore  Float?   @map("calibration_score") @db.DoublePrecision
+  aiAnalysis        Json?    @map("ai_analysis") @db.JsonB
+  readingStrategy   String?  @map("reading_strategy") @db.VarChar(50)
+  heatmapData       Json?    @map("heatmap_data") @db.JsonB
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  session      TestSession                   @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  calibration  VisionCalibration?            @relation(fields: [calibrationId], references: [id])
+  gazeData     VisionGazeData[]
+  metrics      VisionMetrics?
+  adjustments  VisionCalibrationAdjustment[]
+
+  @@index([sessionId])
+  @@index([calibrationId])
+  @@map("vision_test_sessions")
+}
+
+// Vision Gaze Data (Large array storage)
+model VisionGazeData {
+  id                String   @id @default(uuid()) @db.Uuid
+  visionSessionId   String   @map("vision_session_id") @db.Uuid
+  passageId         String   @map("passage_id") @db.VarChar(100)
+  gazePoints        Json     @map("gaze_points") @db.JsonB // [{ timestamp, x, y, confidence, type }, ...]
+  totalPoints       Int      @map("total_points") @db.Integer
+  startTime         DateTime @map("start_time")
+  endTime           DateTime @map("end_time")
+  createdAt         DateTime @default(now()) @map("created_at")
+
+  // Relations
+  visionSession VisionTestSession @relation(fields: [visionSessionId], references: [id], onDelete: Cascade)
+
+  @@index([visionSessionId])
+  @@index([passageId])
+  @@map("vision_gaze_data")
+}
+
+// Vision Metrics (15 calculated metrics)
+model VisionMetrics {
+  id                            String   @id @default(uuid()) @db.Uuid
+  visionSessionId               String   @unique @map("vision_session_id") @db.Uuid
+
+  // A. Eye Movement Patterns (6 metrics)
+  averageSaccadeAmplitude       Float    @map("average_saccade_amplitude") @db.DoublePrecision
+  saccadeVariability            Float    @map("saccade_variability") @db.DoublePrecision
+  averageSaccadeVelocity        Float    @map("average_saccade_velocity") @db.DoublePrecision
+  optimalLandingRate            Float    @map("optimal_landing_rate") @db.DoublePrecision
+  returnSweepAccuracy           Float    @map("return_sweep_accuracy") @db.DoublePrecision
+  scanPathEfficiency            Float    @map("scan_path_efficiency") @db.DoublePrecision
+
+  // B. Fixation Behavior (4 metrics)
+  averageFixationDuration       Float    @map("average_fixation_duration") @db.DoublePrecision
+  fixationsPerWord              Float    @map("fixations_per_word") @db.DoublePrecision
+  regressionRate                Float    @map("regression_rate") @db.DoublePrecision
+  vocabularyGapScore            Float    @map("vocabulary_gap_score") @db.DoublePrecision
+
+  // C. Reading Speed & Rhythm (3 metrics)
+  wordsPerMinute                Float    @map("words_per_minute") @db.DoublePrecision
+  rhythmRegularity              Float    @map("rhythm_regularity") @db.DoublePrecision
+  staminaScore                  Float    @map("stamina_score") @db.DoublePrecision
+
+  // D. Comprehension & Cognitive (2 metrics)
+  gazeComprehensionCorrelation  Float    @map("gaze_comprehension_correlation") @db.DoublePrecision
+  cognitiveLoadIndex            Float    @map("cognitive_load_index") @db.DoublePrecision
+
+  // Overall Score
+  overallEyeTrackingScore       Float    @map("overall_eye_tracking_score") @db.DoublePrecision
+
+  // Additional Analysis Data
+  detailedAnalysis              Json?    @map("detailed_analysis") @db.JsonB
+  comparisonWithPeers           Json?    @map("comparison_with_peers") @db.JsonB
+
+  createdAt                     DateTime @default(now()) @map("created_at")
+
+  // Relations
+  visionSession VisionTestSession @relation(fields: [visionSessionId], references: [id], onDelete: Cascade)
+
+  @@index([visionSessionId])
+  @@map("vision_metrics")
+}
+
+// Vision Calibration (Reusable calibration data)
+model VisionCalibration {
+  id                String   @id @default(uuid()) @db.Uuid
+  userId            String   @map("user_id") @db.Uuid
+  calibrationPoints Json     @map("calibration_points") @db.JsonB // 9 points with errors
+  overallAccuracy   Float    @map("overall_accuracy") @db.DoublePrecision
+  transformMatrix   Json     @map("transform_matrix") @db.JsonB
+  deviceInfo        Json?    @map("device_info") @db.JsonB
+  expiresAt         DateTime @map("expires_at") // 7 days validity
+  createdAt         DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user             User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  visionSessions   VisionTestSession[]
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("vision_calibrations")
+}
+
+// Vision Calibration Adjustment (Manual correction history)
+model VisionCalibrationAdjustment {
+  id                String   @id @default(uuid()) @db.Uuid
+  visionSessionId   String   @map("vision_session_id") @db.Uuid
+  adminId           String   @map("admin_id") @db.Uuid
+  adjustments       Json     @map("adjustments") @db.JsonB // { offsetX, offsetY, scaleX, scaleY, rotation }
+  improvementScore  Float?   @map("improvement_score") @db.DoublePrecision
+  notes             String?  @db.Text
+  createdAt         DateTime @default(now()) @map("created_at")
+
+  // Relations
+  visionSession VisionTestSession @relation(fields: [visionSessionId], references: [id], onDelete: Cascade)
+  admin         User              @relation(fields: [adminId], references: [id])
+
+  @@index([visionSessionId])
+  @@index([adminId])
+  @@map("vision_calibration_adjustments")
 }

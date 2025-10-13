@@ -69,7 +69,8 @@
       "Bash(cmd /c:*)",
       "Bash(find:*)",
       "Read(//c/Users/owner/Downloads/**)",
-      "Bash(copy:*)"
+      "Bash(copy:*)",
+      "Bash(set:*)"
     ],
     "deny": [],
     "ask": []

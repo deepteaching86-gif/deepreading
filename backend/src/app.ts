@@ -135,6 +135,7 @@ import parentsRoutes from './routes/parents/parents.routes';
 import teachersRoutes from './routes/teachers/teachers.routes';
 import reportRoutes from './routes/report.routes';
 import migrationRoutes from './routes/migration.routes';
+import visionRoutes from './routes/vision.routes';
 
 // For Render backend: full paths including /api prefix
 app.use(`/api/${env.API_VERSION}/auth`, authRoutes);
@@ -152,6 +153,7 @@ app.use(`/api/${env.API_VERSION}/sessions`, sessionsRoutes);
 app.use(`/api/${env.API_VERSION}/students`, studentsRoutes);
 app.use(`/api/${env.API_VERSION}/parents`, parentsRoutes);
 app.use(`/api/${env.API_VERSION}/teachers`, teachersRoutes);
+app.use(`/api/${env.API_VERSION}/vision`, visionRoutes);
 
 // 404 handler
 app.use((req, res) => {
