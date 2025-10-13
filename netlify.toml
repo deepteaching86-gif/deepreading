@@ -7,6 +7,7 @@
 
 [build.environment]
   NODE_VERSION = "20"
+  VITE_API_URL = "https://literacy-backend.onrender.com"
 
 # Frontend SPA fallback - all routes go to index.html
 [[redirects]]
