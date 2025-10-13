@@ -54,17 +54,31 @@ export default function AdminDashboard() {
   const fetchData = async () => {
     try {
       setLoading(true);
+      console.log('📊 Fetching admin dashboard data...');
+
       const [statsRes, usersRes, gradeStatsRes] = await Promise.all([
         axios.get('/api/v1/admin/dashboard/stats'),
         axios.get('/api/v1/admin/users/recent?limit=5'),
         axios.get('/api/v1/admin/stats/by-grade'),
       ]);
 
+      console.log('✅ Data fetched successfully:', {
+        stats: statsRes.data,
+        users: usersRes.data,
+        gradeStats: gradeStatsRes.data
+      });
+
       setStats(statsRes.data.data);
       setRecentUsers(usersRes.data.data);
       setGradeStats(gradeStatsRes.data.data);
-    } catch (error) {
-      console.error('데이터 조회 실패:', error);
+    } catch (error: any) {
+      console.error('❌ 데이터 조회 실패:', error);
+      console.error('Error details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        url: error.config?.url
+      });
     } finally {
       setLoading(false);
     }
@@ -436,6 +450,21 @@ export default function AdminDashboard() {
                 <div>
                   <h3 className="font-semibold text-foreground">전체 회원 관리</h3>
                   <p className="text-sm text-muted-foreground">사용자 정보 조회 및 수정</p>
+                </div>
+              </div>
+            </Link>
+
+            <Link
+              to="/admin/vision-sessions"
+              className="bg-card rounded-lg shadow-sm p-6 border border-border hover:border-primary transition-colors"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                  <span className="text-2xl">👁️</span>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-foreground">Vision TEST 관리</h3>
+                  <p className="text-sm text-muted-foreground">시선 추적 테스트 세션 및 분석</p>
                 </div>
               </div>
             </Link>
