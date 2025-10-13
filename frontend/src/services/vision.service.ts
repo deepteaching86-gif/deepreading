@@ -196,6 +196,13 @@ export const getHeatmapData = async (
   return response.data;
 };
 
+export const getVisionSessionGazeData = async (
+  sessionId: string
+): Promise<{ gazePoints: any[]; passageText: string }> => {
+  const response = await visionAPI.get(`/admin/session/${sessionId}/gaze-data`);
+  return response.data;
+};
+
 // ===== Template APIs =====
 
 export const listVisionTemplates = async (

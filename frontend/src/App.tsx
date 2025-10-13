@@ -28,6 +28,8 @@ import Unauthorized from './pages/Unauthorized';
 // Vision TEST Pages
 import { VisionTestPage } from './pages/student/VisionTestPage';
 import { VisionTestReport } from './pages/student/VisionTestReport';
+import { VisionSessions } from './pages/admin/VisionSessions';
+import { VisionSessionDetail } from './pages/admin/VisionSessionDetail';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -172,6 +174,22 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['admin']}>
                 <AdminUserManagement />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/vision-sessions"
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <VisionSessions />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/vision-session/:sessionId"
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <VisionSessionDetail />
               </ProtectedRoute>
             }
           />
