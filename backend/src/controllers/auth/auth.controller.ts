@@ -110,8 +110,11 @@ export const login = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
 
+    console.log('🔐 Login attempt:', { email, timestamp: new Date().toISOString() });
+
     // Validation
     if (!email || !password) {
+      console.log('❌ Validation failed: Missing email or password');
       return res.status(400).json({
         success: false,
         message: '이메일과 비밀번호를 입력해주세요.',
@@ -119,28 +122,37 @@ export const login = async (req: Request, res: Response) => {
     }
 
     // Find user
+    console.log('🔍 Searching for user:', email);
     const user = await prisma.user.findUnique({
       where: { email },
     });
 
     if (!user) {
+      console.log('❌ User not found:', email);
       return res.status(401).json({
         success: false,
         message: '이메일 또는 비밀번호가 올바르지 않습니다.',
       });
     }
 
+    console.log('✅ User found:', { id: user.id, role: user.role });
+
     // Verify password
+    console.log('🔑 Verifying password...');
     const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
 
     if (!isPasswordValid) {
+      console.log('❌ Invalid password for user:', email);
       return res.status(401).json({
         success: false,
         message: '이메일 또는 비밀번호가 올바르지 않습니다.',
       });
     }
 
+    console.log('✅ Password verified successfully');
+
     // Generate JWT token
+    console.log('🎫 Generating JWT token...');
     const token = jwt.sign(
       {
         userId: user.id,
@@ -150,6 +162,8 @@ export const login = async (req: Request, res: Response) => {
       env.JWT_SECRET as string,
       { expiresIn: env.JWT_ACCESS_EXPIRY } as jwt.SignOptions
     );
+
+    console.log('✅ Login successful:', { userId: user.id, role: user.role });
 
     return res.status(200).json({
       success: true,
@@ -165,10 +179,16 @@ export const login = async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
-    console.error('Login error:', error);
+    console.error('❌ Login error:', error);
+    console.error('Error details:', {
+      name: (error as Error).name,
+      message: (error as Error).message,
+      stack: (error as Error).stack,
+    });
     return res.status(500).json({
       success: false,
       message: '로그인 중 오류가 발생했습니다.',
+      ...(process.env.NODE_ENV === 'development' && { error: (error as Error).message }),
     });
   }
 };
