@@ -6,7 +6,7 @@ services:
     region: singapore
     buildCommand: cd backend && npm install && npx prisma generate && npm run build
     startCommand: cd backend && node dist/server.js
-    # Updated: 2025-10-14 - Skip migrations on startup (run manually via Prisma Studio or local env)
+    # Updated: 2025-10-14 v2 - Skip migrations on startup (pooler doesn't support DDL operations)
     envVars:
       - key: NODE_ENV
         value: production
