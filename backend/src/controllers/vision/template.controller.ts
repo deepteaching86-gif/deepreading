@@ -2,7 +2,7 @@
 
 import { Request, Response, NextFunction } from 'express';
 import { PrismaClient } from '@prisma/client';
-import { VisionConfig, VisionTestError, VisionErrorCode } from '../../types/vision.types';
+import { VisionTestError, VisionErrorCode } from '../../types/vision.types';
 
 const prisma = new PrismaClient();
 

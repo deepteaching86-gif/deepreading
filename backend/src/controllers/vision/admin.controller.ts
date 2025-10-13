@@ -152,7 +152,6 @@ export const adjustCalibration = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { sessionId } = req.params;
     const { visionSessionId, adminId, adjustments, notes } = req.body as AdjustCalibrationRequest;
 
     // Verify vision session
@@ -222,6 +221,67 @@ export const getHeatmapData = async (
     res.status(200).json({
       visionSessionId: visionSession.id,
       heatmapData: visionSession.heatmapData || []
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * GET /api/v1/vision/admin/session/:sessionId/gaze-data
+ * Get all gaze points for replay (flattened from chunks)
+ */
+export const getGazeDataForReplay = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { sessionId } = req.params;
+
+    const visionSession = await prisma.visionTestSession.findUnique({
+      where: { sessionId },
+      include: {
+        session: {
+          include: {
+            template: true
+          }
+        },
+        gazeData: {
+          orderBy: { startTime: 'asc' }
+        }
+      }
+    });
+
+    if (!visionSession) {
+      throw new VisionTestError(
+        VisionErrorCode.SESSION_NOT_FOUND,
+        'Vision session not found',
+        404
+      );
+    }
+
+    // Flatten all gaze points from chunks
+    const allGazePoints: any[] = [];
+    for (const chunk of visionSession.gazeData) {
+      const points = chunk.gazePoints as any;
+      if (Array.isArray(points)) {
+        allGazePoints.push(...points);
+      }
+    }
+
+    // Sort by timestamp
+    allGazePoints.sort((a, b) => a.timestamp - b.timestamp);
+
+    // Get passage text from visionConfig
+    const visionConfig = visionSession.session.template.visionConfig as any;
+    const passageText = visionConfig.passages
+      ? visionConfig.passages.map((p: any) => p.text).join('\n\n')
+      : '샘플 지문 텍스트입니다...';
+
+    res.status(200).json({
+      gazePoints: allGazePoints,
+      passageText
     });
   } catch (error) {
     next(error);

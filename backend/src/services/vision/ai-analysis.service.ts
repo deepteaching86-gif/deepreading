@@ -1,12 +1,12 @@
 // AI Analysis Service
 // Generate reading strategy analysis based on metrics
 
-import { AIAnalysisResult, VisionMetrics } from '../../types/vision.types';
+import { AIAnalysisResult } from '../../types/vision.types';
 
 export async function generateAIAnalysis(
   metrics: any,
   grade: number,
-  comprehensionAccuracy?: number
+  _comprehensionAccuracy?: number
 ): Promise<AIAnalysisResult> {
   // Determine reading strategy based on metrics
   let readingStrategy: 'fluent' | 'struggling' | 'developing' | 'advanced';
@@ -64,7 +64,7 @@ export async function generateAIAnalysis(
 
 function generateNarrative(
   strategy: string,
-  metrics: any,
+  _metrics: any,
   grade: number
 ): string {
   const templates = {

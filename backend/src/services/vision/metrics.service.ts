@@ -165,18 +165,18 @@ function calculateSaccadeVelocities(saccades: GazePoint[]): number[] {
   return velocities;
 }
 
-function calculateOptimalLandingRate(fixations: GazePoint[], config: VisionConfig): number {
+function calculateOptimalLandingRate(fixations: GazePoint[], _config: VisionConfig): number {
   // Optimal landing position: center of word (40-60% from word start)
   // This is a simplified calculation - in reality, would need word boundaries
   // For now, assume optimal if fixation duration is 150-300ms
-  const optimalFixations = fixations.filter(f => {
+  const optimalFixations = fixations.filter(_f => {
     const duration = 200; // Placeholder - would need actual duration
     return duration >= 150 && duration <= 300;
   });
   return (optimalFixations.length / fixations.length) * 100;
 }
 
-function calculateReturnSweepAccuracy(gazePoints: GazePoint[], config: VisionConfig): number {
+function calculateReturnSweepAccuracy(gazePoints: GazePoint[], _config: VisionConfig): number {
   // Return sweep: moving from end of line to start of next line
   // Detect large Y movement with negative X movement
   let returnSweeps = 0;
@@ -201,7 +201,7 @@ function calculateReturnSweepAccuracy(gazePoints: GazePoint[], config: VisionCon
   return returnSweeps > 0 ? (accurateReturns / returnSweeps) * 100 : 100;
 }
 
-function calculateScanPathEfficiency(gazePoints: GazePoint[], config: VisionConfig): number {
+function calculateScanPathEfficiency(gazePoints: GazePoint[], _config: VisionConfig): number {
   // Efficiency: ratio of direct path length to actual path length
   // Lower ratio = more efficient (less wandering)
   if (gazePoints.length < 2) return 1.0;
@@ -256,7 +256,7 @@ function calculateRegressionRate(gazePoints: GazePoint[]): number {
   return (regressions / gazePoints.length) * 100;
 }
 
-function calculateVocabularyGapScore(fixations: GazePoint[], config: VisionConfig): number {
+function calculateVocabularyGapScore(fixations: GazePoint[], _config: VisionConfig): number {
   // Higher fixations on certain words = vocabulary difficulty
   // This is simplified - would need word-level mapping
   const fixationDurations = calculateFixationDurations(fixations);
@@ -274,7 +274,7 @@ function calculateRhythmRegularity(fixationDurations: number[]): number {
   return Math.max(0, 1 - cv); // Lower CV = more regular
 }
 
-function calculateStaminaScore(gazePoints: GazePoint[], durationSeconds: number): number {
+function calculateStaminaScore(gazePoints: GazePoint[], _durationSeconds: number): number {
   // Stamina: compare reading speed in first half vs second half
   // Score decreases if second half is significantly slower
   const midpoint = Math.floor(gazePoints.length / 2);

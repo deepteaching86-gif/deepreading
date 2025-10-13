@@ -72,9 +72,9 @@ export const aiAnalyze = async (
     await prisma.visionTestSession.update({
       where: { id: visionSessionId },
       data: {
-        aiAnalysis,
+        aiAnalysis: aiAnalysis as any,
         readingStrategy: aiAnalysis.readingStrategy,
-        heatmapData
+        heatmapData: heatmapData as any
       }
     });
 
@@ -135,7 +135,7 @@ export const getVisionReport = async (
       testDate: visionSession.session.startedAt || visionSession.session.createdAt,
       calibrationScore: visionSession.calibrationScore || 0,
       metrics: visionSession.metrics as any,
-      aiAnalysis: visionSession.aiAnalysis as AIAnalysisResult,
+      aiAnalysis: visionSession.aiAnalysis as unknown as AIAnalysisResult,
       heatmapData: visionSession.heatmapData as any,
       passages: visionConfig.passages,
       gazeReplayAvailable: visionSession.gazeData.length > 0

@@ -5,10 +5,7 @@ import { Request, Response, NextFunction } from 'express';
 import { PrismaClient } from '@prisma/client';
 import {
   CalculateMetricsRequest,
-  VisionMetrics,
   GazePoint,
-  GazeType,
-  MetricDetailedAnalysis,
   VisionTestError,
   VisionErrorCode
 } from '../../types/vision.types';
@@ -65,7 +62,7 @@ export const calculateMetrics = async (
     // 4. Aggregate all gaze points from chunks
     const allGazePoints: GazePoint[] = [];
     visionSession.gazeData.forEach(chunk => {
-      const points = chunk.gazePoints as GazePoint[];
+      const points = chunk.gazePoints as unknown as GazePoint[];
       allGazePoints.push(...points);
     });
 
@@ -88,7 +85,9 @@ export const calculateMetrics = async (
     const savedMetrics = await prisma.visionMetrics.create({
       data: {
         visionSessionId,
-        ...metrics
+        ...metrics,
+        detailedAnalysis: metrics.detailedAnalysis as any,
+        comparisonWithPeers: metrics.comparisonWithPeers as any
       }
     });
 

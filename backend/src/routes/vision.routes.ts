@@ -35,6 +35,7 @@ router.get('/analysis/:sessionId/report', authenticateToken, analysisController.
 // ===== Admin Endpoints =====
 router.get('/admin/sessions', authenticateToken, adminController.listVisionSessions);
 router.get('/admin/session/:sessionId/gaze-replay', authenticateToken, adminController.getGazeReplay);
+router.get('/admin/session/:sessionId/gaze-data', authenticateToken, adminController.getGazeDataForReplay);
 router.post('/admin/session/:sessionId/adjust-calibration', authenticateToken, adminController.adjustCalibration);
 router.get('/admin/session/:sessionId/heatmap', authenticateToken, adminController.getHeatmapData);
 

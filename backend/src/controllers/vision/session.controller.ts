@@ -108,7 +108,7 @@ export const startVisionSession = async (
     });
 
     // 6. Get Vision config from template
-    const visionConfig = testSession.template.visionConfig as VisionConfig;
+    const visionConfig = testSession.template.visionConfig as unknown as VisionConfig;
 
     // 7. Update TestSession to in_progress
     await prisma.testSession.update({
@@ -186,7 +186,7 @@ export const saveGazeData = async (
       data: {
         visionSessionId,
         passageId: gazeChunk.passageId,
-        gazePoints: validGazePoints,
+        gazePoints: validGazePoints as any,
         totalPoints: validGazePoints.length,
         startTime: gazeChunk.startTime,
         endTime: gazeChunk.endTime
@@ -244,7 +244,7 @@ export const submitVisionSession = async (
           data: {
             visionSessionId,
             passageId: finalGazeData.passageId,
-            gazePoints: validGazePoints,
+            gazePoints: validGazePoints as any,
             totalPoints: validGazePoints.length,
             startTime: finalGazeData.startTime,
             endTime: finalGazeData.endTime
