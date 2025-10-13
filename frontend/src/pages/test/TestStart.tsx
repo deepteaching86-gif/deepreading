@@ -53,7 +53,7 @@ export default function TestStart() {
 
       // Vision TEST인 경우 캘리브레이션 페이지로 바로 이동 (설문 생략)
       if (template.templateType === 'vision') {
-        navigate(`/vision-test/${sessionId}`);
+        navigate(`/student/vision/test/${sessionId}`);
       } else {
         // 일반 테스트는 설문 페이지로 이동
         navigate(`/test/survey/${sessionId}`);
