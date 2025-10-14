@@ -257,17 +257,6 @@ export const CalibrationScreen: React.FC<CalibrationScreenProps> = ({
     }
   }, [calibrationId, stopTracking, onCalibrationComplete]);
 
-  // Start recording gaze data for current point
-  const startRecording = useCallback(() => {
-    setGazeBuffer([]);
-    setIsRecording(true);
-
-    // Record for 3 seconds
-    setTimeout(() => {
-      handleRecordPoint();
-    }, 3000);
-  }, [handleRecordPoint]);
-
   // Render instructions
   if (state.stage === 'instructions') {
     return (

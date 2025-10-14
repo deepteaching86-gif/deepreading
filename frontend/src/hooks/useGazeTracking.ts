@@ -303,34 +303,123 @@ export const useGazeTracking = (
     }
 
     // Extract eye and iris landmarks
-    // MediaPipe Face Mesh indices:
-    // Left eye: 33, 133, 159, 145
-    // Right eye: 263, 362, 386, 374
+    // MediaPipe Face Mesh indices (comprehensive for EAR and iris tracking):
+    // Left eye: outer=33, inner=133, top=159, bottom=145, upper_mid=157, lower_mid=144
+    // Right eye: outer=263, inner=362, top=386, bottom=374, upper_mid=387, lower_mid=373
     // With refineLandmarks, iris points are at the end (468-477 for tfjs runtime)
-    const leftEyeCenter = keypoints[33]; // Left eye outer corner
-    const rightEyeCenter = keypoints[263]; // Right eye outer corner
-    const noseTip = keypoints[1]; // Nose tip
 
-    // For iris, check if we have refined landmarks (478+ keypoints)
-    let leftIris, rightIris;
-    if (keypoints.length >= 478) {
-      // Refined landmarks available - iris at indices 468-477
-      leftIris = keypoints[468]; // Left iris center
-      rightIris = keypoints[473]; // Right iris center
-      console.log('👁️ Using iris landmarks (refined)');
-    } else {
-      // Fall back to eye center approximation
-      leftIris = keypoints[468] || keypoints[33]; // Use eye corner if iris not available
-      rightIris = keypoints[473] || keypoints[263];
-      console.log('⚠️ Iris not available, using eye centers');
-    }
+    // Eye contour points for Eye Aspect Ratio (EAR) calculation
+    const leftEyeOuter = keypoints[33];
+    const leftEyeInner = keypoints[133];
+    const leftEyeTop = keypoints[159];
+    const leftEyeBottom = keypoints[145];
+    const leftEyeTopMid = keypoints[157];
+    const leftEyeBottomMid = keypoints[144];
 
-    if (!leftIris || !rightIris) {
-      console.warn('❌ No eye landmarks found');
+    const rightEyeOuter = keypoints[263];
+    const rightEyeInner = keypoints[362];
+    const rightEyeTop = keypoints[386];
+    const rightEyeBottom = keypoints[374];
+    const rightEyeTopMid = keypoints[387];
+    const rightEyeBottomMid = keypoints[373];
+
+    const noseTip = keypoints[1];
+
+    // Calculate Eye Aspect Ratio (EAR) for blink/occlusion detection
+    // EAR = (|p2-p6| + |p3-p5|) / (2 * |p1-p4|)
+    // Research shows: EAR > 0.21 = open, EAR < 0.21 = closed (adjusted for Asian eyes)
+    const leftEAR = calculateEAR(
+      leftEyeTopMid, leftEyeBottomMid,
+      leftEyeTop, leftEyeBottom,
+      leftEyeOuter, leftEyeInner
+    );
+    const rightEAR = calculateEAR(
+      rightEyeTopMid, rightEyeBottomMid,
+      rightEyeTop, rightEyeBottom,
+      rightEyeOuter, rightEyeInner
+    );
+    const avgEAR = (leftEAR + rightEAR) / 2;
+
+    console.log('👁️ Eye Aspect Ratio (EAR):', {
+      left: leftEAR.toFixed(3),
+      right: rightEAR.toFixed(3),
+      average: avgEAR.toFixed(3),
+      status: avgEAR > 0.18 ? 'OPEN' : 'CLOSED/OCCLUDED'
+    });
+
+    // Modified EAR threshold for diverse populations (glasses, small eyes, Asian eyes)
+    // Research-based thresholds: 0.18-0.25 depending on individual characteristics
+    const EAR_THRESHOLD = 0.18; // Lower threshold for better detection with glasses/small eyes
+
+    if (avgEAR < EAR_THRESHOLD) {
+      console.warn('👓 Eyes closed or occluded (glasses/blink), skipping gaze estimation');
+      setCurrentGaze(null);
       // Schedule next frame
       animationFrameRef.current = window.requestAnimationFrame(detectAndEstimateGaze);
       return;
     }
+
+    // For iris, check if we have refined landmarks (478+ keypoints)
+    // Initialize with geometric eye centers as fallback
+    let leftIris: { x: number; y: number; z: number } = {
+      x: (leftEyeOuter.x + leftEyeInner.x) / 2,
+      y: (leftEyeTop.y + leftEyeBottom.y) / 2,
+      z: leftEyeOuter.z || 0
+    };
+    let rightIris: { x: number; y: number; z: number } = {
+      x: (rightEyeOuter.x + rightEyeInner.x) / 2,
+      y: (rightEyeTop.y + rightEyeBottom.y) / 2,
+      z: rightEyeOuter.z || 0
+    };
+    let usingIrisLandmarks = false;
+
+    if (keypoints.length >= 478) {
+      // Refined landmarks available - iris at indices 468-477
+      const potentialLeftIris = keypoints[468]; // Left iris center
+      const potentialRightIris = keypoints[473]; // Right iris center
+
+      // Validate iris landmarks (check if they're within reasonable eye bounds)
+      if (potentialLeftIris && potentialRightIris) {
+        const leftEyeWidth = Math.abs(leftEyeOuter.x - leftEyeInner.x);
+        const rightEyeWidth = Math.abs(rightEyeOuter.x - rightEyeInner.x);
+
+        // Check if iris is within eye boundaries (with some margin)
+        const leftIrisValid =
+          Math.abs(potentialLeftIris.x - (leftEyeOuter.x + leftEyeInner.x) / 2) < leftEyeWidth * 0.8;
+        const rightIrisValid =
+          Math.abs(potentialRightIris.x - (rightEyeOuter.x + rightEyeInner.x) / 2) < rightEyeWidth * 0.8;
+
+        if (leftIrisValid && rightIrisValid) {
+          leftIris = {
+            x: potentialLeftIris.x,
+            y: potentialLeftIris.y,
+            z: potentialLeftIris.z || 0
+          };
+          rightIris = {
+            x: potentialRightIris.x,
+            y: potentialRightIris.y,
+            z: potentialRightIris.z || 0
+          };
+          usingIrisLandmarks = true;
+          console.log('✅ Using validated iris landmarks');
+        }
+      }
+    }
+
+    // Log fallback status
+    if (!usingIrisLandmarks) {
+      console.log('⚠️ Iris landmarks unavailable or invalid, using eye center fallback');
+    }
+
+    // Calculate eye centers for landmarks structure
+    const leftEyeCenter = {
+      x: (leftEyeOuter.x + leftEyeInner.x) / 2,
+      y: (leftEyeTop.y + leftEyeBottom.y) / 2
+    };
+    const rightEyeCenter = {
+      x: (rightEyeOuter.x + rightEyeInner.x) / 2,
+      y: (rightEyeTop.y + rightEyeBottom.y) / 2
+    };
 
     const landmarks: FaceLandmarks = {
       leftEye: { x: leftEyeCenter.x, y: leftEyeCenter.y },
@@ -558,4 +647,35 @@ function classifyGazeType(
 
   // Fixation: slow/no movement
   return GazeType.FIXATION;
+}
+
+// Helper: Calculate Eye Aspect Ratio (EAR) for blink/occlusion detection
+// Based on research: Soukupová & Čech (2016) "Real-Time Eye Blink Detection using Facial Landmarks"
+// EAR formula: (|p2-p6| + |p3-p5|) / (2 * |p1-p4|)
+// where p1-p6 are eye landmark points
+function calculateEAR(
+  p2: { x: number; y: number },  // Top mid vertical point
+  p6: { x: number; y: number },  // Bottom mid vertical point
+  p3: { x: number; y: number },  // Top vertical point
+  p5: { x: number; y: number },  // Bottom vertical point
+  p1: { x: number; y: number },  // Outer horizontal point
+  p4: { x: number; y: number }   // Inner horizontal point
+): number {
+  // Calculate vertical distances (numerator)
+  const verticalDist1 = Math.sqrt(
+    Math.pow(p2.x - p6.x, 2) + Math.pow(p2.y - p6.y, 2)
+  );
+  const verticalDist2 = Math.sqrt(
+    Math.pow(p3.x - p5.x, 2) + Math.pow(p3.y - p5.y, 2)
+  );
+
+  // Calculate horizontal distance (denominator)
+  const horizontalDist = Math.sqrt(
+    Math.pow(p1.x - p4.x, 2) + Math.pow(p1.y - p4.y, 2)
+  );
+
+  // EAR formula: (|p2-p6| + |p3-p5|) / (2 * |p1-p4|)
+  // Typical values: EAR > 0.21 = open eyes, EAR < 0.21 = closed/occluded
+  // Modified for diverse populations (glasses, small eyes, Asian eyes): 0.18-0.25
+  return (verticalDist1 + verticalDist2) / (2.0 * horizontalDist);
 }
