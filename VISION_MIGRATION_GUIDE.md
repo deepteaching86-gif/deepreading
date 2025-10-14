@@ -17,17 +17,23 @@ Vision TEST 관련 테이블들이 production 데이터베이스에 생성되지
 1. 왼쪽 메뉴에서 **"SQL Editor"** 클릭
 2. **"New query"** 버튼 클릭
 
-### 3단계: 마이그레이션 SQL 복사
+### 3단계: 안전한 마이그레이션 SQL 복사
 
-아래 파일의 전체 내용을 복사하세요:
+⚠️ **중요**: 아래 **안전한 버전**을 사용하세요:
 ```
-backend/prisma/migrations/20250614_add_vision_test_models/migration.sql
+backend/prisma/migrations/20250614_add_vision_test_models/migration-safe.sql
 ```
+
+이 파일은 `CREATE TABLE IF NOT EXISTS`를 사용하여:
+- ✅ 이미 존재하는 테이블은 건너뜀
+- ✅ 누락된 테이블만 생성
+- ✅ 에러 없이 안전하게 실행
 
 ### 4단계: SQL 실행
-1. SQL Editor에 복사한 내용 붙여넣기
-2. **"Run"** 버튼 클릭 (또는 `Ctrl + Enter`)
-3. 성공 메시지 확인: "Success. No rows returned"
+1. **migration-safe.sql** 파일의 전체 내용을 복사
+2. SQL Editor에 붙여넣기
+3. **"Run"** 버튼 클릭 (또는 `Ctrl + Enter`)
+4. 성공 메시지 확인 (에러가 발생하지 않아야 함)
 
 ### 5단계: 테이블 확인
 SQL Editor에서 다음 쿼리 실행:
