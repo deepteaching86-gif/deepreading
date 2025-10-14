@@ -18,9 +18,18 @@ import {
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 const API_VERSION = 'v1';
 
-// Get auth token
+// Get auth token from zustand persist storage
 const getAuthToken = (): string | null => {
-  return localStorage.getItem('token');
+  try {
+    const authStorage = localStorage.getItem('auth-storage');
+    if (!authStorage) return null;
+
+    const parsed = JSON.parse(authStorage);
+    return parsed.state?.token || null;
+  } catch (error) {
+    console.error('Failed to get auth token:', error);
+    return null;
+  }
 };
 
 // Axios instance with auth
