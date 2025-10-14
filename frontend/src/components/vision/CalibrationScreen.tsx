@@ -68,14 +68,18 @@ export const CalibrationScreen: React.FC<CalibrationScreenProps> = ({
 
   // Check if user is fixating on current calibration point
   const checkFixation = useCallback((gazePoint: GazePoint) => {
+    console.log('🔍 checkFixation called:', { gazePoint, currentPointIndex: state.currentPointIndex, calibrationPointsLength: calibrationPoints.length });
+
     if (state.currentPointIndex >= calibrationPoints.length) return;
 
     const currentPoint = calibrationPoints[state.currentPointIndex];
+    console.log('📍 Current calibration point:', currentPoint);
 
     // Calculate distance from gaze to calibration point
     const dx = gazePoint.x - currentPoint.x;
     const dy = gazePoint.y - currentPoint.y;
     const distance = Math.sqrt(dx * dx + dy * dy);
+    console.log('📏 Distance to point:', distance);
 
     // Threshold: 0.1 (10% of screen) - adjust as needed
     const FIXATION_THRESHOLD = 0.1;
