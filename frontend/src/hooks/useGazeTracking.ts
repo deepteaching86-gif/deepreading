@@ -11,6 +11,7 @@ interface UseGazeTrackingOptions {
   onGazePoint?: (point: GazePoint) => void;
   calibrationMatrix?: number[][]; // 3x3 affine transformation matrix
   targetFPS?: number; // Default 30 FPS
+  onFacePosition?: (position: { x: number; y: number; width: number; height: number }) => void; // Face position callback
 }
 
 interface UseGazeTrackingReturn {
@@ -28,7 +29,7 @@ interface UseGazeTrackingReturn {
 export const useGazeTracking = (
   options: UseGazeTrackingOptions
 ): UseGazeTrackingReturn => {
-  const { enabled, onGazePoint, calibrationMatrix, targetFPS = 30 } = options;
+  const { enabled, onGazePoint, calibrationMatrix, targetFPS = 30, onFacePosition } = options;
 
   const [isInitialized, setIsInitialized] = useState(false);
   const [isTracking, setIsTracking] = useState(false);
@@ -189,6 +190,19 @@ export const useGazeTracking = (
     const keypoints = face.keypoints;
 
     console.log('✅ Face detected, total keypoints:', keypoints.length);
+
+    // Calculate face bounding box for position visualization
+    if (onFacePosition && face.box) {
+      const { xMin, yMin, width, height } = face.box;
+      // Normalize to 0-1 range
+      const normalizedBox = {
+        x: xMin / video.videoWidth,
+        y: yMin / video.videoHeight,
+        width: width / video.videoWidth,
+        height: height / video.videoHeight
+      };
+      onFacePosition(normalizedBox);
+    }
 
     // Extract eye and iris landmarks
     // MediaPipe Face Mesh indices:

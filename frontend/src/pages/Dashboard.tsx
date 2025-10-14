@@ -55,6 +55,8 @@ export default function Dashboard() {
   const [profile, setProfile] = useState<StudentProfile | null>(null);
   const [stats, setStats] = useState<StudentStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [selectedSessions, setSelectedSessions] = useState<Set<string>>(new Set());
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -115,6 +117,51 @@ export default function Dashboard() {
     } catch (error) {
       console.error('테스트 삭제 실패:', error);
       alert('테스트 삭제에 실패했습니다.');
+    }
+  };
+
+  const handleToggleSession = (sessionId: string) => {
+    setSelectedSessions(prev => {
+      const next = new Set(prev);
+      if (next.has(sessionId)) {
+        next.delete(sessionId);
+      } else {
+        next.add(sessionId);
+      }
+      return next;
+    });
+  };
+
+  const handleToggleAll = () => {
+    if (!stats || stats.recentSessions.length === 0) return;
+
+    if (selectedSessions.size === stats.recentSessions.length) {
+      setSelectedSessions(new Set());
+    } else {
+      setSelectedSessions(new Set(stats.recentSessions.map(s => s.id)));
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedSessions.size === 0) return;
+
+    if (!confirm(`선택한 ${selectedSessions.size}개의 테스트를 삭제하시겠습니까?`)) {
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      await Promise.all([...selectedSessions].map(id =>
+        axios.delete(`/api/v1/sessions/${id}`)
+      ));
+      alert('선택한 테스트가 삭제되었습니다.');
+      setSelectedSessions(new Set());
+      fetchData();
+    } catch (error) {
+      console.error('일괄 삭제 실패:', error);
+      alert('일괄 삭제에 실패했습니다.');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -295,89 +342,118 @@ export default function Dashboard() {
 
         {/* Recent Tests */}
         <section>
-          <h2 className="text-2xl font-bold mb-6 text-foreground">최근 테스트 결과</h2>
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold text-foreground">최근 테스트 결과</h2>
+            {stats && stats.recentSessions.length > 0 && selectedSessions.size > 0 && (
+              <button
+                onClick={handleBulkDelete}
+                disabled={isDeleting}
+                className="px-4 py-2 bg-destructive text-destructive-foreground rounded-lg hover:bg-destructive/90 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isDeleting ? '삭제 중...' : `선택 항목 삭제 (${selectedSessions.size})`}
+              </button>
+            )}
+          </div>
           {!stats || stats.recentSessions.length === 0 ? (
             <div className="bg-card rounded-lg shadow-sm p-8 text-center border border-border">
               <p className="text-muted-foreground">아직 진행한 테스트가 없습니다.</p>
             </div>
           ) : (
-            <div className="bg-card rounded-lg shadow-md overflow-hidden border border-border">
-              <table className="min-w-full divide-y divide-border">
-                <thead className="bg-muted">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                      테스트
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                      상태
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                      점수
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                      등급
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                      날짜
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                      작업
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-card divide-y divide-border">
-                  {stats.recentSessions.map((session) => (
-                    <tr key={session.id} className="hover:bg-muted/50 transition-colors">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-card-foreground">
-                          {session.template.title}
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          {getGradeName(session.template.grade)}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {getStatusBadge(session.status)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-card-foreground">
-                        {session.result ? `${session.result.percentage.toFixed(1)}%` : '-'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-card-foreground">
-                        {session.result ? `${session.result.gradeLevel}등급` : '-'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
-                        {new Date(session.createdAt).toLocaleDateString('ko-KR')}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                          {session.status === 'in_progress' && (
-                            <button
-                              onClick={() => navigate(`/test/session/${session.id}`)}
-                              className="text-primary hover:underline text-sm font-medium"
-                            >
-                              계속하기
-                            </button>
-                          )}
-                          {(session.status === 'scored' || session.status === 'completed') && session.result && (
-                            <button
-                              onClick={() => navigate(`/test/result/${session.id}`)}
-                              className="text-primary hover:underline text-sm font-medium"
-                            >
-                              결과보기
-                            </button>
-                          )}
-                          <button
-                            onClick={() => handleDeleteSession(session.id)}
-                            className="text-destructive hover:underline text-sm font-medium ml-2"
-                          >
-                            삭제
-                          </button>
-                        </div>
-                      </td>
+            <div className="bg-card rounded-lg shadow-md border border-border">
+              <div className="max-h-[600px] overflow-y-auto">
+                <table className="min-w-full divide-y divide-border">
+                  <thead className="bg-muted sticky top-0 z-10">
+                    <tr>
+                      <th className="px-4 py-3 text-left">
+                        <input
+                          type="checkbox"
+                          checked={stats.recentSessions.length > 0 && selectedSessions.size === stats.recentSessions.length}
+                          onChange={handleToggleAll}
+                          className="w-4 h-4 rounded border-border text-primary focus:ring-primary"
+                        />
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                        테스트
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                        상태
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                        점수
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                        등급
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                        날짜
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                        작업
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="bg-card divide-y divide-border">
+                    {stats.recentSessions.map((session) => (
+                      <tr key={session.id} className="hover:bg-muted/50 transition-colors">
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          <input
+                            type="checkbox"
+                            checked={selectedSessions.has(session.id)}
+                            onChange={() => handleToggleSession(session.id)}
+                            className="w-4 h-4 rounded border-border text-primary focus:ring-primary"
+                          />
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm font-medium text-card-foreground">
+                            {session.template.title}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {getGradeName(session.template.grade)}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {getStatusBadge(session.status)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-card-foreground">
+                          {session.result ? `${session.result.percentage.toFixed(1)}%` : '-'}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-card-foreground">
+                          {session.result ? `${session.result.gradeLevel}등급` : '-'}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
+                          {new Date(session.createdAt).toLocaleDateString('ko-KR')}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center gap-2">
+                            {session.status === 'in_progress' && (
+                              <button
+                                onClick={() => navigate(`/test/session/${session.id}`)}
+                                className="text-primary hover:underline text-sm font-medium"
+                              >
+                                계속하기
+                              </button>
+                            )}
+                            {(session.status === 'scored' || session.status === 'completed') && session.result && (
+                              <button
+                                onClick={() => navigate(`/test/result/${session.id}`)}
+                                className="text-primary hover:underline text-sm font-medium"
+                              >
+                                결과보기
+                              </button>
+                            )}
+                            <button
+                              onClick={() => handleDeleteSession(session.id)}
+                              className="text-destructive hover:underline text-sm font-medium ml-2"
+                            >
+                              삭제
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
         </section>

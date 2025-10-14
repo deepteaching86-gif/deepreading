@@ -39,6 +39,7 @@ export const CalibrationScreen: React.FC<CalibrationScreenProps> = ({
   const [showGazeVisualization, setShowGazeVisualization] = useState(true);
   const [fixationProgress, setFixationProgress] = useState(0); // 0-100%
   const [fixationStartTime, setFixationStartTime] = useState<number | null>(null);
+  const [facePosition, setFacePosition] = useState<{ x: number; y: number; width: number; height: number } | null>(null);
 
   // Gaze tracking hook
   const {
@@ -58,6 +59,9 @@ export const CalibrationScreen: React.FC<CalibrationScreenProps> = ({
       if (!isRecording && state.stage === 'calibrating') {
         checkFixation(point);
       }
+    },
+    onFacePosition: (position) => {
+      setFacePosition(position);
     },
     targetFPS: 30
   });
@@ -312,6 +316,42 @@ export const CalibrationScreen: React.FC<CalibrationScreenProps> = ({
             {showGazeVisualization ? '👁️ 시선 표시 끄기' : '👁️ 시선 표시 켜기'}
           </span>
         </button>
+
+        {/* Face position guide */}
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+          {/* Optimal position guide */}
+          <div className="relative">
+            {/* Guide rectangle - optimal face position */}
+            <div className="w-48 h-64 border-4 border-green-500/30 rounded-lg">
+              <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 text-green-500 text-sm font-semibold whitespace-nowrap">
+                여기에 얼굴 위치
+              </div>
+            </div>
+
+            {/* User's face position overlay */}
+            {facePosition && (
+              <div
+                className="absolute border-4 rounded-lg transition-all duration-150"
+                style={{
+                  left: `${(facePosition.x - 0.3) * 600}px`, // Adjust relative to guide center
+                  top: `${(facePosition.y - 0.25) * 800}px`,
+                  width: `${facePosition.width * 600}px`,
+                  height: `${facePosition.height * 800}px`,
+                  borderColor:
+                    Math.abs(facePosition.x - 0.5) < 0.15 && Math.abs(facePosition.y - 0.5) < 0.15
+                      ? 'rgba(34, 197, 94, 0.8)' // Green if centered
+                      : 'rgba(239, 68, 68, 0.8)', // Red if off-center
+                }}
+              >
+                <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 text-white text-xs font-semibold bg-black/70 px-2 py-1 rounded whitespace-nowrap">
+                  {Math.abs(facePosition.x - 0.5) < 0.15 && Math.abs(facePosition.y - 0.5) < 0.15
+                    ? '✓ 좋아요!'
+                    : '조정 필요'}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
 
         {/* Calibration points */}
         {calibrationPoints.map((point, index) => {

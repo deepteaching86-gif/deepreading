@@ -70,7 +70,16 @@
       "Bash(find:*)",
       "Read(//c/Users/owner/Downloads/**)",
       "Bash(copy:*)",
-      "Bash(set:*)"
+      "Bash(set:*)",
+      "Read(//c/**)",
+      "Bash(for i in {1..5})",
+      "Bash(do echo \"Attempt $i...\")",
+      "Bash(break)",
+      "Bash(del /F backendnul)",
+      "Bash(PGPASSWORD='DeepReading2025!@#$SecureDB' psql:*)",
+      "Bash(if exist dist rd /s /q dist)",
+      "Bash(xcopy:*)",
+      "Bash(del /F nul)"
     ],
     "deny": [],
     "ask": []
