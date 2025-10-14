@@ -247,21 +247,37 @@ export const useGazeTracking = (
       });
     } catch (error) {
       console.error('❌ Face detection error:', error);
+      console.error('❌ Detection error details:', {
+        name: error instanceof Error ? error.name : 'Unknown',
+        message: error instanceof Error ? error.message : String(error)
+      });
       // Schedule next frame
       animationFrameRef.current = window.requestAnimationFrame(detectAndEstimateGaze);
       return;
     }
 
     if (faces.length === 0) {
-      // No face detected
-      console.log('👤 No face detected');
+      // No face detected - log video state for debugging
+      const debugInfo = {
+        videoWidth: video.videoWidth,
+        videoHeight: video.videoHeight,
+        readyState: video.readyState,
+        paused: video.paused,
+        currentTime: video.currentTime
+      };
+
+      // Only log every 30 frames (~1 second) to avoid spam
+      if (fpsCounterRef.current.frames % 30 === 0) {
+        console.log('👤 No face detected - Video state:', debugInfo);
+      }
+
       setCurrentGaze(null);
       // Schedule next frame
       animationFrameRef.current = window.requestAnimationFrame(detectAndEstimateGaze);
       return;
     }
 
-    console.log('✅ Face detected!');
+    console.log('✅ Face detected! Total faces:', faces.length);
 
     const face = faces[0];
     const keypoints = face.keypoints;

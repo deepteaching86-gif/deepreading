@@ -40,6 +40,7 @@ export const CalibrationScreen: React.FC<CalibrationScreenProps> = ({
   const [fixationProgress, setFixationProgress] = useState(0); // 0-100%
   const [fixationStartTime, setFixationStartTime] = useState<number | null>(null);
   const [facePosition, setFacePosition] = useState<{ x: number; y: number; width: number; height: number } | null>(null);
+  const [showVideoPreview, setShowVideoPreview] = useState(true); // Debug mode: show video feed
 
   // Start recording gaze data for current point (will be overridden below with proper dependencies)
   const startRecordingPlaceholder = useCallback(() => {
@@ -323,10 +324,10 @@ export const CalibrationScreen: React.FC<CalibrationScreenProps> = ({
   if (state.stage === 'calibrating') {
     return (
       <div className="fixed inset-0 bg-background z-50">
-        {/* Hidden video for face detection */}
+        {/* Video for face detection - toggleable preview */}
         <video
           ref={videoRef}
-          className="hidden"
+          className={showVideoPreview ? "fixed bottom-4 right-4 w-80 h-60 border-4 border-primary rounded-lg shadow-2xl z-50" : "hidden"}
           autoPlay
           playsInline
           muted
@@ -348,15 +349,25 @@ export const CalibrationScreen: React.FC<CalibrationScreenProps> = ({
           </div>
         </div>
 
-        {/* Toggle gaze visualization button */}
-        <button
-          onClick={() => setShowGazeVisualization(!showGazeVisualization)}
-          className="absolute top-4 right-4 bg-card/90 backdrop-blur px-4 py-2 rounded-full shadow-lg hover:bg-card transition-colors"
-        >
-          <span className="text-sm font-medium">
-            {showGazeVisualization ? '👁️ 시선 표시 끄기' : '👁️ 시선 표시 켜기'}
-          </span>
-        </button>
+        {/* Control buttons */}
+        <div className="absolute top-4 right-4 flex gap-2">
+          <button
+            onClick={() => setShowVideoPreview(!showVideoPreview)}
+            className="bg-card/90 backdrop-blur px-4 py-2 rounded-full shadow-lg hover:bg-card transition-colors"
+          >
+            <span className="text-sm font-medium">
+              {showVideoPreview ? '📹 비디오 숨기기' : '📹 비디오 보기'}
+            </span>
+          </button>
+          <button
+            onClick={() => setShowGazeVisualization(!showGazeVisualization)}
+            className="bg-card/90 backdrop-blur px-4 py-2 rounded-full shadow-lg hover:bg-card transition-colors"
+          >
+            <span className="text-sm font-medium">
+              {showGazeVisualization ? '👁️ 시선 표시 끄기' : '👁️ 시선 표시 켜기'}
+            </span>
+          </button>
+        </div>
 
         {/* Face position guide - centered on screen */}
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-48 h-64 border-4 border-green-500/50 rounded-lg pointer-events-none">
