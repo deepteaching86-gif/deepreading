@@ -36,6 +36,7 @@ export const CalibrationScreen: React.FC<CalibrationScreenProps> = ({
   const [calibrationPoints, setCalibrationPoints] = useState<Array<{ id: number; x: number; y: number }>>([]);
   const [isRecording, setIsRecording] = useState(false);
   const [gazeBuffer, setGazeBuffer] = useState<GazePoint[]>([]);
+  const [showGazeVisualization, setShowGazeVisualization] = useState(true);
 
   // Gaze tracking hook
   const {
@@ -258,6 +259,16 @@ export const CalibrationScreen: React.FC<CalibrationScreenProps> = ({
           </div>
         </div>
 
+        {/* Toggle gaze visualization button */}
+        <button
+          onClick={() => setShowGazeVisualization(!showGazeVisualization)}
+          className="absolute top-4 right-4 bg-card/90 backdrop-blur px-4 py-2 rounded-full shadow-lg hover:bg-card transition-colors"
+        >
+          <span className="text-sm font-medium">
+            {showGazeVisualization ? '👁️ 시선 표시 끄기' : '👁️ 시선 표시 켜기'}
+          </span>
+        </button>
+
         {/* Calibration points */}
         {calibrationPoints.map((point, index) => {
           const isActive = index === state.currentPointIndex;
@@ -306,16 +317,49 @@ export const CalibrationScreen: React.FC<CalibrationScreenProps> = ({
           );
         })}
 
-        {/* Current gaze indicator (for debugging) */}
-        {currentGaze && (
-          <div
-            className="absolute w-3 h-3 bg-red-500 rounded-full transform -translate-x-1/2 -translate-y-1/2 pointer-events-none"
-            style={{
-              left: `${currentGaze.x * 100}%`,
-              top: `${currentGaze.y * 100}%`,
-              opacity: currentGaze.confidence
-            }}
-          />
+        {/* Real-time gaze visualization */}
+        {showGazeVisualization && currentGaze && (
+          <>
+            {/* Gaze point - larger and more visible */}
+            <div
+              className="absolute transform -translate-x-1/2 -translate-y-1/2 pointer-events-none transition-all duration-75"
+              style={{
+                left: `${currentGaze.x * 100}%`,
+                top: `${currentGaze.y * 100}%`,
+              }}
+            >
+              {/* Outer glow */}
+              <div
+                className="absolute w-12 h-12 bg-red-500/30 rounded-full blur-md"
+                style={{
+                  left: '-24px',
+                  top: '-24px',
+                  opacity: currentGaze.confidence
+                }}
+              />
+              {/* Main dot */}
+              <div
+                className="absolute w-6 h-6 bg-red-500 rounded-full border-2 border-white shadow-lg"
+                style={{
+                  left: '-12px',
+                  top: '-12px',
+                  opacity: currentGaze.confidence
+                }}
+              />
+              {/* Center dot */}
+              <div
+                className="absolute w-2 h-2 bg-white rounded-full"
+                style={{ left: '-4px', top: '-4px' }}
+              />
+            </div>
+
+            {/* Gaze info overlay */}
+            <div className="absolute bottom-4 left-4 bg-black/70 text-white px-4 py-3 rounded-lg text-xs font-mono space-y-1">
+              <div>시선 X: {(currentGaze.x * 100).toFixed(1)}%</div>
+              <div>시선 Y: {(currentGaze.y * 100).toFixed(1)}%</div>
+              <div>신뢰도: {(currentGaze.confidence * 100).toFixed(0)}%</div>
+            </div>
+          </>
         )}
 
         {/* Error message */}

@@ -138,6 +138,13 @@ export const useGazeTracking = (
 
     const video = videoRef.current;
 
+    // Wait for video to be ready
+    if (video.readyState < 2 || video.videoWidth === 0 || video.videoHeight === 0) {
+      // Video not ready yet, try again next frame
+      animationFrameRef.current = window.requestAnimationFrame(detectAndEstimateGaze);
+      return;
+    }
+
     // Detect face landmarks
     const faces = await detectorRef.current.estimateFaces(video, {
       flipHorizontal: false
