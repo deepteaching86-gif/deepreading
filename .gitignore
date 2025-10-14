@@ -4,3 +4,7 @@ node_modules/
 package-lock.json
 frontend/src/nul
 .playwright-mcp/
+
+# Build output - let Netlify build with correct env vars
+frontend/dist/
+backend/dist/
