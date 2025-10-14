@@ -48,9 +48,33 @@ export const useGazeTracking = (
   // Initialize TensorFlow.js and MediaPipe
   const initialize = useCallback(async () => {
     try {
+      console.log('🔧 Starting TensorFlow.js initialization...');
+
+      // Detect if running on iOS
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      console.log('📱 Platform detection:', { isIOS, userAgent: navigator.userAgent });
+
+      // For iOS, try to set backend explicitly
+      if (isIOS) {
+        console.log('🍎 iOS detected, attempting to set WASM backend...');
+        try {
+          await tf.setBackend('wasm');
+          console.log('✅ WASM backend set successfully');
+        } catch (wasmError) {
+          console.warn('⚠️ WASM backend failed, trying WebGL:', wasmError);
+          try {
+            await tf.setBackend('webgl');
+            console.log('✅ WebGL backend set successfully');
+          } catch (webglError) {
+            console.warn('⚠️ WebGL backend failed, using default:', webglError);
+          }
+        }
+      }
+
       // Load TensorFlow.js backend
       await tf.ready();
-      console.log('✅ TensorFlow.js ready');
+      const backend = tf.getBackend();
+      console.log('✅ TensorFlow.js ready with backend:', backend);
 
       // Create MediaPipe Face Landmarks detector with tfjs runtime
       const model = faceLandmarksDetection.SupportedModels.MediaPipeFaceMesh;
@@ -60,14 +84,20 @@ export const useGazeTracking = (
         maxFaces: 1
       };
 
+      console.log('🔧 Creating face detector...');
       const detector = await faceLandmarksDetection.createDetector(model, detectorConfig);
       detectorRef.current = detector;
-      console.log('✅ MediaPipe Face Mesh loaded');
+      console.log('✅ MediaPipe Face Mesh loaded successfully');
 
       setIsInitialized(true);
       setError(null);
     } catch (err) {
       console.error('❌ Failed to initialize gaze tracking:', err);
+      console.error('❌ Error details:', {
+        name: err instanceof Error ? err.name : 'Unknown',
+        message: err instanceof Error ? err.message : String(err),
+        stack: err instanceof Error ? err.stack : undefined
+      });
       setError('시선 추적 초기화 실패. 페이지를 새로고침하세요.');
       setIsInitialized(false);
     }
@@ -76,36 +106,89 @@ export const useGazeTracking = (
   // Start camera and tracking
   const startTracking = useCallback(async () => {
     if (!detectorRef.current) {
+      console.log('🔧 Detector not initialized, initializing...');
       await initialize();
     }
 
     if (!detectorRef.current) {
+      console.error('❌ Face detector not initialized after initialization attempt');
       setError('Face detector not initialized');
       return;
     }
 
     try {
-      // Request camera access
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
+      console.log('📹 Requesting camera access...');
+
+      // Detect if running on iOS
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+
+      // iOS-optimized camera constraints
+      const constraints: MediaStreamConstraints = {
+        video: isIOS ? {
+          facingMode: 'user',
+          width: { ideal: 640 },  // Lower resolution for iOS
+          height: { ideal: 480 },
+          frameRate: { ideal: 30, max: 30 }
+        } : {
           facingMode: 'user',
           width: { ideal: 1280 },
           height: { ideal: 720 }
         }
+      };
+
+      console.log('📹 Camera constraints:', constraints);
+
+      // Request camera access
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      console.log('✅ Camera stream obtained:', {
+        active: stream.active,
+        tracks: stream.getTracks().length,
+        videoTracks: stream.getVideoTracks().length
       });
 
       streamRef.current = stream;
 
       if (videoRef.current) {
+        console.log('📹 Setting video srcObject...');
         videoRef.current.srcObject = stream;
-        videoRef.current.play();
+
+        // iOS requires explicit play() call with user interaction
+        try {
+          // Set attributes for iOS compatibility
+          videoRef.current.setAttribute('playsinline', 'true');
+          videoRef.current.setAttribute('autoplay', 'true');
+          videoRef.current.muted = true; // Required for autoplay on iOS
+
+          await videoRef.current.play();
+          console.log('✅ Video playback started:', {
+            readyState: videoRef.current.readyState,
+            videoWidth: videoRef.current.videoWidth,
+            videoHeight: videoRef.current.videoHeight
+          });
+        } catch (playError) {
+          console.error('❌ Video play error:', playError);
+          // Sometimes iOS needs a moment before play() works
+          setTimeout(async () => {
+            try {
+              await videoRef.current?.play();
+              console.log('✅ Video playback started on retry');
+            } catch (retryError) {
+              console.error('❌ Video play retry failed:', retryError);
+            }
+          }, 100);
+        }
       }
 
       setIsTracking(true);
       setError(null);
-      console.log('✅ Camera started');
+      console.log('✅ Camera started successfully');
     } catch (err) {
-      console.error('❌ Camera access denied:', err);
+      console.error('❌ Camera access error:', err);
+      console.error('❌ Error details:', {
+        name: err instanceof Error ? err.name : 'Unknown',
+        message: err instanceof Error ? err.message : String(err),
+        stack: err instanceof Error ? err.stack : undefined
+      });
       setError('카메라 접근 권한이 필요합니다.');
       setIsTracking(false);
     }

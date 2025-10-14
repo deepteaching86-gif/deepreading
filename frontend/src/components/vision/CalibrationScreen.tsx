@@ -329,6 +329,8 @@ export const CalibrationScreen: React.FC<CalibrationScreenProps> = ({
           className="hidden"
           autoPlay
           playsInline
+          muted
+          webkit-playsinline="true"
         />
 
         {/* Status bar */}
