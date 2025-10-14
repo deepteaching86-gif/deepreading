@@ -133,6 +133,11 @@ export const useGazeTracking = (
   // Detect face landmarks and estimate gaze
   const detectAndEstimateGaze = useCallback(async () => {
     if (!detectorRef.current || !videoRef.current || !isTracking) {
+      console.log('⏭️ Skipping detection:', {
+        hasDetector: !!detectorRef.current,
+        hasVideo: !!videoRef.current,
+        isTracking
+      });
       return;
     }
 
@@ -140,10 +145,17 @@ export const useGazeTracking = (
 
     // Wait for video to be ready
     if (video.readyState < 2 || video.videoWidth === 0 || video.videoHeight === 0) {
+      console.log('⏳ Video not ready:', {
+        readyState: video.readyState,
+        width: video.videoWidth,
+        height: video.videoHeight
+      });
       // Video not ready yet, try again next frame
       animationFrameRef.current = window.requestAnimationFrame(detectAndEstimateGaze);
       return;
     }
+
+    console.log('📹 Detecting faces on video:', video.videoWidth, 'x', video.videoHeight);
 
     // Detect face landmarks
     const faces = await detectorRef.current.estimateFaces(video, {
@@ -272,7 +284,10 @@ export const useGazeTracking = (
   // Start detection loop when tracking starts
   useEffect(() => {
     if (isTracking && enabled) {
+      console.log('🔄 Starting detection loop');
       detectAndEstimateGaze();
+    } else {
+      console.log('⏸️ Detection loop not started:', { isTracking, enabled });
     }
 
     return () => {
