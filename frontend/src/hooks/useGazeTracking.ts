@@ -165,10 +165,7 @@ export const useGazeTracking = (
     } catch (error) {
       console.error('❌ Face detection error:', error);
       // Schedule next frame
-      const frameDelay = 1000 / targetFPS;
-      animationFrameRef.current = window.requestAnimationFrame(() => {
-        setTimeout(detectAndEstimateGaze, frameDelay);
-      });
+      animationFrameRef.current = window.requestAnimationFrame(detectAndEstimateGaze);
       return;
     }
 
@@ -177,10 +174,7 @@ export const useGazeTracking = (
       console.log('👤 No face detected');
       setCurrentGaze(null);
       // Schedule next frame
-      const frameDelay = 1000 / targetFPS;
-      animationFrameRef.current = window.requestAnimationFrame(() => {
-        setTimeout(detectAndEstimateGaze, frameDelay);
-      });
+      animationFrameRef.current = window.requestAnimationFrame(detectAndEstimateGaze);
       return;
     }
 
@@ -192,16 +186,21 @@ export const useGazeTracking = (
     console.log('✅ Face detected, total keypoints:', keypoints.length);
 
     // Calculate face bounding box for position visualization
-    if (onFacePosition && face.box) {
+    if (face.box) {
       const { xMin, yMin, width, height } = face.box;
       // Normalize to 0-1 range
       const normalizedBox = {
-        x: xMin / video.videoWidth,
-        y: yMin / video.videoHeight,
+        x: (xMin + width / 2) / video.videoWidth, // Center X
+        y: (yMin + height / 2) / video.videoHeight, // Center Y
         width: width / video.videoWidth,
         height: height / video.videoHeight
       };
-      onFacePosition(normalizedBox);
+
+      console.log('📦 Face position:', normalizedBox);
+
+      if (onFacePosition) {
+        onFacePosition(normalizedBox);
+      }
     }
 
     // Extract eye and iris landmarks
@@ -230,10 +229,7 @@ export const useGazeTracking = (
     if (!leftIris || !rightIris) {
       console.warn('❌ No eye landmarks found');
       // Schedule next frame
-      const frameDelay = 1000 / targetFPS;
-      animationFrameRef.current = window.requestAnimationFrame(() => {
-        setTimeout(detectAndEstimateGaze, frameDelay);
-      });
+      animationFrameRef.current = window.requestAnimationFrame(detectAndEstimateGaze);
       return;
     }
 
@@ -300,12 +296,9 @@ export const useGazeTracking = (
       fpsCounterRef.current = { frames: 0, lastTime: now };
     }
 
-    // Schedule next frame
-    const frameDelay = 1000 / targetFPS;
-    animationFrameRef.current = window.requestAnimationFrame(() => {
-      setTimeout(detectAndEstimateGaze, frameDelay);
-    });
-  }, [isTracking, onGazePoint, calibrationMatrix, targetFPS]);
+    // Schedule next frame immediately for maximum FPS
+    animationFrameRef.current = window.requestAnimationFrame(detectAndEstimateGaze);
+  }, [isTracking, onGazePoint, calibrationMatrix, targetFPS, onFacePosition]);
 
   // Start detection loop when tracking starts
   useEffect(() => {
