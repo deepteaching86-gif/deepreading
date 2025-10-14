@@ -51,12 +51,12 @@ export const useGazeTracking = (
       await tf.ready();
       console.log('✅ TensorFlow.js ready');
 
-      // Create MediaPipe Face Landmarks detector
+      // Create MediaPipe Face Landmarks detector with tfjs runtime
       const model = faceLandmarksDetection.SupportedModels.MediaPipeFaceMesh;
-      const detectorConfig: faceLandmarksDetection.MediaPipeFaceMeshMediaPipeModelConfig = {
-        runtime: 'mediapipe',
-        solutionPath: 'https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh',
-        refineLandmarks: true // Enable iris tracking
+      const detectorConfig: faceLandmarksDetection.MediaPipeFaceMeshTfjsModelConfig = {
+        runtime: 'tfjs',
+        refineLandmarks: true, // Enable iris tracking
+        maxFaces: 1
       };
 
       const detector = await faceLandmarksDetection.createDetector(model, detectorConfig);
