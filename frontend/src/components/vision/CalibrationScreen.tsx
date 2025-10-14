@@ -359,36 +359,131 @@ export const CalibrationScreen: React.FC<CalibrationScreenProps> = ({
         </div>
 
         {/* Face position guide - centered on screen */}
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-48 h-64 border-4 border-green-500/50 rounded-lg pointer-events-none">
-          <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 text-green-500 text-sm font-semibold whitespace-nowrap bg-black/50 px-2 py-1 rounded">
-            여기에 얼굴 위치
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-80 border-4 border-dashed border-green-500/40 rounded-2xl pointer-events-none">
+          <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 text-green-500 text-sm font-semibold whitespace-nowrap bg-black/60 px-4 py-2 rounded-lg shadow-lg">
+            👤 여기에 얼굴을 위치시키세요
           </div>
+          {/* Corner markers for better visibility */}
+          <div className="absolute -top-2 -left-2 w-8 h-8 border-t-4 border-l-4 border-green-500/60 rounded-tl-xl"></div>
+          <div className="absolute -top-2 -right-2 w-8 h-8 border-t-4 border-r-4 border-green-500/60 rounded-tr-xl"></div>
+          <div className="absolute -bottom-2 -left-2 w-8 h-8 border-b-4 border-l-4 border-green-500/60 rounded-bl-xl"></div>
+          <div className="absolute -bottom-2 -right-2 w-8 h-8 border-b-4 border-r-4 border-green-500/60 rounded-br-xl"></div>
         </div>
 
         {/* User's face position overlay - absolute on screen */}
         {facePosition && (
           <div
-            className="absolute border-4 rounded-lg transition-all duration-150 pointer-events-none"
+            className="absolute transition-all duration-150 pointer-events-none"
             style={{
               left: `${facePosition.x * 100}vw`,
               top: `${facePosition.y * 100}vh`,
               width: `${facePosition.width * 100}vw`,
               height: `${facePosition.height * 100}vh`,
               transform: 'translate(-50%, -50%)',
-              borderColor:
-                Math.abs(facePosition.x - 0.5) < 0.15 && Math.abs(facePosition.y - 0.5) < 0.15
-                  ? 'rgba(34, 197, 94, 0.8)' // Green if centered
-                  : 'rgba(239, 68, 68, 0.8)', // Red if off-center
             }}
           >
-            <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 text-white text-sm font-semibold bg-black/70 px-3 py-1 rounded whitespace-nowrap">
+            {/* Face detection box with glow effect */}
+            <div
+              className="absolute inset-0 rounded-2xl border-4 transition-colors duration-300"
+              style={{
+                borderColor:
+                  Math.abs(facePosition.x - 0.5) < 0.15 && Math.abs(facePosition.y - 0.5) < 0.15
+                    ? 'rgba(34, 197, 94, 0.9)' // Green if centered
+                    : 'rgba(239, 68, 68, 0.9)', // Red if off-center
+                boxShadow:
+                  Math.abs(facePosition.x - 0.5) < 0.15 && Math.abs(facePosition.y - 0.5) < 0.15
+                    ? '0 0 20px rgba(34, 197, 94, 0.5), inset 0 0 20px rgba(34, 197, 94, 0.2)'
+                    : '0 0 20px rgba(239, 68, 68, 0.5), inset 0 0 20px rgba(239, 68, 68, 0.2)',
+              }}
+            />
+
+            {/* Corner markers for detected face */}
+            <div
+              className="absolute -top-3 -left-3 w-12 h-12 border-t-4 border-l-4 rounded-tl-2xl transition-colors duration-300"
+              style={{
+                borderColor:
+                  Math.abs(facePosition.x - 0.5) < 0.15 && Math.abs(facePosition.y - 0.5) < 0.15
+                    ? 'rgb(34, 197, 94)'
+                    : 'rgb(239, 68, 68)',
+              }}
+            />
+            <div
+              className="absolute -top-3 -right-3 w-12 h-12 border-t-4 border-r-4 rounded-tr-2xl transition-colors duration-300"
+              style={{
+                borderColor:
+                  Math.abs(facePosition.x - 0.5) < 0.15 && Math.abs(facePosition.y - 0.5) < 0.15
+                    ? 'rgb(34, 197, 94)'
+                    : 'rgb(239, 68, 68)',
+              }}
+            />
+            <div
+              className="absolute -bottom-3 -left-3 w-12 h-12 border-b-4 border-l-4 rounded-bl-2xl transition-colors duration-300"
+              style={{
+                borderColor:
+                  Math.abs(facePosition.x - 0.5) < 0.15 && Math.abs(facePosition.y - 0.5) < 0.15
+                    ? 'rgb(34, 197, 94)'
+                    : 'rgb(239, 68, 68)',
+              }}
+            />
+            <div
+              className="absolute -bottom-3 -right-3 w-12 h-12 border-b-4 border-r-4 rounded-br-2xl transition-colors duration-300"
+              style={{
+                borderColor:
+                  Math.abs(facePosition.x - 0.5) < 0.15 && Math.abs(facePosition.y - 0.5) < 0.15
+                    ? 'rgb(34, 197, 94)'
+                    : 'rgb(239, 68, 68)',
+              }}
+            />
+
+            {/* Status label with icon */}
+            <div
+              className="absolute -top-12 left-1/2 transform -translate-x-1/2 text-white text-sm font-bold px-4 py-2 rounded-lg shadow-xl whitespace-nowrap transition-colors duration-300"
+              style={{
+                backgroundColor:
+                  Math.abs(facePosition.x - 0.5) < 0.15 && Math.abs(facePosition.y - 0.5) < 0.15
+                    ? 'rgba(34, 197, 94, 0.95)'
+                    : 'rgba(239, 68, 68, 0.95)',
+              }}
+            >
               {Math.abs(facePosition.x - 0.5) < 0.15 && Math.abs(facePosition.y - 0.5) < 0.15
-                ? '✓ 좋아요!'
-                : '조정 필요'}
+                ? '✅ 완벽한 위치!'
+                : '⚠️ 위치 조정 필요'}
             </div>
-            <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 text-white text-xs font-mono bg-black/70 px-2 py-1 rounded whitespace-nowrap">
-              X:{(facePosition.x * 100).toFixed(0)}% Y:{(facePosition.y * 100).toFixed(0)}%
+
+            {/* Position coordinates */}
+            <div className="absolute -bottom-12 left-1/2 transform -translate-x-1/2 bg-black/80 text-white text-xs font-mono px-3 py-2 rounded-lg shadow-xl whitespace-nowrap backdrop-blur-sm">
+              <div className="flex items-center gap-3">
+                <span>X: {(facePosition.x * 100).toFixed(0)}%</span>
+                <span className="text-gray-400">|</span>
+                <span>Y: {(facePosition.y * 100).toFixed(0)}%</span>
+                <span className="text-gray-400">|</span>
+                <span>크기: {(facePosition.width * 100).toFixed(0)}×{(facePosition.height * 100).toFixed(0)}%</span>
+              </div>
             </div>
+
+            {/* Centering guides - arrows pointing to optimal position */}
+            {Math.abs(facePosition.x - 0.5) >= 0.15 && (
+              <div
+                className="absolute top-1/2 transform -translate-y-1/2 text-4xl"
+                style={{
+                  left: facePosition.x < 0.5 ? '110%' : 'auto',
+                  right: facePosition.x >= 0.5 ? '110%' : 'auto',
+                }}
+              >
+                {facePosition.x < 0.5 ? '👉' : '👈'}
+              </div>
+            )}
+            {Math.abs(facePosition.y - 0.5) >= 0.15 && (
+              <div
+                className="absolute left-1/2 transform -translate-x-1/2 text-4xl"
+                style={{
+                  top: facePosition.y < 0.5 ? '110%' : 'auto',
+                  bottom: facePosition.y >= 0.5 ? '110%' : 'auto',
+                }}
+              >
+                {facePosition.y < 0.5 ? '👇' : '👆'}
+              </div>
+            )}
           </div>
         )}
 
