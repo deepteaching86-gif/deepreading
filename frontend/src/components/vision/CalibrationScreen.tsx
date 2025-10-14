@@ -37,6 +37,8 @@ export const CalibrationScreen: React.FC<CalibrationScreenProps> = ({
   const [isRecording, setIsRecording] = useState(false);
   const [gazeBuffer, setGazeBuffer] = useState<GazePoint[]>([]);
   const [showGazeVisualization, setShowGazeVisualization] = useState(true);
+  const [fixationProgress, setFixationProgress] = useState(0); // 0-100%
+  const [fixationStartTime, setFixationStartTime] = useState<number | null>(null);
 
   // Gaze tracking hook
   const {
@@ -52,9 +54,51 @@ export const CalibrationScreen: React.FC<CalibrationScreenProps> = ({
       if (isRecording) {
         setGazeBuffer(prev => [...prev, point]);
       }
+      // Auto-detect fixation on calibration point
+      if (!isRecording && state.stage === 'calibrating') {
+        checkFixation(point);
+      }
     },
     targetFPS: 30
   });
+
+  // Check if user is fixating on current calibration point
+  const checkFixation = useCallback((gazePoint: GazePoint) => {
+    if (state.currentPointIndex >= calibrationPoints.length) return;
+
+    const currentPoint = calibrationPoints[state.currentPointIndex];
+
+    // Calculate distance from gaze to calibration point
+    const dx = gazePoint.x - currentPoint.x;
+    const dy = gazePoint.y - currentPoint.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+
+    // Threshold: 0.1 (10% of screen) - adjust as needed
+    const FIXATION_THRESHOLD = 0.1;
+    const FIXATION_DURATION = 3000; // 3 seconds
+
+    if (distance < FIXATION_THRESHOLD) {
+      // User is looking at the point
+      if (fixationStartTime === null) {
+        setFixationStartTime(Date.now());
+      } else {
+        const elapsed = Date.now() - fixationStartTime;
+        const progress = Math.min((elapsed / FIXATION_DURATION) * 100, 100);
+        setFixationProgress(progress);
+
+        // Auto-start recording when 3 seconds elapsed
+        if (elapsed >= FIXATION_DURATION && !isRecording) {
+          startRecording();
+          setFixationStartTime(null);
+          setFixationProgress(0);
+        }
+      }
+    } else {
+      // User looked away, reset
+      setFixationStartTime(null);
+      setFixationProgress(0);
+    }
+  }, [state.currentPointIndex, calibrationPoints, fixationStartTime, isRecording]);
 
   // Start calibration
   const handleStartCalibration = useCallback(async () => {
@@ -207,7 +251,7 @@ export const CalibrationScreen: React.FC<CalibrationScreenProps> = ({
               <ul className="list-decimal list-inside space-y-1">
                 <li>화면에 나타나는 9개의 점을 순서대로 응시합니다</li>
                 <li>각 점이 나타나면 고개를 움직이지 말고 눈으로만 응시하세요</li>
-                <li>3초간 점을 응시한 후 화면을 탭하세요</li>
+                <li>각 점을 3초간 응시하면 자동으로 다음 점으로 이동합니다</li>
                 <li>모든 점 측정이 완료되면 자동으로 검증됩니다</li>
               </ul>
             </div>
@@ -284,25 +328,46 @@ export const CalibrationScreen: React.FC<CalibrationScreenProps> = ({
                 opacity: isActive ? 1 : isCompleted ? 0.3 : 0.1
               }}
             >
-              <div
-                className={`w-16 h-16 rounded-full flex items-center justify-center ${
-                  isActive
-                    ? 'bg-primary animate-pulse'
-                    : isCompleted
-                    ? 'bg-green-500'
-                    : 'bg-muted'
-                }`}
-              >
-                <div className="w-4 h-4 rounded-full bg-background"></div>
+              {/* Calibration point with progress ring */}
+              <div className="relative w-16 h-16">
+                {/* Progress ring for fixation */}
+                {isActive && fixationProgress > 0 && (
+                  <svg className="absolute inset-0 w-16 h-16 transform -rotate-90">
+                    <circle
+                      cx="32"
+                      cy="32"
+                      r="28"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                      fill="none"
+                      className="text-primary"
+                      strokeDasharray={`${(fixationProgress / 100) * 176} 176`}
+                      style={{ transition: 'stroke-dasharray 0.1s linear' }}
+                    />
+                  </svg>
+                )}
+
+                {/* Main calibration point */}
+                <div
+                  className={`w-16 h-16 rounded-full flex items-center justify-center ${
+                    isActive
+                      ? 'bg-primary animate-pulse'
+                      : isCompleted
+                      ? 'bg-green-500'
+                      : 'bg-muted'
+                  }`}
+                >
+                  <div className="w-4 h-4 rounded-full bg-background"></div>
+                </div>
               </div>
 
+              {/* Status text below point */}
               {isActive && !isRecording && (
-                <button
-                  onClick={startRecording}
-                  className="absolute top-20 left-1/2 transform -translate-x-1/2 px-4 py-2 bg-primary text-primary-foreground rounded-lg whitespace-nowrap"
-                >
-                  점 응시 후 탭
-                </button>
+                <div className="absolute top-20 left-1/2 transform -translate-x-1/2 text-center whitespace-nowrap">
+                  <div className="text-primary font-semibold">
+                    {fixationProgress > 0 ? `${Math.round(fixationProgress)}%` : '이 점을 응시하세요'}
+                  </div>
+                </div>
               )}
 
               {isActive && isRecording && (
