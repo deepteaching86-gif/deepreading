@@ -19,7 +19,6 @@ async function updateVisionTitle() {
     console.log(`   Template Code: ${result.templateCode}`);
     console.log(`   Old Title: 초등 2학년 Vision TEST (시선 추적 독해력 진단)`);
     console.log(`   New Title: ${result.title}`);
-    console.log(`   Updated At: ${result.updatedAt}`);
 
   } catch (error) {
     console.error('❌ Error updating template:', error);
