@@ -122,6 +122,7 @@ export const CalibrationScreen: React.FC<CalibrationScreenProps> = ({
     currentGaze,
     fps,
     videoRef,
+    canvasRef,
     startTracking,
     stopTracking
   } = useGazeTracking({
@@ -313,14 +314,20 @@ export const CalibrationScreen: React.FC<CalibrationScreenProps> = ({
   if (state.stage === 'calibrating') {
     return (
       <div className="fixed inset-0 bg-background z-50">
-        {/* Video for face detection - toggleable preview */}
+        {/* Video for face detection - hidden, canvas shows detection */}
         <video
           ref={videoRef}
-          className={showVideoPreview ? "fixed bottom-4 right-4 w-80 h-60 border-4 border-primary rounded-lg shadow-2xl z-50" : "hidden"}
+          className="hidden"
           autoPlay
           playsInline
           muted
           webkit-playsinline="true"
+        />
+
+        {/* Canvas for face detection visualization */}
+        <canvas
+          ref={canvasRef}
+          className={showVideoPreview ? "fixed bottom-4 right-4 w-80 h-60 border-4 border-primary rounded-lg shadow-2xl z-50" : "hidden"}
         />
 
         {/* Status bar */}

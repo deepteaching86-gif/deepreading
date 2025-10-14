@@ -239,12 +239,39 @@ export const useGazeTracking = (
       return;
     }
 
-    // Detect face landmarks
+    // Detect face landmarks with visualization for debugging
     let faces;
     try {
       faces = await detectorRef.current.estimateFaces(video, {
-        flipHorizontal: false
+        flipHorizontal: false,
+        staticImageMode: false  // Dynamic mode for video
       });
+
+      // Draw faces on canvas for debugging
+      if (canvasRef.current && fpsCounterRef.current.frames % 5 === 0) {
+        const canvas = canvasRef.current;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          // Match canvas size to video
+          if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+          }
+
+          // Draw video frame
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+          // Draw detection status
+          ctx.font = '24px Arial';
+          ctx.fillStyle = faces.length > 0 ? '#22c55e' : '#ef4444';
+          ctx.fillText(
+            faces.length > 0 ? `✅ Face: ${faces.length}` : '❌ No Face',
+            10,
+            30
+          );
+        }
+      }
     } catch (error) {
       console.error('❌ Face detection error:', error);
       console.error('❌ Detection error details:', {
