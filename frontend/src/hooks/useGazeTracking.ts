@@ -153,23 +153,49 @@ export const useGazeTracking = (
     if (faces.length === 0) {
       // No face detected
       setCurrentGaze(null);
+      // Schedule next frame
+      const frameDelay = 1000 / targetFPS;
+      animationFrameRef.current = window.requestAnimationFrame(() => {
+        setTimeout(detectAndEstimateGaze, frameDelay);
+      });
       return;
     }
 
     const face = faces[0];
     const keypoints = face.keypoints;
 
+    console.log('✅ Face detected, total keypoints:', keypoints.length);
+
     // Extract eye and iris landmarks
     // MediaPipe Face Mesh indices:
-    // Left eye: 33, 133, 159, 145, 469-477 (iris)
-    // Right eye: 263, 362, 386, 374, 474-482 (iris)
+    // Left eye: 33, 133, 159, 145
+    // Right eye: 263, 362, 386, 374
+    // With refineLandmarks, iris points are at the end (468-477 for tfjs runtime)
     const leftEyeCenter = keypoints[33]; // Left eye outer corner
     const rightEyeCenter = keypoints[263]; // Right eye outer corner
-    const leftIris = keypoints[468]; // Left iris center
-    const rightIris = keypoints[473]; // Right iris center
     const noseTip = keypoints[1]; // Nose tip
 
+    // For iris, check if we have refined landmarks (478+ keypoints)
+    let leftIris, rightIris;
+    if (keypoints.length >= 478) {
+      // Refined landmarks available - iris at indices 468-477
+      leftIris = keypoints[468]; // Left iris center
+      rightIris = keypoints[473]; // Right iris center
+      console.log('👁️ Using iris landmarks (refined)');
+    } else {
+      // Fall back to eye center approximation
+      leftIris = keypoints[468] || keypoints[33]; // Use eye corner if iris not available
+      rightIris = keypoints[473] || keypoints[263];
+      console.log('⚠️ Iris not available, using eye centers');
+    }
+
     if (!leftIris || !rightIris) {
+      console.warn('❌ No eye landmarks found');
+      // Schedule next frame
+      const frameDelay = 1000 / targetFPS;
+      animationFrameRef.current = window.requestAnimationFrame(() => {
+        setTimeout(detectAndEstimateGaze, frameDelay);
+      });
       return;
     }
 
@@ -202,6 +228,7 @@ export const useGazeTracking = (
     };
 
     setCurrentGaze(gazeEstimation);
+    console.log('🎯 Gaze updated:', { x: calibratedX.toFixed(2), y: calibratedY.toFixed(2), confidence: gaze.confidence });
 
     // Classify gaze type and create GazePoint
     const timestamp = Date.now();
