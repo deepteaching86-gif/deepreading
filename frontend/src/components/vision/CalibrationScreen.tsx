@@ -41,36 +41,21 @@ export const CalibrationScreen: React.FC<CalibrationScreenProps> = ({
   const [fixationStartTime, setFixationStartTime] = useState<number | null>(null);
   const [facePosition, setFacePosition] = useState<{ x: number; y: number; width: number; height: number } | null>(null);
 
-  // Gaze tracking hook
-  const {
-    isTracking,
-    currentGaze,
-    fps,
-    videoRef,
-    startTracking,
-    stopTracking
-  } = useGazeTracking({
-    enabled: state.stage === 'calibrating',
-    onGazePoint: (point) => {
-      if (isRecording) {
-        setGazeBuffer(prev => [...prev, point]);
-      }
-      // Auto-detect fixation on calibration point
-      if (!isRecording && state.stage === 'calibrating') {
-        checkFixation(point);
-      }
-    },
-    onFacePosition: (position) => {
-      setFacePosition(position);
-    },
-    targetFPS: 30
-  });
+  // Start recording gaze data for current point (will be overridden below with proper dependencies)
+  const startRecordingPlaceholder = useCallback(() => {
+    console.log('🎬 Starting recording...');
+    setGazeBuffer([]);
+    setIsRecording(true);
+  }, []);
 
   // Check if user is fixating on current calibration point
   const checkFixation = useCallback((gazePoint: GazePoint) => {
-    console.log('🔍 checkFixation called:', { gazePoint, currentPointIndex: state.currentPointIndex, calibrationPointsLength: calibrationPoints.length });
+    console.log('🔍 checkFixation called:', { gazePoint, currentPointIndex: state.currentPointIndex, calibrationPointsLength: calibrationPoints.length, isRecording });
 
-    if (state.currentPointIndex >= calibrationPoints.length) return;
+    if (state.currentPointIndex >= calibrationPoints.length) {
+      console.log('⏭️ All points completed, skipping');
+      return;
+    }
 
     const currentPoint = calibrationPoints[state.currentPointIndex];
     console.log('📍 Current calibration point:', currentPoint);
@@ -88,25 +73,75 @@ export const CalibrationScreen: React.FC<CalibrationScreenProps> = ({
     if (distance < FIXATION_THRESHOLD) {
       // User is looking at the point
       if (fixationStartTime === null) {
+        console.log('👀 Fixation started!');
         setFixationStartTime(Date.now());
       } else {
         const elapsed = Date.now() - fixationStartTime;
         const progress = Math.min((elapsed / FIXATION_DURATION) * 100, 100);
         setFixationProgress(progress);
+        console.log(`⏱️ Fixation progress: ${progress.toFixed(0)}%`);
 
         // Auto-start recording when 3 seconds elapsed
         if (elapsed >= FIXATION_DURATION && !isRecording) {
-          startRecording();
+          console.log('✅ Fixation duration reached, starting recording!');
+          startRecordingPlaceholder();
           setFixationStartTime(null);
           setFixationProgress(0);
         }
       }
     } else {
       // User looked away, reset
+      if (fixationStartTime !== null) {
+        console.log('👋 User looked away, resetting fixation');
+      }
       setFixationStartTime(null);
       setFixationProgress(0);
     }
-  }, [state.currentPointIndex, calibrationPoints, fixationStartTime, isRecording]);
+  }, [state.currentPointIndex, calibrationPoints, fixationStartTime, isRecording, startRecordingPlaceholder]);
+
+  // Handle gaze point callback
+  const handleGazePoint = useCallback((point: GazePoint) => {
+    if (isRecording) {
+      setGazeBuffer(prev => [...prev, point]);
+    }
+    // Auto-detect fixation on calibration point
+    if (!isRecording && state.stage === 'calibrating') {
+      checkFixation(point);
+    }
+  }, [isRecording, state.stage, checkFixation]);
+
+  // Handle face position callback
+  const handleFacePosition = useCallback((position: { x: number; y: number; width: number; height: number }) => {
+    setFacePosition(position);
+  }, []);
+
+  // Gaze tracking hook
+  const {
+    isTracking,
+    currentGaze,
+    fps,
+    videoRef,
+    startTracking,
+    stopTracking
+  } = useGazeTracking({
+    enabled: state.stage === 'calibrating',
+    onGazePoint: handleGazePoint,
+    onFacePosition: handleFacePosition,
+    targetFPS: 30
+  });
+
+  // Auto-record after 3 seconds when recording starts
+  React.useEffect(() => {
+    if (isRecording) {
+      console.log('📹 Recording started, will call handleRecordPoint in 3 seconds...');
+      const timer = setTimeout(() => {
+        console.log('⏰ 3 seconds elapsed, calling handleRecordPoint');
+        handleRecordPoint();
+      }, 3000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [isRecording]);
 
   // Start calibration
   const handleStartCalibration = useCallback(async () => {
