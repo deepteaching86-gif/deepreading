@@ -43,8 +43,21 @@ export const VisionTestPage: React.FC = () => {
   const CHUNK_INTERVAL = 5000; // 5 seconds
   const MAX_CHUNK_SIZE = 1000; // 1000 points
 
-  // Get user ID from localStorage
-  const userId = localStorage.getItem('userId') || '';
+  // Get user ID from auth store
+  const getUserId = (): string => {
+    try {
+      const authStorage = localStorage.getItem('auth-storage');
+      if (!authStorage) return '';
+
+      const parsed = JSON.parse(authStorage);
+      return parsed.state?.user?.id || '';
+    } catch (error) {
+      console.error('Failed to get user ID:', error);
+      return '';
+    }
+  };
+
+  const userId = getUserId();
 
   // Gaze tracking hook
   const {
