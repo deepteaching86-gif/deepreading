@@ -155,15 +155,25 @@ export const useGazeTracking = (
       return;
     }
 
-    console.log('📹 Detecting faces on video:', video.videoWidth, 'x', video.videoHeight);
-
     // Detect face landmarks
-    const faces = await detectorRef.current.estimateFaces(video, {
-      flipHorizontal: false
-    });
+    let faces;
+    try {
+      faces = await detectorRef.current.estimateFaces(video, {
+        flipHorizontal: false
+      });
+    } catch (error) {
+      console.error('❌ Face detection error:', error);
+      // Schedule next frame
+      const frameDelay = 1000 / targetFPS;
+      animationFrameRef.current = window.requestAnimationFrame(() => {
+        setTimeout(detectAndEstimateGaze, frameDelay);
+      });
+      return;
+    }
 
     if (faces.length === 0) {
       // No face detected
+      console.log('👤 No face detected');
       setCurrentGaze(null);
       // Schedule next frame
       const frameDelay = 1000 / targetFPS;
@@ -172,6 +182,8 @@ export const useGazeTracking = (
       });
       return;
     }
+
+    console.log('✅ Face detected!');
 
     const face = faces[0];
     const keypoints = face.keypoints;
