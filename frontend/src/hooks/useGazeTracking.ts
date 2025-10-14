@@ -439,22 +439,75 @@ export const useGazeTracking = (
   };
 };
 
-// Helper: Estimate gaze from face landmarks
+// Helper: Estimate gaze from face landmarks with improved algorithm
 function estimateGazeFromLandmarks(
   landmarks: FaceLandmarks,
   videoWidth: number,
   videoHeight: number
 ): { x: number; y: number; confidence: number } {
-  // Calculate average iris position
-  const avgIrisX = (landmarks.leftIris.x + landmarks.rightIris.x) / 2;
+  console.log('🔬 Analyzing gaze with advanced algorithm...');
+
+  // 1. Calculate iris-to-eye ratio for each eye independently
+  // This accounts for different eye shapes and angles
+  const leftEyeWidth = Math.abs(landmarks.leftEye.x - landmarks.leftIris.x);
+  const rightEyeWidth = Math.abs(landmarks.rightEye.x - landmarks.rightIris.x);
+
+  // Calculate relative iris position within each eye (0 = left, 0.5 = center, 1 = right)
+  const leftIrisRatio = leftEyeWidth / (videoWidth * 0.05); // Normalize by eye width estimate
+  const rightIrisRatio = rightEyeWidth / (videoWidth * 0.05);
+
+  console.log('👁️ Iris ratios:', {
+    left: leftIrisRatio.toFixed(3),
+    right: rightIrisRatio.toFixed(3)
+  });
+
+  // 2. Calculate eye-to-nose distance to estimate head rotation (yaw)
+  const eyesCenterX = (landmarks.leftEye.x + landmarks.rightEye.x) / 2;
+  const noseTipX = landmarks.noseTip.x;
+  const headYaw = (noseTipX - eyesCenterX) / videoWidth; // -0.5 to 0.5 range
+
+  // 3. Calculate vertical head tilt (pitch) using nose and eye positions
+  const eyesCenterY = (landmarks.leftEye.y + landmarks.rightEye.y) / 2;
+  const noseTipY = landmarks.noseTip.y;
+  const headPitch = (noseTipY - eyesCenterY) / videoHeight; // Positive = looking down
+
+  console.log('🎭 Head pose:', {
+    yaw: (headYaw * 100).toFixed(1) + '%',
+    pitch: (headPitch * 100).toFixed(1) + '%'
+  });
+
+  // 4. Combine iris position with head pose for improved gaze estimation
+  // Average both eyes' iris positions
+  const avgIrisRatio = (leftIrisRatio + rightIrisRatio) / 2;
+
+  // Compensate for head rotation
+  // When head turns left (negative yaw), eyes relatively shift right
+  const headCompensatedX = avgIrisRatio - (headYaw * 2.0);
+
+  // Use iris Y position with head pitch compensation
   const avgIrisY = (landmarks.leftIris.y + landmarks.rightIris.y) / 2;
+  const baseY = avgIrisY / videoHeight;
+  const headCompensatedY = baseY + (headPitch * 0.5);
 
-  // Normalize to screen coordinates (0-1)
-  const x = avgIrisX / videoWidth;
-  const y = avgIrisY / videoHeight;
+  // 5. Map to screen coordinates with sensitivity adjustment
+  // Increase sensitivity for more responsive gaze tracking
+  const x = 0.5 + (headCompensatedX * 0.4); // Center around 0.5 with 40% sensitivity
+  const y = headCompensatedY;
 
-  // Calculate confidence based on landmark stability
-  const confidence = 0.85; // Simplified - in production, use landmark confidence
+  // 6. Calculate confidence based on:
+  // - Symmetry between left and right eye
+  // - Head pose (frontal = higher confidence)
+  const eyeSymmetry = 1 - Math.abs(leftIrisRatio - rightIrisRatio);
+  const frontalFactor = 1 - (Math.abs(headYaw) * 2 + Math.abs(headPitch));
+  const confidence = Math.max(0.3, Math.min(1.0, (eyeSymmetry + frontalFactor) / 2));
+
+  console.log('🎯 Gaze result:', {
+    x: x.toFixed(3),
+    y: y.toFixed(3),
+    confidence: confidence.toFixed(2),
+    symmetry: eyeSymmetry.toFixed(2),
+    frontal: frontalFactor.toFixed(2)
+  });
 
   return { x, y, confidence };
 }
