@@ -247,8 +247,8 @@ export const useGazeTracking = (
         staticImageMode: false  // Dynamic mode for video
       });
 
-      // Draw faces on canvas for debugging
-      if (canvasRef.current && fpsCounterRef.current.frames % 5 === 0) {
+      // Draw faces on canvas for debugging (update every frame for smooth visualization)
+      if (canvasRef.current) {
         const canvas = canvasRef.current;
         const ctx = canvas.getContext('2d');
         if (ctx) {
@@ -262,14 +262,139 @@ export const useGazeTracking = (
           ctx.clearRect(0, 0, canvas.width, canvas.height);
           ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-          // Draw detection status
-          ctx.font = '24px Arial';
+          // Draw detection status in top-left
+          ctx.font = 'bold 20px Arial';
+          ctx.strokeStyle = 'black';
+          ctx.lineWidth = 3;
           ctx.fillStyle = faces.length > 0 ? '#22c55e' : '#ef4444';
-          ctx.fillText(
-            faces.length > 0 ? `✅ Face: ${faces.length}` : '❌ No Face',
-            10,
-            30
-          );
+          const statusText = faces.length > 0 ? `✅ Face: ${faces.length}` : '❌ No Face';
+          ctx.strokeText(statusText, 10, 30);
+          ctx.fillText(statusText, 10, 30);
+
+          // If face detected, draw landmarks
+          if (faces.length > 0) {
+            const face = faces[0];
+            const keypoints = face.keypoints;
+
+            // Draw all face landmarks as small dots
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+            keypoints.forEach((point) => {
+              ctx.beginPath();
+              ctx.arc(point.x, point.y, 1, 0, 2 * Math.PI);
+              ctx.fill();
+            });
+
+            // Draw face mesh outline (face contour)
+            ctx.strokeStyle = '#22c55e';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            // Face oval keypoints: 10, 338, 297, 332, 284, 251, 389, 356, 454, 323, 361, 288, 397, 365, 379, 378, 400, 377, 152, 148, 176, 149, 150, 136, 172, 58, 132, 93, 234, 127, 162, 21, 54, 103, 67, 109
+            const faceOvalIndices = [10, 338, 297, 332, 284, 251, 389, 356, 454, 323, 361, 288, 397, 365, 379, 378, 400, 377, 152, 148, 176, 149, 150, 136, 172, 58, 132, 93, 234, 127, 162, 21, 54, 103, 67, 109];
+            faceOvalIndices.forEach((idx, i) => {
+              if (keypoints[idx]) {
+                if (i === 0) {
+                  ctx.moveTo(keypoints[idx].x, keypoints[idx].y);
+                } else {
+                  ctx.lineTo(keypoints[idx].x, keypoints[idx].y);
+                }
+              }
+            });
+            ctx.closePath();
+            ctx.stroke();
+
+            // Draw left eye (green)
+            ctx.strokeStyle = '#22c55e';
+            ctx.fillStyle = 'rgba(34, 197, 94, 0.3)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            const leftEyeIndices = [33, 7, 163, 144, 145, 153, 154, 155, 133, 173, 157, 158, 159, 160, 161, 246];
+            leftEyeIndices.forEach((idx, i) => {
+              if (keypoints[idx]) {
+                if (i === 0) {
+                  ctx.moveTo(keypoints[idx].x, keypoints[idx].y);
+                } else {
+                  ctx.lineTo(keypoints[idx].x, keypoints[idx].y);
+                }
+              }
+            });
+            ctx.closePath();
+            ctx.stroke();
+            ctx.fill();
+
+            // Draw right eye (green)
+            ctx.beginPath();
+            const rightEyeIndices = [263, 249, 390, 373, 374, 380, 381, 382, 362, 398, 384, 385, 386, 387, 388, 466];
+            rightEyeIndices.forEach((idx, i) => {
+              if (keypoints[idx]) {
+                if (i === 0) {
+                  ctx.moveTo(keypoints[idx].x, keypoints[idx].y);
+                } else {
+                  ctx.lineTo(keypoints[idx].x, keypoints[idx].y);
+                }
+              }
+            });
+            ctx.closePath();
+            ctx.stroke();
+            ctx.fill();
+
+            // Draw iris landmarks if available (bright cyan for visibility)
+            if (keypoints.length >= 478) {
+              ctx.fillStyle = '#00ffff';
+              // Left iris: 468-472
+              for (let i = 468; i <= 472; i++) {
+                if (keypoints[i]) {
+                  ctx.beginPath();
+                  ctx.arc(keypoints[i].x, keypoints[i].y, 3, 0, 2 * Math.PI);
+                  ctx.fill();
+                }
+              }
+              // Right iris: 473-477
+              for (let i = 473; i <= 477; i++) {
+                if (keypoints[i]) {
+                  ctx.beginPath();
+                  ctx.arc(keypoints[i].x, keypoints[i].y, 3, 0, 2 * Math.PI);
+                  ctx.fill();
+                }
+              }
+
+              // Draw iris center (larger, bright yellow)
+              ctx.fillStyle = '#ffff00';
+              if (keypoints[468]) {
+                ctx.beginPath();
+                ctx.arc(keypoints[468].x, keypoints[468].y, 5, 0, 2 * Math.PI);
+                ctx.fill();
+              }
+              if (keypoints[473]) {
+                ctx.beginPath();
+                ctx.arc(keypoints[473].x, keypoints[473].y, 5, 0, 2 * Math.PI);
+                ctx.fill();
+              }
+            }
+
+            // Draw nose tip (red)
+            if (keypoints[1]) {
+              ctx.fillStyle = '#ef4444';
+              ctx.beginPath();
+              ctx.arc(keypoints[1].x, keypoints[1].y, 5, 0, 2 * Math.PI);
+              ctx.fill();
+            }
+
+            // Draw info text
+            ctx.font = 'bold 16px Arial';
+            ctx.strokeStyle = 'black';
+            ctx.lineWidth = 3;
+            ctx.fillStyle = '#22c55e';
+            const infoText = `Keypoints: ${keypoints.length}`;
+            ctx.strokeText(infoText, 10, 60);
+            ctx.fillText(infoText, 10, 60);
+
+            // Draw face box
+            if (face.box) {
+              ctx.strokeStyle = '#22c55e';
+              ctx.lineWidth = 3;
+              ctx.strokeRect(face.box.xMin, face.box.yMin, face.box.width, face.box.height);
+            }
+          }
         }
       }
     } catch (error) {
