@@ -258,11 +258,12 @@ export const useGazeTracking = (
         });
       }
 
-      // Use dynamic mode (staticImageMode: false) for video streams
-      // This enables tracking which is more efficient and accurate for continuous video
+      // Try BOTH modes: static every 10 frames for aggressive detection,
+      // dynamic for continuous tracking once detected
+      const useStaticMode = fpsCounterRef.current.frames % 10 === 0;
       faces = await detectorRef.current.estimateFaces(video, {
         flipHorizontal: false,
-        staticImageMode: false  // Dynamic mode for video tracking (better for real-time)
+        staticImageMode: useStaticMode  // Static mode every 10 frames for better initial detection
       });
 
       // DEBUG: Log detection result
