@@ -70,6 +70,7 @@ export const useGazeTracking = (
 
       // Configure face detection options
       faceLandmarker.setOptions({
+        runningMode: 'VIDEO',                // REQUIRED: Set video mode for video streams
         numFaces: 1,                         // Track single face
         minFaceDetectionConfidence: 0.5,     // Lower = more sensitive detection
         minFacePresenceConfidence: 0.5,      // Lower = better tracking
