@@ -76,18 +76,32 @@ export const useGazeTracking = (
       const backend = tf.getBackend();
       console.log('✅ TensorFlow.js ready with backend:', backend);
 
-      // Create MediaPipe Face Landmarks detector with tfjs runtime
+      // Create MediaPipe Face Landmarks detector
+      // Try MediaPipe runtime first (more stable), fallback to tfjs if needed
       const model = faceLandmarksDetection.SupportedModels.MediaPipeFaceMesh;
-      const detectorConfig: faceLandmarksDetection.MediaPipeFaceMeshTfjsModelConfig = {
-        runtime: 'tfjs',
-        refineLandmarks: true, // Enable iris tracking
-        maxFaces: 1,
-        // Lower thresholds for more aggressive detection (especially for glasses/masks/poor lighting)
-        // Default values are typically 0.5 and 0.5, we're lowering them to increase sensitivity
-      };
 
-      console.log('🔧 Creating face detector...');
-      const detector = await faceLandmarksDetection.createDetector(model, detectorConfig);
+      let detector;
+      try {
+        console.log('🔧 Attempting MediaPipe runtime (WebAssembly)...');
+        const mediapipeConfig: faceLandmarksDetection.MediaPipeFaceMeshMediaPipeModelConfig = {
+          runtime: 'mediapipe',
+          refineLandmarks: true, // Enable iris tracking
+          maxFaces: 1,
+          solutionPath: 'https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh'
+        };
+        detector = await faceLandmarksDetection.createDetector(model, mediapipeConfig);
+        console.log('✅ MediaPipe runtime loaded successfully');
+      } catch (mediapipeError) {
+        console.warn('⚠️ MediaPipe runtime failed, falling back to tfjs:', mediapipeError);
+        const tfjsConfig: faceLandmarksDetection.MediaPipeFaceMeshTfjsModelConfig = {
+          runtime: 'tfjs',
+          refineLandmarks: true,
+          maxFaces: 1
+        };
+        console.log('🔧 Creating face detector with tfjs runtime...');
+        detector = await faceLandmarksDetection.createDetector(model, tfjsConfig);
+        console.log('✅ TFJS runtime loaded successfully');
+      }
       detectorRef.current = detector;
       console.log('✅ MediaPipe Face Mesh loaded successfully');
 
@@ -254,7 +268,7 @@ export const useGazeTracking = (
       // Draw faces on canvas for debugging (update every frame for smooth visualization)
       if (canvasRef.current) {
         const canvas = canvasRef.current;
-        const ctx = canvas.getContext('2d');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
         if (ctx) {
           // Match canvas size to video
           if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
