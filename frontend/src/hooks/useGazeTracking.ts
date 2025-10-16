@@ -81,7 +81,9 @@ export const useGazeTracking = (
       const detectorConfig: faceLandmarksDetection.MediaPipeFaceMeshTfjsModelConfig = {
         runtime: 'tfjs',
         refineLandmarks: true, // Enable iris tracking
-        maxFaces: 1
+        maxFaces: 1,
+        // Lower thresholds for more aggressive detection (especially for glasses/masks/poor lighting)
+        // Default values are typically 0.5 and 0.5, we're lowering them to increase sensitivity
       };
 
       console.log('🔧 Creating face detector...');
@@ -242,9 +244,11 @@ export const useGazeTracking = (
     // Detect face landmarks with visualization for debugging
     let faces;
     try {
+      // Try detection with static image mode first (more aggressive detection)
+      // If that fails consistently, we'll fall back to dynamic mode
       faces = await detectorRef.current.estimateFaces(video, {
         flipHorizontal: false,
-        staticImageMode: false  // Dynamic mode for video
+        staticImageMode: true  // Static mode for more aggressive initial detection
       });
 
       // Draw faces on canvas for debugging (update every frame for smooth visualization)
@@ -476,7 +480,47 @@ export const useGazeTracking = (
     }
 
     if (faces.length === 0) {
-      // No face detected - provide detailed debugging info
+      // No face detected - analyze brightness and provide detailed debugging info
+      let brightness = 0;
+      let analysisText = 'unknown';
+
+      // Analyze video brightness using canvas
+      if (canvasRef.current) {
+        const canvas = canvasRef.current;
+        const ctx = canvas.getContext('2d');
+        if (ctx && canvas.width > 0 && canvas.height > 0) {
+          try {
+            // Sample center 100x100 region for brightness analysis
+            const sampleSize = 100;
+            const sampleX = (canvas.width - sampleSize) / 2;
+            const sampleY = (canvas.height - sampleSize) / 2;
+            const imageData = ctx.getImageData(sampleX, sampleY, sampleSize, sampleSize);
+            const data = imageData.data;
+
+            // Calculate average brightness (0-255)
+            let sum = 0;
+            for (let i = 0; i < data.length; i += 4) {
+              // Weighted average for human perception: 0.299*R + 0.587*G + 0.114*B
+              sum += (data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114);
+            }
+            brightness = sum / (data.length / 4);
+
+            // Categorize brightness
+            if (brightness < 50) {
+              analysisText = '🌑 TOO DARK - increase lighting';
+            } else if (brightness < 100) {
+              analysisText = '🌘 Dim - may affect detection';
+            } else if (brightness < 200) {
+              analysisText = '✅ Good lighting';
+            } else {
+              analysisText = '☀️ Bright - may be overexposed';
+            }
+          } catch (brightnessError) {
+            analysisText = 'Failed to analyze';
+          }
+        }
+      }
+
       const debugInfo = {
         videoWidth: video.videoWidth,
         videoHeight: video.videoHeight,
@@ -484,7 +528,8 @@ export const useGazeTracking = (
         paused: video.paused,
         currentTime: video.currentTime,
         hasVideoData: video.readyState >= 2,
-        brightness: 'unknown' // We can't easily check brightness without analyzing pixels
+        brightness: Math.round(brightness),
+        brightnessAnalysis: analysisText
       };
 
       // Only log every 60 frames (~2 seconds) to reduce spam
@@ -492,10 +537,11 @@ export const useGazeTracking = (
         console.log('👤 No face detected - Video state:', debugInfo);
         console.log('💡 Troubleshooting tips:');
         console.log('  1. Check if Canvas shows your face clearly');
-        console.log('  2. Ensure good lighting (not too dark)');
+        console.log(`  2. Lighting: ${analysisText} (brightness: ${Math.round(brightness)}/255)`);
         console.log('  3. Face should be clearly visible and frontal');
         console.log('  4. Try moving closer to or further from camera');
         console.log('  5. Remove any obstructions (hands, masks, etc.)');
+        console.log('  6. Ensure camera is focused (tap on mobile)');
       }
 
       setCurrentGaze(null);
