@@ -245,12 +245,39 @@ export const useGazeTracking = (
     // Detect face landmarks with visualization for debugging
     let faces;
     try {
+      // DEBUG: Log detector state and video element before detection
+      if (fpsCounterRef.current.frames % 60 === 0) {
+        console.log('🔍 Pre-detection state:', {
+          detectorExists: !!detectorRef.current,
+          videoElement: {
+            width: video.videoWidth,
+            height: video.videoHeight,
+            readyState: video.readyState,
+            currentTime: video.currentTime
+          }
+        });
+      }
+
       // Use dynamic mode (staticImageMode: false) for video streams
       // This enables tracking which is more efficient and accurate for continuous video
       faces = await detectorRef.current.estimateFaces(video, {
         flipHorizontal: false,
         staticImageMode: false  // Dynamic mode for video tracking (better for real-time)
       });
+
+      // DEBUG: Log detection result
+      if (fpsCounterRef.current.frames % 60 === 0) {
+        console.log('🔍 Detection result:', {
+          facesArray: faces,
+          facesLength: faces ? faces.length : 'null/undefined',
+          facesType: typeof faces,
+          firstFace: faces && faces[0] ? {
+            hasKeypoints: !!faces[0].keypoints,
+            keypointsLength: faces[0].keypoints?.length,
+            hasBox: !!faces[0].box
+          } : 'no face'
+        });
+      }
 
       // Draw faces on canvas for debugging (update every frame for smooth visualization)
       if (canvasRef.current) {
