@@ -1,8 +1,9 @@
-// useGazeTracking Hook v2 - MediaPipe Tasks Vision
-// Real-time gaze tracking using @mediapipe/tasks-vision (official MediaPipe package)
+// useGazeTracking Hook
+// Real-time gaze tracking using TensorFlow.js + MediaPipe Face Landmarks Detection
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { FaceLandmarker, FilesetResolver, FaceLandmarkerResult } from '@mediapipe/tasks-vision';
+import * as faceLandmarksDetection from '@tensorflow-models/face-landmarks-detection';
+import * as tf from '@tensorflow/tfjs';
 import { GazePoint, GazeType, GazeEstimation, FaceLandmarks } from '../types/vision.types';
 
 interface UseGazeTrackingOptions {
@@ -28,7 +29,7 @@ interface UseGazeTrackingReturn {
 export const useGazeTracking = (
   options: UseGazeTrackingOptions
 ): UseGazeTrackingReturn => {
-  const { enabled, onGazePoint, calibrationMatrix, onFacePosition } = options;
+  const { enabled, onGazePoint, calibrationMatrix, targetFPS = 30, onFacePosition } = options;
 
   const [isInitialized, setIsInitialized] = useState(false);
   const [isTracking, setIsTracking] = useState(false);
@@ -38,50 +39,61 @@ export const useGazeTracking = (
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const faceLandmarkerRef = useRef<FaceLandmarker | null>(null);
+  const detectorRef = useRef<faceLandmarksDetection.FaceLandmarksDetector | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const animationFrameRef = useRef<number | null>(null);
   const fpsCounterRef = useRef({ frames: 0, lastTime: Date.now() });
   const lastGazeRef = useRef<{ x: number; y: number; timestamp: number } | null>(null);
 
-  // Initialize MediaPipe Tasks Vision
+  // Initialize TensorFlow.js and MediaPipe
   const initialize = useCallback(async () => {
     try {
-      console.log('🔧 Starting MediaPipe Tasks Vision initialization...');
-      console.log('📱 Platform detection:', {
-        userAgent: navigator.userAgent,
-        platform: navigator.platform
-      });
+      console.log('🔧 Starting TensorFlow.js initialization...');
 
-      // Load WASM runtime from CDN
-      console.log('🔧 Loading WASM runtime...');
-      const vision = await FilesetResolver.forVisionTasks(
-        "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm"
-      );
-      console.log('✅ WASM runtime loaded successfully');
+      // Detect if running on iOS
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      console.log('📱 Platform detection:', { isIOS, userAgent: navigator.userAgent });
 
-      // Create Face Landmarker with model from Google Storage
-      console.log('🔧 Creating Face Landmarker...');
-      const faceLandmarker = await FaceLandmarker.createFromModelPath(
-        vision,
-        "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task"
-      );
-      console.log('✅ Face Landmarker created successfully');
+      // For iOS, try to set backend explicitly
+      if (isIOS) {
+        console.log('🍎 iOS detected, attempting to set WASM backend...');
+        try {
+          await tf.setBackend('wasm');
+          console.log('✅ WASM backend set successfully');
+        } catch (wasmError) {
+          console.warn('⚠️ WASM backend failed, trying WebGL:', wasmError);
+          try {
+            await tf.setBackend('webgl');
+            console.log('✅ WebGL backend set successfully');
+          } catch (webglError) {
+            console.warn('⚠️ WebGL backend failed, using default:', webglError);
+          }
+        }
+      }
 
-      // Configure face detection options
-      faceLandmarker.setOptions({
-        numFaces: 1,                         // Track single face
-        minFaceDetectionConfidence: 0.5,     // Lower = more sensitive detection
-        minFacePresenceConfidence: 0.5,      // Lower = better tracking
-        outputFaceBlendshapes: false,        // Don't need expression data
-        outputFacialTransformationMatrixes: false  // Don't need 3D pose matrix
-      });
-      console.log('✅ Face Landmarker configured');
+      // Load TensorFlow.js backend
+      await tf.ready();
+      const backend = tf.getBackend();
+      console.log('✅ TensorFlow.js ready with backend:', backend);
 
-      faceLandmarkerRef.current = faceLandmarker;
+      // Create MediaPipe Face Landmarks detector
+      // Use tfjs runtime (recommended for browser, version 1.0.6)
+      const model = faceLandmarksDetection.SupportedModels.MediaPipeFaceMesh;
+
+      console.log('🔧 Creating face detector with tfjs runtime...');
+      const tfjsConfig: faceLandmarksDetection.MediaPipeFaceMeshTfjsModelConfig = {
+        runtime: 'tfjs',
+        refineLandmarks: true, // Enable iris tracking
+        maxFaces: 1
+      };
+
+      const detector = await faceLandmarksDetection.createDetector(model, tfjsConfig);
+      detectorRef.current = detector;
+      console.log('✅ TFJS Face Mesh detector loaded successfully');
+      console.log('✅ MediaPipe Face Mesh loaded successfully');
+
       setIsInitialized(true);
       setError(null);
-      console.log('✅ MediaPipe Tasks Vision initialized successfully');
     } catch (err) {
       console.error('❌ Failed to initialize gaze tracking:', err);
       console.error('❌ Error details:', {
@@ -96,14 +108,14 @@ export const useGazeTracking = (
 
   // Start camera and tracking
   const startTracking = useCallback(async () => {
-    if (!faceLandmarkerRef.current) {
-      console.log('🔧 Face Landmarker not initialized, initializing...');
+    if (!detectorRef.current) {
+      console.log('🔧 Detector not initialized, initializing...');
       await initialize();
     }
 
-    if (!faceLandmarkerRef.current) {
-      console.error('❌ Face Landmarker not initialized after initialization attempt');
-      setError('Face Landmarker not initialized');
+    if (!detectorRef.current) {
+      console.error('❌ Face detector not initialized after initialization attempt');
+      setError('Face detector not initialized');
       return;
     }
 
@@ -117,7 +129,7 @@ export const useGazeTracking = (
       const constraints: MediaStreamConstraints = {
         video: isIOS ? {
           facingMode: 'user',
-          width: { ideal: 640 },
+          width: { ideal: 640 },  // Lower resolution for iOS
           height: { ideal: 480 },
           frameRate: { ideal: 30, max: 30 }
         } : {
@@ -207,9 +219,9 @@ export const useGazeTracking = (
 
   // Detect face landmarks and estimate gaze
   const detectAndEstimateGaze = useCallback(async () => {
-    if (!faceLandmarkerRef.current || !videoRef.current || !isTracking) {
+    if (!detectorRef.current || !videoRef.current || !isTracking) {
       console.log('⏭️ Skipping detection:', {
-        hasFaceLandmarker: !!faceLandmarkerRef.current,
+        hasDetector: !!detectorRef.current,
         hasVideo: !!videoRef.current,
         isTracking
       });
@@ -230,33 +242,45 @@ export const useGazeTracking = (
       return;
     }
 
-    // Detect face landmarks
-    let result: FaceLandmarkerResult;
+    // Detect face landmarks with visualization for debugging
+    let faces;
     try {
-      // DEBUG: Log detection attempt
+      // DEBUG: Log detector state and video element before detection
       if (fpsCounterRef.current.frames % 60 === 0) {
-        console.log('🔍 Attempting face detection:', {
-          videoWidth: video.videoWidth,
-          videoHeight: video.videoHeight,
-          readyState: video.readyState,
-          currentTime: video.currentTime
+        console.log('🔍 Pre-detection state:', {
+          detectorExists: !!detectorRef.current,
+          videoElement: {
+            width: video.videoWidth,
+            height: video.videoHeight,
+            readyState: video.readyState,
+            currentTime: video.currentTime
+          }
         });
       }
 
-      // Use detectForVideo for video streams (better performance than detect())
-      const timestamp = performance.now();
-      result = faceLandmarkerRef.current.detectForVideo(video, timestamp);
+      // Try BOTH modes: static every 10 frames for aggressive detection,
+      // dynamic for continuous tracking once detected
+      const useStaticMode = fpsCounterRef.current.frames % 10 === 0;
+      faces = await detectorRef.current.estimateFaces(video, {
+        flipHorizontal: false,
+        staticImageMode: useStaticMode  // Static mode every 10 frames for better initial detection
+      });
 
       // DEBUG: Log detection result
       if (fpsCounterRef.current.frames % 60 === 0) {
         console.log('🔍 Detection result:', {
-          hasFaceLandmarks: !!result.faceLandmarks,
-          facesDetected: result.faceLandmarks?.length || 0,
-          firstFacePoints: result.faceLandmarks?.[0]?.length || 0
+          facesArray: faces,
+          facesLength: faces ? faces.length : 'null/undefined',
+          facesType: typeof faces,
+          firstFace: faces && faces[0] ? {
+            hasKeypoints: !!faces[0].keypoints,
+            keypointsLength: faces[0].keypoints?.length,
+            hasBox: !!faces[0].box
+          } : 'no face'
         });
       }
 
-      // Draw visualization on canvas
+      // Draw faces on canvas for debugging (update every frame for smooth visualization)
       if (canvasRef.current) {
         const canvas = canvasRef.current;
         const ctx = canvas.getContext('2d', { willReadFrequently: true });
@@ -272,8 +296,8 @@ export const useGazeTracking = (
           ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
           // Draw face position guide box (center of canvas)
-          const guideWidth = canvas.width * 0.4;
-          const guideHeight = canvas.height * 0.6;
+          const guideWidth = canvas.width * 0.4;  // 40% of canvas width
+          const guideHeight = canvas.height * 0.6; // 60% of canvas height
           const guideX = (canvas.width - guideWidth) / 2;
           const guideY = (canvas.height - guideHeight) / 2;
 
@@ -282,7 +306,7 @@ export const useGazeTracking = (
           ctx.lineWidth = 3;
           ctx.setLineDash([10, 5]);
           ctx.strokeRect(guideX, guideY, guideWidth, guideHeight);
-          ctx.setLineDash([]);
+          ctx.setLineDash([]); // Reset dash
 
           // Draw guide text
           ctx.font = 'bold 16px Arial';
@@ -295,69 +319,58 @@ export const useGazeTracking = (
           ctx.strokeText(guideText, textX, guideY - 10);
           ctx.fillText(guideText, textX, guideY - 10);
 
-          // Draw detection status
+          // Draw detection status in top-left
           ctx.font = 'bold 20px Arial';
           ctx.strokeStyle = 'black';
           ctx.lineWidth = 3;
-          ctx.fillStyle = result.faceLandmarks.length > 0 ? '#22c55e' : '#ef4444';
-          const statusText = result.faceLandmarks.length > 0
-            ? `✅ Face: ${result.faceLandmarks.length}`
-            : '❌ No Face';
+          ctx.fillStyle = faces.length > 0 ? '#22c55e' : '#ef4444';
+          const statusText = faces.length > 0 ? `✅ Face: ${faces.length}` : '❌ No Face';
           ctx.strokeText(statusText, 10, 30);
           ctx.fillText(statusText, 10, 30);
 
           // If face detected, draw landmarks
-          if (result.faceLandmarks.length > 0) {
-            const landmarks = result.faceLandmarks[0];
+          if (faces.length > 0) {
+            const face = faces[0];
+            const keypoints = face.keypoints;
 
-            // Convert normalized coordinates to canvas coordinates
-            const toCanvasCoords = (landmark: { x: number; y: number; z: number }) => ({
-              x: landmark.x * canvas.width,
-              y: landmark.y * canvas.height
-            });
-
-            // Draw all landmarks as small dots
+            // Draw all face landmarks as small dots
             ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
-            landmarks.forEach((landmark) => {
-              const point = toCanvasCoords(landmark);
+            keypoints.forEach((point) => {
               ctx.beginPath();
               ctx.arc(point.x, point.y, 1, 0, 2 * Math.PI);
               ctx.fill();
             });
 
-            // Draw face mesh outline
+            // Draw face mesh outline (face contour)
             ctx.strokeStyle = '#22c55e';
             ctx.lineWidth = 2;
             ctx.beginPath();
+            // Face oval keypoints: 10, 338, 297, 332, 284, 251, 389, 356, 454, 323, 361, 288, 397, 365, 379, 378, 400, 377, 152, 148, 176, 149, 150, 136, 172, 58, 132, 93, 234, 127, 162, 21, 54, 103, 67, 109
             const faceOvalIndices = [10, 338, 297, 332, 284, 251, 389, 356, 454, 323, 361, 288, 397, 365, 379, 378, 400, 377, 152, 148, 176, 149, 150, 136, 172, 58, 132, 93, 234, 127, 162, 21, 54, 103, 67, 109];
             faceOvalIndices.forEach((idx, i) => {
-              if (landmarks[idx]) {
-                const point = toCanvasCoords(landmarks[idx]);
+              if (keypoints[idx]) {
                 if (i === 0) {
-                  ctx.moveTo(point.x, point.y);
+                  ctx.moveTo(keypoints[idx].x, keypoints[idx].y);
                 } else {
-                  ctx.lineTo(point.x, point.y);
+                  ctx.lineTo(keypoints[idx].x, keypoints[idx].y);
                 }
               }
             });
             ctx.closePath();
             ctx.stroke();
 
-            // Draw eyes
+            // Draw left eye (green)
             ctx.strokeStyle = '#22c55e';
             ctx.fillStyle = 'rgba(34, 197, 94, 0.3)';
             ctx.lineWidth = 2;
-
-            // Left eye
             ctx.beginPath();
             const leftEyeIndices = [33, 7, 163, 144, 145, 153, 154, 155, 133, 173, 157, 158, 159, 160, 161, 246];
             leftEyeIndices.forEach((idx, i) => {
-              if (landmarks[idx]) {
-                const point = toCanvasCoords(landmarks[idx]);
+              if (keypoints[idx]) {
                 if (i === 0) {
-                  ctx.moveTo(point.x, point.y);
+                  ctx.moveTo(keypoints[idx].x, keypoints[idx].y);
                 } else {
-                  ctx.lineTo(point.x, point.y);
+                  ctx.lineTo(keypoints[idx].x, keypoints[idx].y);
                 }
               }
             });
@@ -365,16 +378,15 @@ export const useGazeTracking = (
             ctx.stroke();
             ctx.fill();
 
-            // Right eye
+            // Draw right eye (green)
             ctx.beginPath();
             const rightEyeIndices = [263, 249, 390, 373, 374, 380, 381, 382, 362, 398, 384, 385, 386, 387, 388, 466];
             rightEyeIndices.forEach((idx, i) => {
-              if (landmarks[idx]) {
-                const point = toCanvasCoords(landmarks[idx]);
+              if (keypoints[idx]) {
                 if (i === 0) {
-                  ctx.moveTo(point.x, point.y);
+                  ctx.moveTo(keypoints[idx].x, keypoints[idx].y);
                 } else {
-                  ctx.lineTo(point.x, point.y);
+                  ctx.lineTo(keypoints[idx].x, keypoints[idx].y);
                 }
               }
             });
@@ -382,61 +394,106 @@ export const useGazeTracking = (
             ctx.stroke();
             ctx.fill();
 
-            // Draw iris landmarks (468-477)
-            if (landmarks.length >= 478) {
+            // Draw iris landmarks if available (bright cyan for visibility)
+            if (keypoints.length >= 478) {
               ctx.fillStyle = '#00ffff';
               // Left iris: 468-472
               for (let i = 468; i <= 472; i++) {
-                if (landmarks[i]) {
-                  const point = toCanvasCoords(landmarks[i]);
+                if (keypoints[i]) {
                   ctx.beginPath();
-                  ctx.arc(point.x, point.y, 3, 0, 2 * Math.PI);
+                  ctx.arc(keypoints[i].x, keypoints[i].y, 3, 0, 2 * Math.PI);
                   ctx.fill();
                 }
               }
               // Right iris: 473-477
               for (let i = 473; i <= 477; i++) {
-                if (landmarks[i]) {
-                  const point = toCanvasCoords(landmarks[i]);
+                if (keypoints[i]) {
                   ctx.beginPath();
-                  ctx.arc(point.x, point.y, 3, 0, 2 * Math.PI);
+                  ctx.arc(keypoints[i].x, keypoints[i].y, 3, 0, 2 * Math.PI);
                   ctx.fill();
                 }
               }
 
-              // Draw iris centers (larger, bright yellow)
+              // Draw iris center (larger, bright yellow)
               ctx.fillStyle = '#ffff00';
-              if (landmarks[468]) {
-                const point = toCanvasCoords(landmarks[468]);
+              if (keypoints[468]) {
                 ctx.beginPath();
-                ctx.arc(point.x, point.y, 5, 0, 2 * Math.PI);
+                ctx.arc(keypoints[468].x, keypoints[468].y, 5, 0, 2 * Math.PI);
                 ctx.fill();
               }
-              if (landmarks[473]) {
-                const point = toCanvasCoords(landmarks[473]);
+              if (keypoints[473]) {
                 ctx.beginPath();
-                ctx.arc(point.x, point.y, 5, 0, 2 * Math.PI);
+                ctx.arc(keypoints[473].x, keypoints[473].y, 5, 0, 2 * Math.PI);
                 ctx.fill();
               }
             }
 
             // Draw nose tip (red)
-            if (landmarks[1]) {
-              const point = toCanvasCoords(landmarks[1]);
+            if (keypoints[1]) {
               ctx.fillStyle = '#ef4444';
               ctx.beginPath();
-              ctx.arc(point.x, point.y, 5, 0, 2 * Math.PI);
+              ctx.arc(keypoints[1].x, keypoints[1].y, 5, 0, 2 * Math.PI);
               ctx.fill();
             }
 
-            // Draw landmark count
+            // Draw info text
             ctx.font = 'bold 16px Arial';
             ctx.strokeStyle = 'black';
             ctx.lineWidth = 3;
             ctx.fillStyle = '#22c55e';
-            const infoText = `Landmarks: ${landmarks.length}`;
+            const infoText = `Keypoints: ${keypoints.length}`;
             ctx.strokeText(infoText, 10, 60);
             ctx.fillText(infoText, 10, 60);
+
+            // Draw face box with position feedback
+            if (face.box) {
+              // Check if face is within guide box
+              const faceCenterX = face.box.xMin + face.box.width / 2;
+              const faceCenterY = face.box.yMin + face.box.height / 2;
+              const isInGuideX = faceCenterX >= guideX && faceCenterX <= guideX + guideWidth;
+              const isInGuideY = faceCenterY >= guideY && faceCenterY <= guideY + guideHeight;
+              const isWellPositioned = isInGuideX && isInGuideY;
+
+              // Draw face box (green if well positioned, red if not)
+              ctx.strokeStyle = isWellPositioned ? '#22c55e' : '#ef4444';
+              ctx.lineWidth = 3;
+              ctx.strokeRect(face.box.xMin, face.box.yMin, face.box.width, face.box.height);
+
+              // Draw position feedback text
+              ctx.font = 'bold 18px Arial';
+              ctx.fillStyle = isWellPositioned ? '#22c55e' : '#ef4444';
+              ctx.strokeStyle = 'black';
+              ctx.lineWidth = 3;
+              const feedbackText = isWellPositioned ? '✅ 완벽한 위치!' : '⚠️ 가이드 박스 안으로';
+              const feedbackMetrics = ctx.measureText(feedbackText);
+              const feedbackX = (canvas.width - feedbackMetrics.width) / 2;
+              ctx.strokeText(feedbackText, feedbackX, canvas.height - 20);
+              ctx.fillText(feedbackText, feedbackX, canvas.height - 20);
+
+              // Draw arrows if face is outside guide
+              if (!isInGuideX) {
+                ctx.font = 'bold 30px Arial';
+                ctx.fillStyle = '#ef4444';
+                if (faceCenterX < guideX) {
+                  // Face is on left, show right arrow
+                  ctx.fillText('👉', canvas.width - 50, canvas.height / 2);
+                } else {
+                  // Face is on right, show left arrow
+                  ctx.fillText('👈', 20, canvas.height / 2);
+                }
+              }
+              if (!isInGuideY) {
+                ctx.font = 'bold 30px Arial';
+                ctx.fillStyle = '#ef4444';
+                if (faceCenterY < guideY) {
+                  // Face is above, show down arrow
+                  ctx.fillText('👇', canvas.width / 2, canvas.height - 50);
+                } else {
+                  // Face is below, show up arrow
+                  ctx.fillText('👆', canvas.width / 2, 50);
+                }
+              }
+            }
           }
         }
       }
@@ -451,36 +508,41 @@ export const useGazeTracking = (
       return;
     }
 
-    if (!result.faceLandmarks || result.faceLandmarks.length === 0) {
-      // No face detected - analyze brightness
+    if (faces.length === 0) {
+      // No face detected - analyze brightness and provide detailed debugging info
       let brightness = 0;
       let analysisText = 'unknown';
 
+      // Analyze video brightness using canvas
       if (canvasRef.current) {
         const canvas = canvasRef.current;
         const ctx = canvas.getContext('2d');
         if (ctx && canvas.width > 0 && canvas.height > 0) {
           try {
+            // Sample center 100x100 region for brightness analysis
             const sampleSize = 100;
             const sampleX = (canvas.width - sampleSize) / 2;
             const sampleY = (canvas.height - sampleSize) / 2;
             const imageData = ctx.getImageData(sampleX, sampleY, sampleSize, sampleSize);
             const data = imageData.data;
 
+            // Calculate average brightness (0-255)
             let sum = 0;
             for (let i = 0; i < data.length; i += 4) {
+              // Weighted average for human perception: 0.299*R + 0.587*G + 0.114*B
               sum += (data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114);
             }
             brightness = sum / (data.length / 4);
 
+            // Categorize brightness
             if (brightness < 50) {
-              analysisText = '🌑 TOO DARK';
+              analysisText = '🌑 TOO DARK - increase lighting';
             } else if (brightness < 100) {
-              analysisText = '🌘 Dim';
+              analysisText = '🌘 Dim - may affect detection';
             } else if (brightness < 200) {
               analysisText = '✅ Good lighting';
             } else {
-              analysisText = '☀️ Bright';
+              analysisText = '☀️ Bright - may be overexposed';
             }
           } catch (brightnessError) {
             analysisText = 'Failed to analyze';
@@ -488,46 +550,86 @@ export const useGazeTracking = (
         }
       }
 
-      // Log every 60 frames
+      const debugInfo = {
+        videoWidth: video.videoWidth,
+        videoHeight: video.videoHeight,
+        readyState: video.readyState,
+        paused: video.paused,
+        currentTime: video.currentTime,
+        hasVideoData: video.readyState >= 2,
+        brightness: Math.round(brightness),
+        brightnessAnalysis: analysisText
+      };
+
+      // Only log every 60 frames (~2 seconds) to reduce spam
       if (fpsCounterRef.current.frames % 60 === 0) {
-        console.log('👤 No face detected');
-        console.log('💡 Lighting:', analysisText, `(${Math.round(brightness)}/255)`);
+        console.log('👤 No face detected - Video state:', debugInfo);
+        console.log('💡 Troubleshooting tips:');
+        console.log('  1. Check if Canvas shows your face clearly');
+        console.log(`  2. Lighting: ${analysisText} (brightness: ${Math.round(brightness)}/255)`);
+        console.log('  3. Face should be clearly visible and frontal');
+        console.log('  4. Try moving closer to or further from camera');
+        console.log('  5. Remove any obstructions (hands, masks, etc.)');
+        console.log('  6. Ensure camera is focused (tap on mobile)');
       }
 
       setCurrentGaze(null);
+      // Schedule next frame
       animationFrameRef.current = window.requestAnimationFrame(detectAndEstimateGaze);
       return;
     }
 
-    console.log('✅ Face detected with', result.faceLandmarks[0].length, 'landmarks');
+    console.log('✅ Face detected! Total faces:', faces.length);
 
-    const landmarks = result.faceLandmarks[0];
+    const face = faces[0];
+    const keypoints = face.keypoints;
 
-    // Convert normalized coordinates to pixel coordinates for our calculations
-    const toPixelCoords = (landmark: { x: number; y: number; z: number }) => ({
-      x: landmark.x * video.videoWidth,
-      y: landmark.y * video.videoHeight,
-      z: landmark.z
-    });
+    console.log('✅ Face detected, total keypoints:', keypoints.length);
 
-    // Extract key landmarks (same indices as before)
-    const leftEyeOuter = toPixelCoords(landmarks[33]);
-    const leftEyeInner = toPixelCoords(landmarks[133]);
-    const leftEyeTop = toPixelCoords(landmarks[159]);
-    const leftEyeBottom = toPixelCoords(landmarks[145]);
-    const leftEyeTopMid = toPixelCoords(landmarks[157]);
-    const leftEyeBottomMid = toPixelCoords(landmarks[144]);
+    // Calculate face bounding box for position visualization
+    if (face.box) {
+      const { xMin, yMin, width, height } = face.box;
+      // Normalize to 0-1 range
+      const normalizedBox = {
+        x: (xMin + width / 2) / video.videoWidth, // Center X
+        y: (yMin + height / 2) / video.videoHeight, // Center Y
+        width: width / video.videoWidth,
+        height: height / video.videoHeight
+      };
 
-    const rightEyeOuter = toPixelCoords(landmarks[263]);
-    const rightEyeInner = toPixelCoords(landmarks[362]);
-    const rightEyeTop = toPixelCoords(landmarks[386]);
-    const rightEyeBottom = toPixelCoords(landmarks[374]);
-    const rightEyeTopMid = toPixelCoords(landmarks[387]);
-    const rightEyeBottomMid = toPixelCoords(landmarks[373]);
+      console.log('📦 Face position:', normalizedBox);
 
-    const noseTip = toPixelCoords(landmarks[1]);
+      if (onFacePosition) {
+        onFacePosition(normalizedBox);
+      }
+    }
 
-    // Calculate Eye Aspect Ratio (EAR)
+    // Extract eye and iris landmarks
+    // MediaPipe Face Mesh indices (comprehensive for EAR and iris tracking):
+    // Left eye: outer=33, inner=133, top=159, bottom=145, upper_mid=157, lower_mid=144
+    // Right eye: outer=263, inner=362, top=386, bottom=374, upper_mid=387, lower_mid=373
+    // With refineLandmarks, iris points are at the end (468-477 for tfjs runtime)
+
+    // Eye contour points for Eye Aspect Ratio (EAR) calculation
+    const leftEyeOuter = keypoints[33];
+    const leftEyeInner = keypoints[133];
+    const leftEyeTop = keypoints[159];
+    const leftEyeBottom = keypoints[145];
+    const leftEyeTopMid = keypoints[157];
+    const leftEyeBottomMid = keypoints[144];
+
+    const rightEyeOuter = keypoints[263];
+    const rightEyeInner = keypoints[362];
+    const rightEyeTop = keypoints[386];
+    const rightEyeBottom = keypoints[374];
+    const rightEyeTopMid = keypoints[387];
+    const rightEyeBottomMid = keypoints[373];
+
+    const noseTip = keypoints[1];
+
+    // Calculate Eye Aspect Ratio (EAR) for blink/occlusion detection
+    // EAR = (|p2-p6| + |p3-p5|) / (2 * |p1-p4|)
+    // Research shows: EAR > 0.21 = open, EAR < 0.21 = closed (adjusted for Asian eyes)
     const leftEAR = calculateEAR(
       leftEyeTopMid, leftEyeBottomMid,
       leftEyeTop, leftEyeBottom,
@@ -544,58 +646,74 @@ export const useGazeTracking = (
       left: leftEAR.toFixed(3),
       right: rightEAR.toFixed(3),
       average: avgEAR.toFixed(3),
-      status: avgEAR > 0.18 ? 'OPEN' : 'CLOSED'
+      status: avgEAR > 0.18 ? 'OPEN' : 'CLOSED/OCCLUDED'
     });
 
-    const EAR_THRESHOLD = 0.18;
+    // Modified EAR threshold for diverse populations (glasses, small eyes, Asian eyes)
+    // Research-based thresholds: 0.18-0.25 depending on individual characteristics
+    const EAR_THRESHOLD = 0.18; // Lower threshold for better detection with glasses/small eyes
 
     if (avgEAR < EAR_THRESHOLD) {
-      console.warn('👓 Eyes closed or occluded');
+      console.warn('👓 Eyes closed or occluded (glasses/blink), skipping gaze estimation');
       setCurrentGaze(null);
+      // Schedule next frame
       animationFrameRef.current = window.requestAnimationFrame(detectAndEstimateGaze);
       return;
     }
 
-    // Get iris landmarks (468-477)
-    let leftIris = {
+    // For iris, check if we have refined landmarks (478+ keypoints)
+    // Initialize with geometric eye centers as fallback
+    let leftIris: { x: number; y: number; z: number } = {
       x: (leftEyeOuter.x + leftEyeInner.x) / 2,
       y: (leftEyeTop.y + leftEyeBottom.y) / 2,
       z: leftEyeOuter.z || 0
     };
-    let rightIris = {
+    let rightIris: { x: number; y: number; z: number } = {
       x: (rightEyeOuter.x + rightEyeInner.x) / 2,
       y: (rightEyeTop.y + rightEyeBottom.y) / 2,
       z: rightEyeOuter.z || 0
     };
     let usingIrisLandmarks = false;
 
-    if (landmarks.length >= 478) {
-      const potentialLeftIris = toPixelCoords(landmarks[468]);
-      const potentialRightIris = toPixelCoords(landmarks[473]);
+    if (keypoints.length >= 478) {
+      // Refined landmarks available - iris at indices 468-477
+      const potentialLeftIris = keypoints[468]; // Left iris center
+      const potentialRightIris = keypoints[473]; // Right iris center
 
+      // Validate iris landmarks (check if they're within reasonable eye bounds)
       if (potentialLeftIris && potentialRightIris) {
         const leftEyeWidth = Math.abs(leftEyeOuter.x - leftEyeInner.x);
         const rightEyeWidth = Math.abs(rightEyeOuter.x - rightEyeInner.x);
 
+        // Check if iris is within eye boundaries (with some margin)
         const leftIrisValid =
           Math.abs(potentialLeftIris.x - (leftEyeOuter.x + leftEyeInner.x) / 2) < leftEyeWidth * 0.8;
         const rightIrisValid =
           Math.abs(potentialRightIris.x - (rightEyeOuter.x + rightEyeInner.x) / 2) < rightEyeWidth * 0.8;
 
         if (leftIrisValid && rightIrisValid) {
-          leftIris = potentialLeftIris;
-          rightIris = potentialRightIris;
+          leftIris = {
+            x: potentialLeftIris.x,
+            y: potentialLeftIris.y,
+            z: potentialLeftIris.z || 0
+          };
+          rightIris = {
+            x: potentialRightIris.x,
+            y: potentialRightIris.y,
+            z: potentialRightIris.z || 0
+          };
           usingIrisLandmarks = true;
           console.log('✅ Using validated iris landmarks');
         }
       }
     }
 
+    // Log fallback status
     if (!usingIrisLandmarks) {
-      console.log('⚠️ Using eye center fallback');
+      console.log('⚠️ Iris landmarks unavailable or invalid, using eye center fallback');
     }
 
-    // Calculate eye centers
+    // Calculate eye centers for landmarks structure
     const leftEyeCenter = {
       x: (leftEyeOuter.x + leftEyeInner.x) / 2,
       y: (leftEyeTop.y + leftEyeBottom.y) / 2
@@ -605,7 +723,7 @@ export const useGazeTracking = (
       y: (rightEyeTop.y + rightEyeBottom.y) / 2
     };
 
-    const faceLandmarks: FaceLandmarks = {
+    const landmarks: FaceLandmarks = {
       leftEye: { x: leftEyeCenter.x, y: leftEyeCenter.y },
       rightEye: { x: rightEyeCenter.x, y: rightEyeCenter.y },
       leftIris: { x: leftIris.x, y: leftIris.y },
@@ -613,10 +731,10 @@ export const useGazeTracking = (
       noseTip: { x: noseTip.x, y: noseTip.y }
     };
 
-    // Estimate gaze
-    const gaze = estimateGazeFromLandmarks(faceLandmarks, video.videoWidth, video.videoHeight);
+    // Estimate gaze position on screen
+    const gaze = estimateGazeFromLandmarks(landmarks, video.videoWidth, video.videoHeight);
 
-    // Apply calibration
+    // Apply calibration transformation if available
     let calibratedX = gaze.x;
     let calibratedY = gaze.y;
 
@@ -630,17 +748,13 @@ export const useGazeTracking = (
       x: calibratedX,
       y: calibratedY,
       confidence: gaze.confidence,
-      landmarks: faceLandmarks
+      landmarks
     };
 
     setCurrentGaze(gazeEstimation);
-    console.log('🎯 Gaze updated:', {
-      x: calibratedX.toFixed(2),
-      y: calibratedY.toFixed(2),
-      confidence: gaze.confidence
-    });
+    console.log('🎯 Gaze updated:', { x: calibratedX.toFixed(2), y: calibratedY.toFixed(2), confidence: gaze.confidence });
 
-    // Classify gaze type
+    // Classify gaze type and create GazePoint
     const timestamp = Date.now();
     const gazeType = classifyGazeType(
       calibratedX,
@@ -659,6 +773,7 @@ export const useGazeTracking = (
 
     lastGazeRef.current = { x: calibratedX, y: calibratedY, timestamp };
 
+    // Callback with gaze point
     if (onGazePoint) {
       onGazePoint(gazePoint);
     }
@@ -671,9 +786,9 @@ export const useGazeTracking = (
       fpsCounterRef.current = { frames: 0, lastTime: now };
     }
 
-    // Schedule next frame
+    // Schedule next frame immediately for maximum FPS
     animationFrameRef.current = window.requestAnimationFrame(detectAndEstimateGaze);
-  }, [isTracking, onGazePoint, calibrationMatrix, onFacePosition]);
+  }, [isTracking, onGazePoint, calibrationMatrix, targetFPS, onFacePosition]);
 
   // Start detection loop when tracking starts
   useEffect(() => {
@@ -715,54 +830,95 @@ export const useGazeTracking = (
   };
 };
 
-// Helper functions (unchanged from original)
-
+// Helper: Estimate gaze from face landmarks with improved algorithm
 function estimateGazeFromLandmarks(
   landmarks: FaceLandmarks,
   videoWidth: number,
   videoHeight: number
 ): { x: number; y: number; confidence: number } {
+  console.log('🔬 Analyzing gaze with advanced algorithm...');
+
+  // 1. Calculate iris-to-eye ratio for each eye independently
+  // This accounts for different eye shapes and angles
   const leftEyeWidth = Math.abs(landmarks.leftEye.x - landmarks.leftIris.x);
   const rightEyeWidth = Math.abs(landmarks.rightEye.x - landmarks.rightIris.x);
 
-  const leftIrisRatio = leftEyeWidth / (videoWidth * 0.05);
+  // Calculate relative iris position within each eye (0 = left, 0.5 = center, 1 = right)
+  const leftIrisRatio = leftEyeWidth / (videoWidth * 0.05); // Normalize by eye width estimate
   const rightIrisRatio = rightEyeWidth / (videoWidth * 0.05);
 
+  console.log('👁️ Iris ratios:', {
+    left: leftIrisRatio.toFixed(3),
+    right: rightIrisRatio.toFixed(3)
+  });
+
+  // 2. Calculate eye-to-nose distance to estimate head rotation (yaw)
   const eyesCenterX = (landmarks.leftEye.x + landmarks.rightEye.x) / 2;
   const noseTipX = landmarks.noseTip.x;
-  const headYaw = (noseTipX - eyesCenterX) / videoWidth;
+  const headYaw = (noseTipX - eyesCenterX) / videoWidth; // -0.5 to 0.5 range
 
+  // 3. Calculate vertical head tilt (pitch) using nose and eye positions
   const eyesCenterY = (landmarks.leftEye.y + landmarks.rightEye.y) / 2;
   const noseTipY = landmarks.noseTip.y;
-  const headPitch = (noseTipY - eyesCenterY) / videoHeight;
+  const headPitch = (noseTipY - eyesCenterY) / videoHeight; // Positive = looking down
 
+  console.log('🎭 Head pose:', {
+    yaw: (headYaw * 100).toFixed(1) + '%',
+    pitch: (headPitch * 100).toFixed(1) + '%'
+  });
+
+  // 4. Combine iris position with head pose for improved gaze estimation
+  // Average both eyes' iris positions
   const avgIrisRatio = (leftIrisRatio + rightIrisRatio) / 2;
+
+  // Compensate for head rotation
+  // When head turns left (negative yaw), eyes relatively shift right
   const headCompensatedX = avgIrisRatio - (headYaw * 2.0);
 
+  // Use iris Y position with head pitch compensation
   const avgIrisY = (landmarks.leftIris.y + landmarks.rightIris.y) / 2;
   const baseY = avgIrisY / videoHeight;
   const headCompensatedY = baseY + (headPitch * 0.5);
 
-  const x = 0.5 + (headCompensatedX * 0.4);
+  // 5. Map to screen coordinates with sensitivity adjustment
+  // Increase sensitivity for more responsive gaze tracking
+  const x = 0.5 + (headCompensatedX * 0.4); // Center around 0.5 with 40% sensitivity
   const y = headCompensatedY;
 
+  // 6. Calculate confidence based on:
+  // - Symmetry between left and right eye
+  // - Head pose (frontal = higher confidence)
   const eyeSymmetry = 1 - Math.abs(leftIrisRatio - rightIrisRatio);
   const frontalFactor = 1 - (Math.abs(headYaw) * 2 + Math.abs(headPitch));
   const confidence = Math.max(0.3, Math.min(1.0, (eyeSymmetry + frontalFactor) / 2));
 
+  console.log('🎯 Gaze result:', {
+    x: x.toFixed(3),
+    y: y.toFixed(3),
+    confidence: confidence.toFixed(2),
+    symmetry: eyeSymmetry.toFixed(2),
+    frontal: frontalFactor.toFixed(2)
+  });
+
   return { x, y, confidence };
 }
 
+// Helper: Apply affine transformation matrix
 function applyAffineTransform(
   x: number,
   y: number,
   matrix: number[][]
 ): { x: number; y: number } {
+  // [x']   [m00 m01 m02]   [x]
+  // [y'] = [m10 m11 m12] * [y]
+  // [1 ]   [0   0   1  ]   [1]
   const transformedX = matrix[0][0] * x + matrix[0][1] * y + matrix[0][2];
   const transformedY = matrix[1][0] * x + matrix[1][1] * y + matrix[1][2];
+
   return { x: transformedX, y: transformedY };
 }
 
+// Helper: Classify gaze type (fixation, saccade, blink)
 function classifyGazeType(
   x: number,
   y: number,
@@ -776,38 +932,52 @@ function classifyGazeType(
   const dx = Math.abs(x - lastGaze.x);
   const dy = Math.abs(y - lastGaze.y);
   const distance = Math.sqrt(dx * dx + dy * dy);
-  const timeDiff = (timestamp - lastGaze.timestamp) / 1000;
+  const timeDiff = (timestamp - lastGaze.timestamp) / 1000; // seconds
 
+  // Check if off-page (outside 0-1 range)
   if (x < -0.1 || x > 1.1 || y < -0.1 || y > 1.1) {
     return GazeType.OFF_PAGE;
   }
 
+  // Classify based on velocity
   const velocity = timeDiff > 0 ? distance / timeDiff : 0;
 
+  // Saccade: fast movement (> 1.0 normalized units/second)
   if (velocity > 1.0) {
     return GazeType.SACCADE;
   }
 
+  // Fixation: slow/no movement
   return GazeType.FIXATION;
 }
 
+// Helper: Calculate Eye Aspect Ratio (EAR) for blink/occlusion detection
+// Based on research: Soukupová & Čech (2016) "Real-Time Eye Blink Detection using Facial Landmarks"
+// EAR formula: (|p2-p6| + |p3-p5|) / (2 * |p1-p4|)
+// where p1-p6 are eye landmark points
 function calculateEAR(
-  p2: { x: number; y: number },
-  p6: { x: number; y: number },
-  p3: { x: number; y: number },
-  p5: { x: number; y: number },
-  p1: { x: number; y: number },
-  p4: { x: number; y: number }
+  p2: { x: number; y: number },  // Top mid vertical point
+  p6: { x: number; y: number },  // Bottom mid vertical point
+  p3: { x: number; y: number },  // Top vertical point
+  p5: { x: number; y: number },  // Bottom vertical point
+  p1: { x: number; y: number },  // Outer horizontal point
+  p4: { x: number; y: number }   // Inner horizontal point
 ): number {
+  // Calculate vertical distances (numerator)
   const verticalDist1 = Math.sqrt(
     Math.pow(p2.x - p6.x, 2) + Math.pow(p2.y - p6.y, 2)
   );
   const verticalDist2 = Math.sqrt(
     Math.pow(p3.x - p5.x, 2) + Math.pow(p3.y - p5.y, 2)
   );
+
+  // Calculate horizontal distance (denominator)
   const horizontalDist = Math.sqrt(
     Math.pow(p1.x - p4.x, 2) + Math.pow(p1.y - p4.y, 2)
   );
 
+  // EAR formula: (|p2-p6| + |p3-p5|) / (2 * |p1-p4|)
+  // Typical values: EAR > 0.21 = open eyes, EAR < 0.21 = closed/occluded
+  // Modified for diverse populations (glasses, small eyes, Asian eyes): 0.18-0.25
   return (verticalDist1 + verticalDist2) / (2.0 * horizontalDist);
 }
