@@ -262,6 +262,30 @@ export const useGazeTracking = (
           ctx.clearRect(0, 0, canvas.width, canvas.height);
           ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
+          // Draw face position guide box (center of canvas)
+          const guideWidth = canvas.width * 0.4;  // 40% of canvas width
+          const guideHeight = canvas.height * 0.6; // 60% of canvas height
+          const guideX = (canvas.width - guideWidth) / 2;
+          const guideY = (canvas.height - guideHeight) / 2;
+
+          // Draw guide box with dashed border
+          ctx.strokeStyle = 'rgba(34, 197, 94, 0.6)';
+          ctx.lineWidth = 3;
+          ctx.setLineDash([10, 5]);
+          ctx.strokeRect(guideX, guideY, guideWidth, guideHeight);
+          ctx.setLineDash([]); // Reset dash
+
+          // Draw guide text
+          ctx.font = 'bold 16px Arial';
+          ctx.fillStyle = '#22c55e';
+          ctx.strokeStyle = 'black';
+          ctx.lineWidth = 3;
+          const guideText = '👤 여기에 얼굴 위치';
+          const textMetrics = ctx.measureText(guideText);
+          const textX = (canvas.width - textMetrics.width) / 2;
+          ctx.strokeText(guideText, textX, guideY - 10);
+          ctx.fillText(guideText, textX, guideY - 10);
+
           // Draw detection status in top-left
           ctx.font = 'bold 20px Arial';
           ctx.strokeStyle = 'black';
@@ -388,11 +412,54 @@ export const useGazeTracking = (
             ctx.strokeText(infoText, 10, 60);
             ctx.fillText(infoText, 10, 60);
 
-            // Draw face box
+            // Draw face box with position feedback
             if (face.box) {
-              ctx.strokeStyle = '#22c55e';
+              // Check if face is within guide box
+              const faceCenterX = face.box.xMin + face.box.width / 2;
+              const faceCenterY = face.box.yMin + face.box.height / 2;
+              const isInGuideX = faceCenterX >= guideX && faceCenterX <= guideX + guideWidth;
+              const isInGuideY = faceCenterY >= guideY && faceCenterY <= guideY + guideHeight;
+              const isWellPositioned = isInGuideX && isInGuideY;
+
+              // Draw face box (green if well positioned, red if not)
+              ctx.strokeStyle = isWellPositioned ? '#22c55e' : '#ef4444';
               ctx.lineWidth = 3;
               ctx.strokeRect(face.box.xMin, face.box.yMin, face.box.width, face.box.height);
+
+              // Draw position feedback text
+              ctx.font = 'bold 18px Arial';
+              ctx.fillStyle = isWellPositioned ? '#22c55e' : '#ef4444';
+              ctx.strokeStyle = 'black';
+              ctx.lineWidth = 3;
+              const feedbackText = isWellPositioned ? '✅ 완벽한 위치!' : '⚠️ 가이드 박스 안으로';
+              const feedbackMetrics = ctx.measureText(feedbackText);
+              const feedbackX = (canvas.width - feedbackMetrics.width) / 2;
+              ctx.strokeText(feedbackText, feedbackX, canvas.height - 20);
+              ctx.fillText(feedbackText, feedbackX, canvas.height - 20);
+
+              // Draw arrows if face is outside guide
+              if (!isInGuideX) {
+                ctx.font = 'bold 30px Arial';
+                ctx.fillStyle = '#ef4444';
+                if (faceCenterX < guideX) {
+                  // Face is on left, show right arrow
+                  ctx.fillText('👉', canvas.width - 50, canvas.height / 2);
+                } else {
+                  // Face is on right, show left arrow
+                  ctx.fillText('👈', 20, canvas.height / 2);
+                }
+              }
+              if (!isInGuideY) {
+                ctx.font = 'bold 30px Arial';
+                ctx.fillStyle = '#ef4444';
+                if (faceCenterY < guideY) {
+                  // Face is above, show down arrow
+                  ctx.fillText('👇', canvas.width / 2, canvas.height - 50);
+                } else {
+                  // Face is below, show up arrow
+                  ctx.fillText('👆', canvas.width / 2, 50);
+                }
+              }
             }
           }
         }
