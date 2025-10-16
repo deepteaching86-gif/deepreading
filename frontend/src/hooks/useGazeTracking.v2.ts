@@ -744,7 +744,9 @@ function estimateGazeFromLandmarks(
   const baseY = avgIrisY / videoHeight;
   const headCompensatedY = baseY + (headPitch * 0.5);
 
-  const x = 0.5 + (headCompensatedX * 0.4);
+  // Horizontal: Flip to match screen (webcam is mirrored) + increase sensitivity for large monitors
+  const rawX = 0.5 + (headCompensatedX * 0.6);  // Increased from 0.4 to 0.6 for better range
+  const x = 1 - rawX;  // Flip horizontally to match screen orientation
   const y = headCompensatedY;
 
   const eyeSymmetry = 1 - Math.abs(leftIrisRatio - rightIrisRatio);
