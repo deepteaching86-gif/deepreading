@@ -476,18 +476,26 @@ export const useGazeTracking = (
     }
 
     if (faces.length === 0) {
-      // No face detected - log video state for debugging
+      // No face detected - provide detailed debugging info
       const debugInfo = {
         videoWidth: video.videoWidth,
         videoHeight: video.videoHeight,
         readyState: video.readyState,
         paused: video.paused,
-        currentTime: video.currentTime
+        currentTime: video.currentTime,
+        hasVideoData: video.readyState >= 2,
+        brightness: 'unknown' // We can't easily check brightness without analyzing pixels
       };
 
-      // Only log every 30 frames (~1 second) to avoid spam
-      if (fpsCounterRef.current.frames % 30 === 0) {
+      // Only log every 60 frames (~2 seconds) to reduce spam
+      if (fpsCounterRef.current.frames % 60 === 0) {
         console.log('👤 No face detected - Video state:', debugInfo);
+        console.log('💡 Troubleshooting tips:');
+        console.log('  1. Check if Canvas shows your face clearly');
+        console.log('  2. Ensure good lighting (not too dark)');
+        console.log('  3. Face should be clearly visible and frontal');
+        console.log('  4. Try moving closer to or further from camera');
+        console.log('  5. Remove any obstructions (hands, masks, etc.)');
       }
 
       setCurrentGaze(null);

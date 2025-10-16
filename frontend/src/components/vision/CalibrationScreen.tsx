@@ -324,10 +324,10 @@ export const CalibrationScreen: React.FC<CalibrationScreenProps> = ({
           webkit-playsinline="true"
         />
 
-        {/* Canvas for face detection visualization - larger for better visibility */}
+        {/* Canvas for face detection visualization - always visible and large */}
         <canvas
           ref={canvasRef}
-          className={showVideoPreview ? "fixed bottom-4 right-4 w-96 h-72 border-4 border-primary rounded-lg shadow-2xl z-50 bg-black" : "hidden"}
+          className="fixed bottom-4 right-4 w-[480px] h-[360px] border-4 border-primary rounded-lg shadow-2xl z-50 bg-black"
         />
 
         {/* Status bar */}
