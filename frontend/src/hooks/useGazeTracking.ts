@@ -77,32 +77,19 @@ export const useGazeTracking = (
       console.log('✅ TensorFlow.js ready with backend:', backend);
 
       // Create MediaPipe Face Landmarks detector
-      // Try MediaPipe runtime first (more stable), fallback to tfjs if needed
+      // Use tfjs runtime (recommended for browser, version 1.0.6)
       const model = faceLandmarksDetection.SupportedModels.MediaPipeFaceMesh;
 
-      let detector;
-      try {
-        console.log('🔧 Attempting MediaPipe runtime (WebAssembly)...');
-        const mediapipeConfig: faceLandmarksDetection.MediaPipeFaceMeshMediaPipeModelConfig = {
-          runtime: 'mediapipe',
-          refineLandmarks: true, // Enable iris tracking
-          maxFaces: 1,
-          solutionPath: 'https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh'
-        };
-        detector = await faceLandmarksDetection.createDetector(model, mediapipeConfig);
-        console.log('✅ MediaPipe runtime loaded successfully');
-      } catch (mediapipeError) {
-        console.warn('⚠️ MediaPipe runtime failed, falling back to tfjs:', mediapipeError);
-        const tfjsConfig: faceLandmarksDetection.MediaPipeFaceMeshTfjsModelConfig = {
-          runtime: 'tfjs',
-          refineLandmarks: true,
-          maxFaces: 1
-        };
-        console.log('🔧 Creating face detector with tfjs runtime...');
-        detector = await faceLandmarksDetection.createDetector(model, tfjsConfig);
-        console.log('✅ TFJS runtime loaded successfully');
-      }
+      console.log('🔧 Creating face detector with tfjs runtime...');
+      const tfjsConfig: faceLandmarksDetection.MediaPipeFaceMeshTfjsModelConfig = {
+        runtime: 'tfjs',
+        refineLandmarks: true, // Enable iris tracking
+        maxFaces: 1
+      };
+
+      const detector = await faceLandmarksDetection.createDetector(model, tfjsConfig);
       detectorRef.current = detector;
+      console.log('✅ TFJS Face Mesh detector loaded successfully');
       console.log('✅ MediaPipe Face Mesh loaded successfully');
 
       setIsInitialized(true);
@@ -258,11 +245,11 @@ export const useGazeTracking = (
     // Detect face landmarks with visualization for debugging
     let faces;
     try {
-      // Try detection with static image mode first (more aggressive detection)
-      // If that fails consistently, we'll fall back to dynamic mode
+      // Use dynamic mode (staticImageMode: false) for video streams
+      // This enables tracking which is more efficient and accurate for continuous video
       faces = await detectorRef.current.estimateFaces(video, {
         flipHorizontal: false,
-        staticImageMode: true  // Static mode for more aggressive initial detection
+        staticImageMode: false  // Dynamic mode for video tracking (better for real-time)
       });
 
       // Draw faces on canvas for debugging (update every frame for smooth visualization)
