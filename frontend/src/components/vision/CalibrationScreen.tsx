@@ -348,6 +348,38 @@ export const CalibrationScreen: React.FC<CalibrationScreenProps> = ({
         {/* Control buttons */}
         <div className="absolute top-4 right-4 flex gap-2">
           <button
+            onClick={() => {
+              // Log expanded debug info to console
+              if (canvasRef.current) {
+                const canvas = canvasRef.current;
+                console.log('🖼️ Canvas Debug Info:', {
+                  width: canvas.width,
+                  height: canvas.height,
+                  displayWidth: canvas.offsetWidth,
+                  displayHeight: canvas.offsetHeight,
+                  hasContext: !!canvas.getContext('2d')
+                });
+              }
+              if (videoRef.current) {
+                const video = videoRef.current;
+                console.log('📹 Video Debug Info:', {
+                  videoWidth: video.videoWidth,
+                  videoHeight: video.videoHeight,
+                  readyState: video.readyState,
+                  paused: video.paused,
+                  currentTime: video.currentTime,
+                  srcObject: !!video.srcObject
+                });
+              }
+              console.log('💡 Tip: Check if canvas shows your face clearly!');
+            }}
+            className="bg-card/90 backdrop-blur px-4 py-2 rounded-full shadow-lg hover:bg-card transition-colors"
+          >
+            <span className="text-sm font-medium">
+              🐛 Debug
+            </span>
+          </button>
+          <button
             onClick={() => setShowVideoPreview(!showVideoPreview)}
             className="bg-card/90 backdrop-blur px-4 py-2 rounded-full shadow-lg hover:bg-card transition-colors"
           >
