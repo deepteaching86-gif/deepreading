@@ -324,10 +324,10 @@ export const CalibrationScreen: React.FC<CalibrationScreenProps> = ({
           webkit-playsinline="true"
         />
 
-        {/* Canvas for face detection visualization - always visible and large */}
+        {/* Canvas for face detection visualization - toggleable */}
         <canvas
           ref={canvasRef}
-          className="fixed bottom-4 right-4 w-[480px] h-[360px] border-4 border-primary rounded-lg shadow-2xl z-50 bg-black"
+          className={`fixed bottom-4 right-4 w-[480px] h-[360px] border-4 border-primary rounded-lg shadow-2xl z-50 bg-black transition-opacity duration-300 ${showVideoPreview ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
         />
 
         {/* Status bar */}
@@ -598,12 +598,12 @@ export const CalibrationScreen: React.FC<CalibrationScreenProps> = ({
         {/* Real-time gaze visualization */}
         {showGazeVisualization && currentGaze && (
           <>
-            {/* Gaze point - larger and more visible */}
+            {/* Gaze point - larger and more visible, clamped to screen */}
             <div
               className="absolute transform -translate-x-1/2 -translate-y-1/2 pointer-events-none transition-all duration-75"
               style={{
-                left: `${currentGaze.x * 100}%`,
-                top: `${currentGaze.y * 100}%`,
+                left: `${Math.max(0, Math.min(100, currentGaze.x * 100))}%`,
+                top: `${Math.max(0, Math.min(100, currentGaze.y * 100))}%`,
               }}
             >
               {/* Outer glow */}
@@ -631,11 +631,17 @@ export const CalibrationScreen: React.FC<CalibrationScreenProps> = ({
               />
             </div>
 
-            {/* Gaze info overlay */}
+            {/* Gaze info overlay with range check */}
             <div className="absolute bottom-4 left-4 bg-black/70 text-white px-4 py-3 rounded-lg text-xs font-mono space-y-1">
               <div>시선 X: {(currentGaze.x * 100).toFixed(1)}%</div>
               <div>시선 Y: {(currentGaze.y * 100).toFixed(1)}%</div>
               <div>신뢰도: {(currentGaze.confidence * 100).toFixed(0)}%</div>
+              {/* Warning if coordinates are out of bounds */}
+              {(currentGaze.x < 0 || currentGaze.x > 1 || currentGaze.y < 0 || currentGaze.y > 1) && (
+                <div className="text-yellow-400 mt-2">
+                  ⚠️ 좌표 범위 초과!
+                </div>
+              )}
             </div>
           </>
         )}
