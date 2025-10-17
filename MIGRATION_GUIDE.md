@@ -6,7 +6,7 @@
 ## Method 1: 브라우저에서 직접 실행 (권장)
 
 ### Step 1: Admin으로 로그인
-1. https://deepreading.netlify.app 접속
+1. https://playful-cocada-a89755.netlify.app 접속
 2. Admin 계정으로 로그인:
    - Email: `admin@deepreading.com`
    - Password: `Admin123!@#`

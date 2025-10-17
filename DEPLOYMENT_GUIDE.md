@@ -100,7 +100,7 @@ ls dist/
    SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
    SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
    JWT_SECRET=your-production-jwt-secret-min-32-chars
-   CORS_ORIGIN=https://your-frontend-url.netlify.app
+   CORS_ORIGIN=https://playful-cocada-a89755.netlify.app
    ```
 
 5. **Deploy 클릭**
@@ -236,12 +236,12 @@ JWT_SECRET=production-secret-min-32-characters-long
 JWT_ACCESS_EXPIRY=15m
 JWT_REFRESH_EXPIRY=7d
 BCRYPT_ROUNDS=12
-CORS_ORIGIN=https://your-app.netlify.app
+CORS_ORIGIN=https://playful-cocada-a89755.netlify.app
 RATE_LIMIT_WINDOW_MS=900000
 RATE_LIMIT_MAX_REQUESTS=100
 LOG_LEVEL=info
 APP_URL=https://literacy-assessment-api.vercel.app
-FRONTEND_URL=https://your-app.netlify.app
+FRONTEND_URL=https://playful-cocada-a89755.netlify.app
 ```
 
 **Preview/Development:**
@@ -473,7 +473,7 @@ DATABASE_URL="postgresql://postgres.sxnjeqqvqbhueqbwsnpj:password@aws-0-ap-north
 
 **프론트엔드 (Netlify):**
 ```
-https://literacy-assessment.netlify.app
+https://playful-cocada-a89755.netlify.app
 ```
 
 **백엔드 (Vercel):**
