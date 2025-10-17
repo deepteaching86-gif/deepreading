@@ -826,9 +826,10 @@ function estimateGazeFromLandmarks(
   const headCompensatedY = (avgIrisRatioY * baseSensitivityY);
 
   // === FINAL GAZE COORDINATES ===
-  // Horizontal: Center at 0.5, then flip for webcam mirror
+  // Horizontal: Center at 0.5
+  // NOTE: DO NOT flip - coordinates are already correct!
   const rawX = 0.5 + (headCompensatedX * 1.5);  // Increased from 0.3 to 1.5 for better range
-  const x = 1 - rawX;  // Flip horizontally
+  const x = rawX;  // No flip needed
 
   // Vertical: Center at 0.5
   const y = 0.5 + (headCompensatedY * 1.5);  // Increased from 0.3 to 1.5 for better range
