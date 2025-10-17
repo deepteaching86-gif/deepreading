@@ -742,9 +742,12 @@ function estimateGazeFromLandmarks(
   const headCompensatedX = (avgIrisRatioX * 10) - (headYaw * 2.0);
 
   // === VERTICAL (Y-axis) CALCULATION ===
-  // Calculate vertical iris distance from eye center (signed: up = negative, down = positive)
-  const leftIrisOffsetY = landmarks.leftIris.y - landmarks.leftEye.y;
-  const rightIrisOffsetY = landmarks.rightIris.y - landmarks.rightEye.y;
+  // Calculate vertical iris distance from eye center
+  // In video coordinates: Y increases downward, so iris below eye center = positive
+  // We want: looking UP = low Y screen coords (0-30%), looking DOWN = high Y (70-100%)
+  // So we NEGATE the offset: looking UP (negative offset) → positive value → low screen Y after inversion
+  const leftIrisOffsetY = -(landmarks.leftIris.y - landmarks.leftEye.y);
+  const rightIrisOffsetY = -(landmarks.rightIris.y - landmarks.rightEye.y);
 
   // Normalize by video height (range approximately -0.02 to +0.02 for typical eye movements)
   const leftIrisRatioY = leftIrisOffsetY / videoHeight;
@@ -754,7 +757,7 @@ function estimateGazeFromLandmarks(
   // Head pitch compensation (up-down head tilt)
   const eyesCenterY = (landmarks.leftEye.y + landmarks.rightEye.y) / 2;
   const noseTipY = landmarks.noseTip.y;
-  const headPitch = (noseTipY - eyesCenterY) / videoHeight;
+  const headPitch = -(noseTipY - eyesCenterY) / videoHeight;  // Also negate head pitch
 
   // Combine iris position with head tilt (increase sensitivity from 0.02 range to full 0-1 range)
   const headCompensatedY = (avgIrisRatioY * 15) + (headPitch * 2.0);
