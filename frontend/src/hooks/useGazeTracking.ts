@@ -796,9 +796,9 @@ function estimateGazeFromLandmarks(
   const noseTipX = landmarks.noseTip.x;
   const headYaw = (noseTipX - eyesCenterX) / videoWidth;
 
-  // Combine iris position with head rotation - ADAPTIVE sensitivity
-  const baseSensitivityX = 20; // Base sensitivity for 24" at 50cm
-  const headCompensatedX = (avgIrisRatioX * baseSensitivityX * adaptiveMultiplierX) - (headYaw * 4.0 * adaptiveMultiplierX);
+  // Combine iris position with head rotation - ADAPTIVE sensitivity with HIGHER base values
+  const baseSensitivityX = 40; // Doubled from 20 for better edge reach
+  const headCompensatedX = (avgIrisRatioX * baseSensitivityX * adaptiveMultiplierX) - (headYaw * 8.0 * adaptiveMultiplierX);
 
   // === VERTICAL (Y-axis) CALCULATION ===
   // Calculate vertical iris distance from eye center
@@ -818,17 +818,17 @@ function estimateGazeFromLandmarks(
   const noseTipY = landmarks.noseTip.y;
   const headPitch = -(noseTipY - eyesCenterY) / videoHeight;  // Also negate head pitch
 
-  // Combine iris position with head tilt - ADAPTIVE sensitivity
-  const baseSensitivityY = 30; // Base sensitivity for 24" at 50cm
-  const headCompensatedY = (avgIrisRatioY * baseSensitivityY * adaptiveMultiplierY) + (headPitch * 4.0 * adaptiveMultiplierY);
+  // Combine iris position with head tilt - ADAPTIVE sensitivity with HIGHER base values
+  const baseSensitivityY = 60; // Doubled from 30 for better edge reach
+  const headCompensatedY = (avgIrisRatioY * baseSensitivityY * adaptiveMultiplierY) + (headPitch * 8.0 * adaptiveMultiplierY);
 
   // === FINAL GAZE COORDINATES ===
-  // Horizontal: Center at 0.5, then flip for webcam mirror
-  const rawX = 0.5 + (headCompensatedX * 0.8);
+  // Horizontal: Center at 0.5, then flip for webcam mirror - REMOVED limiting multiplier
+  const rawX = 0.5 + headCompensatedX;  // No more 0.8x limiter!
   const x = 1 - rawX;  // Flip horizontally to match screen orientation
 
-  // Vertical: Center at 0.5
-  const y = 0.5 + (headCompensatedY * 0.8);
+  // Vertical: Center at 0.5 - REMOVED limiting multiplier
+  const y = 0.5 + headCompensatedY;  // No more 0.8x limiter!
 
   // Calculate confidence
   const eyeSymmetryX = 1 - Math.abs(leftIrisRatioX - rightIrisRatioX) * 20;
