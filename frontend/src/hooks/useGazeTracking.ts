@@ -828,11 +828,11 @@ function estimateGazeFromLandmarks(
   // === FINAL GAZE COORDINATES ===
   // Horizontal: Center at 0.5
   // NOTE: DO NOT flip - coordinates are already correct!
-  const rawX = 0.5 + (headCompensatedX * 1.5);  // Increased from 0.3 to 1.5 for better range
+  const rawX = 0.5 + (headCompensatedX * 0.8);  // 1.5 → 0.8 to prevent overflow (1.0+)
   const x = rawX;  // No flip needed
 
   // Vertical: Center at 0.5
-  const y = 0.5 + (headCompensatedY * 1.5);  // Increased from 0.3 to 1.5 for better range
+  const y = 0.5 + (headCompensatedY * 0.8);  // 1.5 → 0.8 to prevent overflow (1.0+)
 
   // Calculate confidence
   const eyeSymmetryX = 1 - Math.abs(leftIrisRatioX - rightIrisRatioX) * 20;
