@@ -796,9 +796,10 @@ function estimateGazeFromLandmarks(
   const noseTipX = landmarks.noseTip.x;
   const headYaw = (noseTipX - eyesCenterX) / videoWidth;
 
-  // Combine iris position with head rotation - ADAPTIVE sensitivity with HIGHER base values
-  const baseSensitivityX = 40; // Doubled from 20 for better edge reach
-  const headCompensatedX = (avgIrisRatioX * baseSensitivityX * adaptiveMultiplierX) - (headYaw * 8.0 * adaptiveMultiplierX);
+  // Combine iris position with head rotation - MUCH HIGHER base values
+  // NOTE: Remove adaptive multiplier - it was cutting sensitivity in half (0.48-0.53)
+  const baseSensitivityX = 80; // 40 → 80 for full screen coverage
+  const headCompensatedX = (avgIrisRatioX * baseSensitivityX) - (headYaw * 15.0);
 
   // === VERTICAL (Y-axis) CALCULATION ===
   // Calculate vertical iris distance from eye center
@@ -818,10 +819,11 @@ function estimateGazeFromLandmarks(
   const noseTipY = landmarks.noseTip.y;
   const headPitch = (noseTipY - eyesCenterY) / videoHeight;
 
-  // Combine with LOWER sensitivity to prevent overflow
+  // Combine iris position with head rotation - MUCH HIGHER base values
   // IMPORTANT: Do NOT add headPitch - it causes constant downward bias
-  const baseSensitivityY = 25; // Increased from 15 since we're not using head pitch
-  const headCompensatedY = (avgIrisRatioY * baseSensitivityY * adaptiveMultiplierY);
+  // NOTE: Remove adaptive multiplier - it was cutting sensitivity in half (0.48-0.53)
+  const baseSensitivityY = 50; // 25 → 50 for full screen coverage
+  const headCompensatedY = (avgIrisRatioY * baseSensitivityY);
 
   // === FINAL GAZE COORDINATES ===
   // Horizontal: Center at 0.5, then flip for webcam mirror
