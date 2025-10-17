@@ -723,6 +723,64 @@ function estimateGazeFromLandmarks(
   videoWidth: number,
   videoHeight: number
 ): { x: number; y: number; confidence: number } {
+  // === SCREEN SIZE ADAPTIVE SENSITIVITY ===
+  // Calculate screen dimensions and viewing angle
+  const screenWidth = window.screen.width;
+  const screenHeight = window.screen.height;
+  const screenDiagonalPx = Math.sqrt(screenWidth * screenWidth + screenHeight * screenHeight);
+
+  // Estimate screen diagonal in inches (assuming standard pixel density)
+  // Typical screens: 96 DPI (desktop), 163 DPI (mobile), 264 DPI (retina)
+  const pixelDensity = window.devicePixelRatio || 1;
+  const estimatedDPI = 96 * pixelDensity; // Rough estimate
+  const screenDiagonalInches = screenDiagonalPx / estimatedDPI;
+
+  // Calculate eye-to-eye distance in pixels (typical: 60-70mm, ~10% of face width)
+  const eyeDistance = Math.abs(landmarks.leftEye.x - landmarks.rightEye.x);
+
+  // Estimate viewing distance based on eye distance in video
+  // Typical interpupillary distance: 63mm
+  // If eyes appear larger in video → closer to camera
+  // If eyes appear smaller → farther from camera
+  const eyeDistanceRatio = eyeDistance / videoWidth; // Normalized eye distance
+
+  // Reference values:
+  // - Close viewing (30cm): eyeDistanceRatio ~0.20
+  // - Medium viewing (50cm): eyeDistanceRatio ~0.12
+  // - Far viewing (80cm): eyeDistanceRatio ~0.08
+
+  // Calculate adaptive sensitivity multipliers
+  // Larger screens need HIGHER sensitivity (more pixels to cover)
+  // Closer viewing needs LOWER sensitivity (less eye movement needed)
+
+  // Screen size factor: larger screens = higher sensitivity
+  // Base: 24" desktop monitor, scale proportionally
+  const screenSizeFactor = Math.max(0.5, Math.min(2.0, screenDiagonalInches / 24.0));
+
+  // Viewing distance factor: closer viewing = lower sensitivity
+  // Normalize so 0.12 (50cm) = 1.0x
+  const viewingDistanceFactor = Math.max(0.5, Math.min(2.0, 0.12 / eyeDistanceRatio));
+
+  // Aspect ratio factor: wider screens need more horizontal sensitivity
+  const aspectRatio = screenWidth / screenHeight;
+  const aspectRatioFactorX = Math.max(1.0, aspectRatio / 1.6); // 16:10 as baseline
+
+  // Final adaptive multipliers
+  const adaptiveMultiplierX = screenSizeFactor * viewingDistanceFactor * aspectRatioFactorX;
+  const adaptiveMultiplierY = screenSizeFactor * viewingDistanceFactor;
+
+  // Log adaptive parameters (every 60 frames to avoid spam)
+  if (Math.random() < 0.016) { // ~1 in 60 frames at 60fps
+    console.log('📐 Adaptive sensitivity:', {
+      screenSize: `${screenWidth}x${screenHeight} (${screenDiagonalInches.toFixed(1)}")`,
+      eyeDistance: eyeDistanceRatio.toFixed(3),
+      multipliers: {
+        X: adaptiveMultiplierX.toFixed(2),
+        Y: adaptiveMultiplierY.toFixed(2)
+      }
+    });
+  }
+
   // === HORIZONTAL (X-axis) CALCULATION ===
   // Calculate horizontal iris distance from eye center (signed: left = negative, right = positive)
   const leftIrisOffsetX = landmarks.leftIris.x - landmarks.leftEye.x;
@@ -738,8 +796,9 @@ function estimateGazeFromLandmarks(
   const noseTipX = landmarks.noseTip.x;
   const headYaw = (noseTipX - eyesCenterX) / videoWidth;
 
-  // Combine iris position with head rotation (MUCH higher sensitivity for screen edges)
-  const headCompensatedX = (avgIrisRatioX * 20) - (headYaw * 4.0);
+  // Combine iris position with head rotation - ADAPTIVE sensitivity
+  const baseSensitivityX = 20; // Base sensitivity for 24" at 50cm
+  const headCompensatedX = (avgIrisRatioX * baseSensitivityX * adaptiveMultiplierX) - (headYaw * 4.0 * adaptiveMultiplierX);
 
   // === VERTICAL (Y-axis) CALCULATION ===
   // Calculate vertical iris distance from eye center
@@ -759,15 +818,16 @@ function estimateGazeFromLandmarks(
   const noseTipY = landmarks.noseTip.y;
   const headPitch = -(noseTipY - eyesCenterY) / videoHeight;  // Also negate head pitch
 
-  // Combine iris position with head tilt (MUCH higher sensitivity for screen edges)
-  const headCompensatedY = (avgIrisRatioY * 30) + (headPitch * 4.0);
+  // Combine iris position with head tilt - ADAPTIVE sensitivity
+  const baseSensitivityY = 30; // Base sensitivity for 24" at 50cm
+  const headCompensatedY = (avgIrisRatioY * baseSensitivityY * adaptiveMultiplierY) + (headPitch * 4.0 * adaptiveMultiplierY);
 
   // === FINAL GAZE COORDINATES ===
-  // Horizontal: Center at 0.5, then flip for webcam mirror - HIGHER sensitivity
+  // Horizontal: Center at 0.5, then flip for webcam mirror
   const rawX = 0.5 + (headCompensatedX * 0.8);
   const x = 1 - rawX;  // Flip horizontally to match screen orientation
 
-  // Vertical: Center at 0.5 - HIGHER sensitivity
+  // Vertical: Center at 0.5
   const y = 0.5 + (headCompensatedY * 0.8);
 
   // Calculate confidence
