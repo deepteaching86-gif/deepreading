@@ -724,49 +724,53 @@ function estimateGazeFromLandmarks(
   videoHeight: number
 ): { x: number; y: number; confidence: number } {
   // === HORIZONTAL (X-axis) CALCULATION ===
-  // Calculate horizontal iris position relative to eye center
-  const leftEyeWidth = Math.abs(landmarks.leftEye.x - landmarks.leftIris.x);
-  const rightEyeWidth = Math.abs(landmarks.rightEye.x - landmarks.rightIris.x);
+  // Calculate horizontal iris distance from eye center (signed: left = negative, right = positive)
+  const leftIrisOffsetX = landmarks.leftIris.x - landmarks.leftEye.x;
+  const rightIrisOffsetX = landmarks.rightIris.x - landmarks.rightEye.x;
 
-  const leftIrisRatio = leftEyeWidth / (videoWidth * 0.05);
-  const rightIrisRatio = rightEyeWidth / (videoWidth * 0.05);
+  // Normalize by video width (range approximately -0.05 to +0.05 for typical eye movements)
+  const leftIrisRatioX = leftIrisOffsetX / videoWidth;
+  const rightIrisRatioX = rightIrisOffsetX / videoWidth;
+  const avgIrisRatioX = (leftIrisRatioX + rightIrisRatioX) / 2;
 
   // Head yaw compensation (left-right head rotation)
   const eyesCenterX = (landmarks.leftEye.x + landmarks.rightEye.x) / 2;
   const noseTipX = landmarks.noseTip.x;
   const headYaw = (noseTipX - eyesCenterX) / videoWidth;
 
-  const avgIrisRatio = (leftIrisRatio + rightIrisRatio) / 2;
-  const headCompensatedX = avgIrisRatio - (headYaw * 2.0);
+  // Combine iris position with head rotation (increase sensitivity from 0.05 range to full 0-1 range)
+  const headCompensatedX = (avgIrisRatioX * 10) - (headYaw * 2.0);
 
   // === VERTICAL (Y-axis) CALCULATION ===
-  // Calculate vertical iris position RELATIVE to eye center (KEEP DIRECTION!)
-  const eyesCenterY = (landmarks.leftEye.y + landmarks.rightEye.y) / 2;
+  // Calculate vertical iris distance from eye center (signed: up = negative, down = positive)
+  const leftIrisOffsetY = landmarks.leftIris.y - landmarks.leftEye.y;
+  const rightIrisOffsetY = landmarks.rightIris.y - landmarks.rightEye.y;
 
-  // Signed vertical offset (positive = looking down, negative = looking up)
-  const leftIrisOffset = (landmarks.leftIris.y - landmarks.leftEye.y) / (videoHeight * 0.03);
-  const rightIrisOffset = (landmarks.rightIris.y - landmarks.rightEye.y) / (videoHeight * 0.03);
-  const avgIrisOffset = (leftIrisOffset + rightIrisOffset) / 2;
+  // Normalize by video height (range approximately -0.02 to +0.02 for typical eye movements)
+  const leftIrisRatioY = leftIrisOffsetY / videoHeight;
+  const rightIrisRatioY = rightIrisOffsetY / videoHeight;
+  const avgIrisRatioY = (leftIrisRatioY + rightIrisRatioY) / 2;
 
   // Head pitch compensation (up-down head tilt)
+  const eyesCenterY = (landmarks.leftEye.y + landmarks.rightEye.y) / 2;
   const noseTipY = landmarks.noseTip.y;
   const headPitch = (noseTipY - eyesCenterY) / videoHeight;
 
-  // Combine iris offset with head pitch
-  const headCompensatedY = avgIrisOffset + (headPitch * 2.0);
+  // Combine iris position with head tilt (increase sensitivity from 0.02 range to full 0-1 range)
+  const headCompensatedY = (avgIrisRatioY * 15) + (headPitch * 2.0);
 
   // === FINAL GAZE COORDINATES ===
-  // Horizontal: Flip to match screen (webcam is mirrored) + high sensitivity
-  // avgIrisRatio is already a ratio, don't add 0.5 baseline!
-  const rawX = headCompensatedX * 1.5;  // Scale iris movement (0 = left, 1 = right before flip)
+  // Horizontal: Center at 0.5, then flip for webcam mirror
+  const rawX = 0.5 + (headCompensatedX * 0.5);
   const x = 1 - rawX;  // Flip horizontally to match screen orientation
 
-  // Vertical: Center around 0.5 with high sensitivity
-  const y = 0.5 + (headCompensatedY * 1.5);  // Center at 0.5, iris offset moves up/down
+  // Vertical: Center at 0.5
+  const y = 0.5 + (headCompensatedY * 0.5);
 
-  const eyeSymmetry = 1 - Math.abs(leftIrisRatio - rightIrisRatio);
+  // Calculate confidence
+  const eyeSymmetryX = 1 - Math.abs(leftIrisRatioX - rightIrisRatioX) * 20;
   const frontalFactor = 1 - (Math.abs(headYaw) * 2 + Math.abs(headPitch));
-  const confidence = Math.max(0.3, Math.min(1.0, (eyeSymmetry + frontalFactor) / 2));
+  const confidence = Math.max(0.3, Math.min(1.0, (eyeSymmetryX + frontalFactor) / 2));
 
   return { x, y, confidence };
 }

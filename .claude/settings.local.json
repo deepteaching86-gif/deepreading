@@ -79,7 +79,10 @@
       "Bash(PGPASSWORD='DeepReading2025!@#$SecureDB' psql:*)",
       "Bash(if exist dist rd /s /q dist)",
       "Bash(xcopy:*)",
-      "Bash(del /F nul)"
+      "Bash(del /F nul)",
+      "Bash(if [ -f .netlify/state.json ])",
+      "Bash(then cat .netlify/state.json)",
+      "Bash(else echo \"No Netlify state found\")"
     ],
     "deny": [],
     "ask": []
