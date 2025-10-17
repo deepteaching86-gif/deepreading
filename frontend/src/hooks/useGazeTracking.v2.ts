@@ -723,31 +723,48 @@ function estimateGazeFromLandmarks(
   videoWidth: number,
   videoHeight: number
 ): { x: number; y: number; confidence: number } {
+  // === HORIZONTAL (X-axis) CALCULATION ===
+  // Calculate horizontal iris position relative to eye center
   const leftEyeWidth = Math.abs(landmarks.leftEye.x - landmarks.leftIris.x);
   const rightEyeWidth = Math.abs(landmarks.rightEye.x - landmarks.rightIris.x);
 
   const leftIrisRatio = leftEyeWidth / (videoWidth * 0.05);
   const rightIrisRatio = rightEyeWidth / (videoWidth * 0.05);
 
+  // Head yaw compensation (left-right head rotation)
   const eyesCenterX = (landmarks.leftEye.x + landmarks.rightEye.x) / 2;
   const noseTipX = landmarks.noseTip.x;
   const headYaw = (noseTipX - eyesCenterX) / videoWidth;
 
-  const eyesCenterY = (landmarks.leftEye.y + landmarks.rightEye.y) / 2;
-  const noseTipY = landmarks.noseTip.y;
-  const headPitch = (noseTipY - eyesCenterY) / videoHeight;
-
   const avgIrisRatio = (leftIrisRatio + rightIrisRatio) / 2;
   const headCompensatedX = avgIrisRatio - (headYaw * 2.0);
 
-  const avgIrisY = (landmarks.leftIris.y + landmarks.rightIris.y) / 2;
-  const baseY = avgIrisY / videoHeight;
-  const headCompensatedY = baseY + (headPitch * 0.5);
+  // === VERTICAL (Y-axis) CALCULATION ===
+  // Calculate vertical iris position RELATIVE to eye center (not absolute position!)
+  const eyesCenterY = (landmarks.leftEye.y + landmarks.rightEye.y) / 2;
 
-  // Horizontal: Flip to match screen (webcam is mirrored) + increase sensitivity for large monitors
-  const rawX = 0.5 + (headCompensatedX * 0.6);  // Increased from 0.4 to 0.6 for better range
+  // Iris height relative to eye center (negative = looking up, positive = looking down)
+  const leftEyeHeight = Math.abs(landmarks.leftIris.y - landmarks.leftEye.y);
+  const rightEyeHeight = Math.abs(landmarks.rightIris.y - landmarks.rightEye.y);
+  const avgIrisHeight = (leftEyeHeight + rightEyeHeight) / 2;
+
+  // Normalize by video height to get ratio
+  const irisVerticalRatio = avgIrisHeight / (videoHeight * 0.03);  // Eye height reference
+
+  // Head pitch compensation (up-down head tilt)
+  const noseTipY = landmarks.noseTip.y;
+  const headPitch = (noseTipY - eyesCenterY) / videoHeight;
+
+  // Combine iris position with head pitch
+  const headCompensatedY = irisVerticalRatio + (headPitch * 1.5);
+
+  // === FINAL GAZE COORDINATES ===
+  // Horizontal: Flip to match screen (webcam is mirrored) + increase sensitivity
+  const rawX = 0.5 + (headCompensatedX * 1.2);  // Increased from 0.6 to 1.2 for wider range
   const x = 1 - rawX;  // Flip horizontally to match screen orientation
-  const y = headCompensatedY;
+
+  // Vertical: Center around 0.5 with increased sensitivity
+  const y = 0.5 + (headCompensatedY * 1.2);  // Increased sensitivity for vertical movement
 
   const eyeSymmetry = 1 - Math.abs(leftIrisRatio - rightIrisRatio);
   const frontalFactor = 1 - (Math.abs(headYaw) * 2 + Math.abs(headPitch));
