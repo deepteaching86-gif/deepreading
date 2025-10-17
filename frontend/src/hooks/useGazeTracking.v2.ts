@@ -756,12 +756,13 @@ function estimateGazeFromLandmarks(
   const headCompensatedY = avgIrisOffset + (headPitch * 2.0);
 
   // === FINAL GAZE COORDINATES ===
-  // Horizontal: Flip to match screen (webcam is mirrored) + MUCH higher sensitivity
-  const rawX = 0.5 + (headCompensatedX * 2.5);  // Increased from 1.2 to 2.5 for full screen range
+  // Horizontal: Flip to match screen (webcam is mirrored) + high sensitivity
+  // avgIrisRatio is already a ratio, don't add 0.5 baseline!
+  const rawX = headCompensatedX * 1.5;  // Scale iris movement (0 = left, 1 = right before flip)
   const x = 1 - rawX;  // Flip horizontally to match screen orientation
 
-  // Vertical: Center around 0.5 with MUCH higher sensitivity
-  const y = 0.5 + (headCompensatedY * 2.5);  // Increased from 1.2 to 2.5 for full screen range
+  // Vertical: Center around 0.5 with high sensitivity
+  const y = 0.5 + (headCompensatedY * 1.5);  // Center at 0.5, iris offset moves up/down
 
   const eyeSymmetry = 1 - Math.abs(leftIrisRatio - rightIrisRatio);
   const frontalFactor = 1 - (Math.abs(headYaw) * 2 + Math.abs(headPitch));
