@@ -802,13 +802,13 @@ function estimateGazeFromLandmarks(
 
   // === VERTICAL (Y-axis) CALCULATION ===
   // Calculate vertical iris distance from eye center
-  // In video coordinates: Y increases downward, so iris below eye center = positive
-  // We want: looking UP = low Y screen coords (0-30%), looking DOWN = high Y (70-100%)
-  // So we NEGATE the offset: looking UP (negative offset) → positive value → low screen Y after inversion
-  const leftIrisOffsetY = -(landmarks.leftIris.y - landmarks.leftEye.y);
-  const rightIrisOffsetY = -(landmarks.rightIris.y - landmarks.rightEye.y);
+  // Video coords: Y increases downward (top=0, bottom=height)
+  // Looking UP: iris.y < eye.y → negative offset
+  // Looking DOWN: iris.y > eye.y → positive offset
+  const leftIrisOffsetY = landmarks.leftIris.y - landmarks.leftEye.y;
+  const rightIrisOffsetY = landmarks.rightIris.y - landmarks.rightEye.y;
 
-  // Normalize by video height (range approximately -0.02 to +0.02 for typical eye movements)
+  // Normalize by video height
   const leftIrisRatioY = leftIrisOffsetY / videoHeight;
   const rightIrisRatioY = rightIrisOffsetY / videoHeight;
   const avgIrisRatioY = (leftIrisRatioY + rightIrisRatioY) / 2;
@@ -816,19 +816,19 @@ function estimateGazeFromLandmarks(
   // Head pitch compensation (up-down head tilt)
   const eyesCenterY = (landmarks.leftEye.y + landmarks.rightEye.y) / 2;
   const noseTipY = landmarks.noseTip.y;
-  const headPitch = -(noseTipY - eyesCenterY) / videoHeight;  // Also negate head pitch
+  const headPitch = (noseTipY - eyesCenterY) / videoHeight;
 
-  // Combine iris position with head tilt - ADAPTIVE sensitivity with HIGHER base values
-  const baseSensitivityY = 60; // Doubled from 30 for better edge reach
-  const headCompensatedY = (avgIrisRatioY * baseSensitivityY * adaptiveMultiplierY) + (headPitch * 8.0 * adaptiveMultiplierY);
+  // Combine with LOWER sensitivity to prevent overflow
+  const baseSensitivityY = 15; // Much lower than 60
+  const headCompensatedY = (avgIrisRatioY * baseSensitivityY * adaptiveMultiplierY) + (headPitch * 3.0 * adaptiveMultiplierY);
 
   // === FINAL GAZE COORDINATES ===
-  // Horizontal: Center at 0.5, then flip for webcam mirror - REMOVED limiting multiplier
-  const rawX = 0.5 + headCompensatedX;  // No more 0.8x limiter!
-  const x = 1 - rawX;  // Flip horizontally to match screen orientation
+  // Horizontal: Center at 0.5, then flip for webcam mirror
+  const rawX = 0.5 + (headCompensatedX * 0.3);  // Reduce multiplier
+  const x = 1 - rawX;  // Flip horizontally
 
-  // Vertical: Center at 0.5 - REMOVED limiting multiplier
-  const y = 0.5 + headCompensatedY;  // No more 0.8x limiter!
+  // Vertical: Center at 0.5
+  const y = 0.5 + (headCompensatedY * 0.3);  // Reduce multiplier
 
   // Calculate confidence
   const eyeSymmetryX = 1 - Math.abs(leftIrisRatioX - rightIrisRatioX) * 20;
