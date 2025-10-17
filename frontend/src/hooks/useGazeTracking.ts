@@ -738,8 +738,8 @@ function estimateGazeFromLandmarks(
   const noseTipX = landmarks.noseTip.x;
   const headYaw = (noseTipX - eyesCenterX) / videoWidth;
 
-  // Combine iris position with head rotation (increase sensitivity from 0.05 range to full 0-1 range)
-  const headCompensatedX = (avgIrisRatioX * 10) - (headYaw * 2.0);
+  // Combine iris position with head rotation (MUCH higher sensitivity for screen edges)
+  const headCompensatedX = (avgIrisRatioX * 20) - (headYaw * 4.0);
 
   // === VERTICAL (Y-axis) CALCULATION ===
   // Calculate vertical iris distance from eye center
@@ -759,16 +759,16 @@ function estimateGazeFromLandmarks(
   const noseTipY = landmarks.noseTip.y;
   const headPitch = -(noseTipY - eyesCenterY) / videoHeight;  // Also negate head pitch
 
-  // Combine iris position with head tilt (increase sensitivity from 0.02 range to full 0-1 range)
-  const headCompensatedY = (avgIrisRatioY * 15) + (headPitch * 2.0);
+  // Combine iris position with head tilt (MUCH higher sensitivity for screen edges)
+  const headCompensatedY = (avgIrisRatioY * 30) + (headPitch * 4.0);
 
   // === FINAL GAZE COORDINATES ===
-  // Horizontal: Center at 0.5, then flip for webcam mirror
-  const rawX = 0.5 + (headCompensatedX * 0.5);
+  // Horizontal: Center at 0.5, then flip for webcam mirror - HIGHER sensitivity
+  const rawX = 0.5 + (headCompensatedX * 0.8);
   const x = 1 - rawX;  // Flip horizontally to match screen orientation
 
-  // Vertical: Center at 0.5
-  const y = 0.5 + (headCompensatedY * 0.5);
+  // Vertical: Center at 0.5 - HIGHER sensitivity
+  const y = 0.5 + (headCompensatedY * 0.8);
 
   // Calculate confidence
   const eyeSymmetryX = 1 - Math.abs(leftIrisRatioX - rightIrisRatioX) * 20;
