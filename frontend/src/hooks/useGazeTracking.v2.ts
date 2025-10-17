@@ -740,31 +740,28 @@ function estimateGazeFromLandmarks(
   const headCompensatedX = avgIrisRatio - (headYaw * 2.0);
 
   // === VERTICAL (Y-axis) CALCULATION ===
-  // Calculate vertical iris position RELATIVE to eye center (not absolute position!)
+  // Calculate vertical iris position RELATIVE to eye center (KEEP DIRECTION!)
   const eyesCenterY = (landmarks.leftEye.y + landmarks.rightEye.y) / 2;
 
-  // Iris height relative to eye center (negative = looking up, positive = looking down)
-  const leftEyeHeight = Math.abs(landmarks.leftIris.y - landmarks.leftEye.y);
-  const rightEyeHeight = Math.abs(landmarks.rightIris.y - landmarks.rightEye.y);
-  const avgIrisHeight = (leftEyeHeight + rightEyeHeight) / 2;
-
-  // Normalize by video height to get ratio
-  const irisVerticalRatio = avgIrisHeight / (videoHeight * 0.03);  // Eye height reference
+  // Signed vertical offset (positive = looking down, negative = looking up)
+  const leftIrisOffset = (landmarks.leftIris.y - landmarks.leftEye.y) / (videoHeight * 0.03);
+  const rightIrisOffset = (landmarks.rightIris.y - landmarks.rightEye.y) / (videoHeight * 0.03);
+  const avgIrisOffset = (leftIrisOffset + rightIrisOffset) / 2;
 
   // Head pitch compensation (up-down head tilt)
   const noseTipY = landmarks.noseTip.y;
   const headPitch = (noseTipY - eyesCenterY) / videoHeight;
 
-  // Combine iris position with head pitch
-  const headCompensatedY = irisVerticalRatio + (headPitch * 1.5);
+  // Combine iris offset with head pitch
+  const headCompensatedY = avgIrisOffset + (headPitch * 2.0);
 
   // === FINAL GAZE COORDINATES ===
-  // Horizontal: Flip to match screen (webcam is mirrored) + increase sensitivity
-  const rawX = 0.5 + (headCompensatedX * 1.2);  // Increased from 0.6 to 1.2 for wider range
+  // Horizontal: Flip to match screen (webcam is mirrored) + MUCH higher sensitivity
+  const rawX = 0.5 + (headCompensatedX * 2.5);  // Increased from 1.2 to 2.5 for full screen range
   const x = 1 - rawX;  // Flip horizontally to match screen orientation
 
-  // Vertical: Center around 0.5 with increased sensitivity
-  const y = 0.5 + (headCompensatedY * 1.2);  // Increased sensitivity for vertical movement
+  // Vertical: Center around 0.5 with MUCH higher sensitivity
+  const y = 0.5 + (headCompensatedY * 2.5);  // Increased from 1.2 to 2.5 for full screen range
 
   const eyeSymmetry = 1 - Math.abs(leftIrisRatio - rightIrisRatio);
   const frontalFactor = 1 - (Math.abs(headYaw) * 2 + Math.abs(headPitch));
