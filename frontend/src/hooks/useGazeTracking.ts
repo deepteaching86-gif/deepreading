@@ -835,6 +835,44 @@ function estimateGazeFromLandmarks(
   const frontalFactor = 1 - (Math.abs(headYaw) * 2 + Math.abs(headPitch));
   const confidence = Math.max(0.3, Math.min(1.0, (eyeSymmetryX + frontalFactor) / 2));
 
+  // === COMPREHENSIVE DEBUG LOGGING ===
+  console.group('🔍 Gaze Calculation Debug');
+  console.log('📊 Raw Iris Offsets:', {
+    leftX: leftIrisOffsetX.toFixed(4),
+    rightX: rightIrisOffsetX.toFixed(4),
+    leftY: leftIrisOffsetY.toFixed(4),
+    rightY: rightIrisOffsetY.toFixed(4)
+  });
+  console.log('📐 Normalized Ratios:', {
+    avgIrisX: avgIrisRatioX.toFixed(4),
+    avgIrisY: avgIrisRatioY.toFixed(4)
+  });
+  console.log('🎭 Head Pose:', {
+    yaw: headYaw.toFixed(4),
+    pitch: headPitch.toFixed(4)
+  });
+  console.log('⚡ Sensitivity:', {
+    baseX: baseSensitivityX,
+    baseY: baseSensitivityY,
+    adaptiveX: adaptiveMultiplierX.toFixed(2),
+    adaptiveY: adaptiveMultiplierY.toFixed(2)
+  });
+  console.log('🔧 Compensated Values:', {
+    headCompensatedX: headCompensatedX.toFixed(4),
+    headCompensatedY: headCompensatedY.toFixed(4)
+  });
+  console.log('✅ Final Coordinates:', {
+    rawX: rawX.toFixed(4),
+    finalX: x.toFixed(4),
+    finalY: y.toFixed(4),
+    confidence: confidence.toFixed(2)
+  });
+  console.log('🎯 Status:', {
+    inBoundsX: x >= 0 && x <= 1 ? '✅' : '❌',
+    inBoundsY: y >= 0 && y <= 1 ? '✅' : '❌'
+  });
+  console.groupEnd();
+
   return { x, y, confidence };
 }
 
