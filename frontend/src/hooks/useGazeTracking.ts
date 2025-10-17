@@ -819,8 +819,9 @@ function estimateGazeFromLandmarks(
   const headPitch = (noseTipY - eyesCenterY) / videoHeight;
 
   // Combine with LOWER sensitivity to prevent overflow
-  const baseSensitivityY = 15; // Much lower than 60
-  const headCompensatedY = (avgIrisRatioY * baseSensitivityY * adaptiveMultiplierY) + (headPitch * 3.0 * adaptiveMultiplierY);
+  // IMPORTANT: Do NOT add headPitch - it causes constant downward bias
+  const baseSensitivityY = 25; // Increased from 15 since we're not using head pitch
+  const headCompensatedY = (avgIrisRatioY * baseSensitivityY * adaptiveMultiplierY);
 
   // === FINAL GAZE COORDINATES ===
   // Horizontal: Center at 0.5, then flip for webcam mirror
