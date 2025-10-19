@@ -193,10 +193,132 @@ function applyAdaptiveCorrection(gaze: Point, calibration: CalibrationProfile): 
   const avgErrorX = median(recentSamples.map(s => s.error.x));
   const avgErrorY = median(recentSamples.map(s => s.error.y));
 
+  // Apply correction with adjustment rate
+  const { ADAPTIVE_ADJUSTMENT_RATE } = CALIBRATION_CONSTANTS;
+
   return {
-    x: gaze.x + avgErrorX,
-    y: gaze.y + avgErrorY
+    x: gaze.x + (avgErrorX * ADAPTIVE_ADJUSTMENT_RATE),
+    y: gaze.y + (avgErrorY * ADAPTIVE_ADJUSTMENT_RATE)
   };
+}
+
+/**
+ * Record user click for adaptive learning
+ * Call this when user clicks during reading activity
+ */
+export function recordUserClick(
+  clickPosition: Point,
+  currentGaze: Point,
+  rawGaze: { irisOffset: Point; headPose: { yaw: number; pitch: number } },
+  profile: CalibrationProfile
+): CalibrationProfile {
+  const error: Point = {
+    x: clickPosition.x - currentGaze.x,
+    y: clickPosition.y - currentGaze.y
+  };
+
+  const errorSample = {
+    timestamp: Date.now(),
+    clickPosition,
+    estimatedGaze: currentGaze,
+    error,
+    irisOffset: rawGaze.irisOffset,
+    headPose: rawGaze.headPose
+  };
+
+  const updatedProfile: CalibrationProfile = {
+    ...profile,
+    lastUpdated: new Date(),
+    adaptiveLearning: {
+      ...profile.adaptiveLearning,
+      totalClicks: profile.adaptiveLearning.totalClicks + 1,
+      errorSamples: [
+        ...profile.adaptiveLearning.errorSamples,
+        errorSample
+      ].slice(-100), // Keep last 100 samples
+      currentAccuracy: calculateAccuracy([...profile.adaptiveLearning.errorSamples, errorSample])
+    }
+  };
+
+  // Auto-refine sensitivity if enough samples collected
+  if (updatedProfile.adaptiveLearning.totalClicks % 20 === 0) {
+    return refineSensitivity(updatedProfile);
+  }
+
+  return updatedProfile;
+}
+
+/**
+ * Calculate current accuracy from error samples
+ */
+function calculateAccuracy(errorSamples: any[]): number {
+  if (errorSamples.length === 0) return 0;
+
+  const recentSamples = errorSamples.slice(-20);
+  const avgError = median(recentSamples.map(s =>
+    Math.sqrt(s.error.x * s.error.x + s.error.y * s.error.y)
+  ));
+
+  // Convert error to accuracy (lower error = higher accuracy)
+  // 0.1 error = 90% accuracy, 0.2 error = 80% accuracy
+  return Math.max(0, Math.min(100, 100 - (avgError * 500)));
+}
+
+/**
+ * Refine sensitivity based on accumulated error data
+ */
+function refineSensitivity(profile: CalibrationProfile): CalibrationProfile {
+  const { errorSamples } = profile.adaptiveLearning;
+
+  if (errorSamples.length < CALIBRATION_CONSTANTS.ADAPTIVE_MIN_SAMPLES) {
+    return profile; // Not enough data
+  }
+
+  const recentSamples = errorSamples.slice(-20);
+
+  // Calculate average errors
+  const avgErrorX = median(recentSamples.map(s => s.error.x));
+  const avgErrorY = median(recentSamples.map(s => s.error.y));
+
+  // Calculate sensitivity adjustments
+  const { ADAPTIVE_ADJUSTMENT_RATE } = CALIBRATION_CONSTANTS;
+  const adjustmentX = avgErrorX * ADAPTIVE_ADJUSTMENT_RATE;
+  const adjustmentY = avgErrorY * ADAPTIVE_ADJUSTMENT_RATE;
+
+  console.log('🔧 Refining sensitivity:', {
+    avgErrorX: avgErrorX.toFixed(4),
+    avgErrorY: avgErrorY.toFixed(4),
+    adjustmentX: adjustmentX.toFixed(4),
+    adjustmentY: adjustmentY.toFixed(4)
+  });
+
+  const updatedProfile: CalibrationProfile = {
+    ...profile,
+    lastUpdated: new Date(),
+    quickCalibration: {
+      ...profile.quickCalibration,
+      sensitivity: {
+        ...profile.quickCalibration.sensitivity,
+        baseX: profile.quickCalibration.sensitivity.baseX * (1 + adjustmentX),
+        baseY: profile.quickCalibration.sensitivity.baseY * (1 + adjustmentY)
+      }
+    },
+    adaptiveLearning: {
+      ...profile.adaptiveLearning,
+      refinementHistory: [
+        ...profile.adaptiveLearning.refinementHistory,
+        {
+          timestamp: Date.now(),
+          sensitivityAdjustment: { x: adjustmentX, y: adjustmentY }
+        }
+      ]
+    }
+  };
+
+  // Save updated profile
+  saveCalibrationProfile(updatedProfile);
+
+  return updatedProfile;
 }
 
 /**

@@ -17,6 +17,11 @@ import {
   GazeChunk,
   VisionPassage
 } from '../../types/vision.types';
+import { CalibrationProfile, Point } from '../../types/calibration';
+import {
+  saveCalibrationProfile,
+  recordUserClick
+} from '../../utils/calibrationUtils';
 
 export const VisionTestPage: React.FC = () => {
   const { sessionId } = useParams<{ sessionId: string }>();
@@ -30,12 +35,19 @@ export const VisionTestPage: React.FC = () => {
 
   const [visionSessionId, setVisionSessionId] = useState<string>('');
   const [calibrationResult, setCalibrationResult] = useState<CalibrationResult | null>(null);
+  const [calibrationProfile, setCalibrationProfile] = useState<CalibrationProfile | null>(null);
   const [passages, setPassages] = useState<VisionPassage[]>([]);
   const [currentPassage, setCurrentPassage] = useState<VisionPassage | null>(null);
   const [showQuestions, setShowQuestions] = useState(false);
   const [answers, setAnswers] = useState<{ [key: string]: string }>({});
   const [questions, setQuestions] = useState<any[]>([]); // Questions for current passage
   const [currentQuestion, setCurrentQuestion] = useState<any | null>(null);
+
+  // Raw gaze data for adaptive learning
+  const [currentRawGaze, setCurrentRawGaze] = useState<{
+    irisOffset: Point;
+    headPose: { yaw: number; pitch: number };
+  } | null>(null);
 
   // Gaze data buffer
   const gazeBufferRef = useRef<GazePoint[]>([]);
@@ -70,6 +82,16 @@ export const VisionTestPage: React.FC = () => {
   } = useGazeTracking({
     enabled: state.stage === 'testing',
     onGazePoint: handleGazePoint,
+    onRawGazeData: useCallback((data: {
+      irisOffset: { x: number; y: number };
+      headPose: { yaw: number; pitch: number };
+      timestamp: number;
+    }) => {
+      setCurrentRawGaze({
+        irisOffset: data.irisOffset,
+        headPose: data.headPose
+      });
+    }, []),
     calibrationMatrix: calibrationResult?.transformMatrix,
     targetFPS: 30
   });
@@ -273,6 +295,36 @@ export const VisionTestPage: React.FC = () => {
     }
   };
 
+  // Handle user click for adaptive learning
+  const handleUserClick = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
+    if (!calibrationProfile || !currentGaze || !currentRawGaze) return;
+
+    const rect = event.currentTarget.getBoundingClientRect();
+    const clickPosition: Point = {
+      x: (event.clientX - rect.left) / rect.width,
+      y: (event.clientY - rect.top) / rect.height
+    };
+
+    console.log('👆 User click detected:', {
+      click: clickPosition,
+      gaze: currentGaze,
+      error: {
+        x: clickPosition.x - currentGaze.x,
+        y: clickPosition.y - currentGaze.y
+      }
+    });
+
+    // Record click for adaptive learning
+    const updatedProfile = recordUserClick(
+      clickPosition,
+      { x: currentGaze.x, y: currentGaze.y },
+      currentRawGaze,
+      calibrationProfile
+    );
+
+    setCalibrationProfile(updatedProfile);
+  }, [calibrationProfile, currentGaze, currentRawGaze]);
+
   // Handle test submit
   const handleSubmit = async () => {
     try {
@@ -303,10 +355,14 @@ export const VisionTestPage: React.FC = () => {
       <CalibrationScreenNew
         userId={userId}
         onCalibrationComplete={(profile) => {
+          // Save calibration profile for adaptive learning
+          setCalibrationProfile(profile);
+          saveCalibrationProfile(profile);
+
           // Convert CalibrationProfile to CalibrationResult
           const result: CalibrationResult = {
             calibrationId: profile.userId + '-' + profile.createdAt.getTime(),
-            overallAccuracy: 0.85, // Default accuracy
+            overallAccuracy: profile.quickCalibration.verificationScore,
             points: [],
             transformMatrix: [
               [profile.quickCalibration.sensitivity.baseX, 0, 0],
@@ -378,16 +434,21 @@ export const VisionTestPage: React.FC = () => {
           <div className="max-w-4xl mx-auto">
             {/* Passage (always visible if showPassageWithQuestions is true) */}
             {(!showQuestions || currentPassage.showPassageWithQuestions) && (
-              <div className="bg-card rounded-2xl p-8 shadow-lg mb-6">
+              <div className="bg-card rounded-2xl p-8 shadow-lg mb-6" onClick={handleUserClick}>
                 <div className="mb-4 flex items-center gap-2 text-sm text-muted-foreground">
                   <span>읽기 지문</span>
                   <span className="px-2 py-0.5 bg-secondary rounded text-xs">
                     난이도 {currentPassage.difficulty}/10
                   </span>
+                  {calibrationProfile && calibrationProfile.adaptiveLearning.totalClicks > 0 && (
+                    <span className="px-2 py-0.5 bg-primary/10 text-primary rounded text-xs">
+                      학습 중: {calibrationProfile.adaptiveLearning.totalClicks}회 클릭
+                    </span>
+                  )}
                 </div>
 
                 <div
-                  className="text-foreground leading-relaxed whitespace-pre-wrap"
+                  className="text-foreground leading-relaxed whitespace-pre-wrap cursor-pointer"
                   style={{
                     fontSize: `${currentPassage.fontSize}px`,
                     lineHeight: currentPassage.lineHeight
