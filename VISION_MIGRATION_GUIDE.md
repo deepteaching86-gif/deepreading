@@ -1,42 +1,54 @@
-# Vision TEST 데이터베이스 마이그레이션 가이드
+# Vision TEST Database Migration Guide
 
-## 문제 상황
-```
-The table `public.vision_calibrations` does not exist in the current database.
-```
+## Problem
 
-Vision TEST 관련 테이블들이 production 데이터베이스에 생성되지 않아 발생하는 에러입니다.
-
-## 해결 방법: Supabase Dashboard에서 SQL 실행
-
-### 1단계: Supabase 로그인
-1. https://supabase.com/dashboard 접속
-2. 프로젝트 선택: `sxnjeqqvqbhueqbwsnpj`
-
-### 2단계: SQL Editor 열기
-1. 왼쪽 메뉴에서 **"SQL Editor"** 클릭
-2. **"New query"** 버튼 클릭
-
-### 3단계: 안전한 마이그레이션 SQL 복사
-
-⚠️ **중요**: 아래 **안전한 버전**을 사용하세요:
-```
-backend/prisma/migrations/20250614_add_vision_test_models/migration-safe.sql
+Vision session fails to start with error:
+```json
+{
+  "error": "Database error occurred"
+}
 ```
 
-이 파일은 `CREATE TABLE IF NOT EXISTS`를 사용하여:
-- ✅ 이미 존재하는 테이블은 건너뜀
-- ✅ 누락된 테이블만 생성
-- ✅ 에러 없이 안전하게 실행
+**Root Cause**: The `vision_test_sessions` table has `updated_at TIMESTAMP(3) NOT NULL` without a `DEFAULT` value, causing INSERT failures.
 
-### 4단계: SQL 실행
-1. **migration-safe.sql** 파일의 전체 내용을 복사
-2. SQL Editor에 붙여넣기
-3. **"Run"** 버튼 클릭 (또는 `Ctrl + Enter`)
-4. 성공 메시지 확인 (에러가 발생하지 않아야 함)
+## Solution
 
-### 5단계: 테이블 확인
-SQL Editor에서 다음 쿼리 실행:
+Run the **FIXED migration SQL** that includes:
+1. `DEFAULT CURRENT_TIMESTAMP` for `updated_at` column
+2. Database trigger to auto-update `updated_at` on record changes
+
+## Deployment Steps
+
+### Step 1: Access Supabase Dashboard
+1. Go to: https://supabase.com/dashboard
+2. Select project: `sxnjeqqvqbhueqbwsnpj`
+
+### Step 2: Open SQL Editor
+1. Click **"SQL Editor"** in left sidebar
+2. Click **"New query"** button
+
+### Step 3: Use FIXED Migration
+
+⚠️ **IMPORTANT**: Use the **FIXED version** (not migration-safe.sql):
+```
+backend/prisma/migrations/20250614_add_vision_test_models/migration-fixed.sql
+```
+
+This version includes:
+- ✅ `DEFAULT CURRENT_TIMESTAMP` for `updated_at` column
+- ✅ Auto-update trigger for `updated_at`
+- ✅ Safe `IF NOT EXISTS` checks
+- ✅ Won't fail if tables already exist
+
+### Step 4: Run Fixed Migration SQL
+1. Open file: `backend/prisma/migrations/20250614_add_vision_test_models/migration-fixed.sql`
+2. Copy **entire contents** of the file
+3. Paste into SQL Editor
+4. Click **"Run"** button (or press `Ctrl + Enter`)
+5. Wait for success message: `✅ Vision TEST tables migration completed successfully`
+
+### Step 5: Verify Tables Created
+Run this query in SQL Editor:
 ```sql
 SELECT table_name
 FROM information_schema.tables
@@ -45,7 +57,7 @@ WHERE table_schema = 'public'
 ORDER BY table_name;
 ```
 
-**예상 결과** (5개 테이블):
+**Expected Result** (5 tables):
 ```
 vision_calibration_adjustments
 vision_calibrations
@@ -54,26 +66,45 @@ vision_metrics
 vision_test_sessions
 ```
 
-### 6단계: Render 백엔드 재시작
-마이그레이션 완료 후 백엔드가 자동으로 재시작되거나, 수동으로 재시작하세요:
-1. https://dashboard.render.com 접속
-2. `literacy-backend` 서비스 선택
-3. **"Manual Deploy"** → **"Deploy latest commit"** 클릭
+### Step 6: Verify Trigger Created
+Run this query:
+```sql
+SELECT trigger_name, event_manipulation, event_object_table
+FROM information_schema.triggers
+WHERE trigger_name = 'vision_test_sessions_updated_at_trigger';
+```
 
-## 완료 확인
+**Expected Result**: 1 row showing the trigger on `vision_test_sessions`
 
-프론트엔드에서 Vision TEST 시작 시 더 이상 400 에러가 발생하지 않으면 성공입니다!
+### Step 7: No Backend Restart Needed
+The migration is applied directly to the database. No backend restart required.
 
-## 생성되는 테이블
+## Verification
 
-1. **vision_calibrations** - 시선 캘리브레이션 데이터 (재사용 가능, 7일 유효)
-2. **vision_test_sessions** - Vision TEST 세션 데이터 (1:1 with test_sessions)
-3. **vision_gaze_data** - 시선 추적 원시 데이터 (대용량)
-4. **vision_metrics** - 분석된 15개 핵심 메트릭
-5. **vision_calibration_adjustments** - 수동 보정 이력
+After migration completes:
 
-## 문제 발생 시
+1. **Test Vision Session**: Go to frontend Vision TEST page
+2. **Complete Calibration**: Finish the calibration flow
+3. **Start Test**: Click "Start Vision Test"
+4. **Expected**: No more "Database error occurred" ❌
+5. **Expected**: Session starts successfully with `visionSessionId` ✅
 
-테이블이 이미 존재한다는 에러가 발생하면:
-- 정상입니다! 이미 마이그레이션이 완료된 상태입니다.
-- 5단계로 이동하여 테이블 존재 여부만 확인하세요.
+## Tables Created
+
+1. **`vision_test_sessions`** - Vision session data (1:1 with test_sessions)
+   - **FIXED**: `updated_at` now has `DEFAULT CURRENT_TIMESTAMP`
+   - **FIXED**: Auto-update trigger added
+
+2. **`vision_calibrations`** - Reusable calibration data (7-day validity)
+
+3. **`vision_gaze_data`** - Raw gaze tracking data (large-scale)
+
+4. **`vision_metrics`** - 15 calculated eye-tracking metrics
+
+5. **`vision_calibration_adjustments`** - Manual calibration corrections
+
+## Troubleshooting
+
+**If tables already exist**: Migration will skip them safely (using `IF NOT EXISTS`).
+
+**If trigger already exists**: Migration will drop and recreate it safely (using `DROP TRIGGER IF EXISTS`).
