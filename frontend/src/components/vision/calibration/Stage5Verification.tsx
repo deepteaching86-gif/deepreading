@@ -223,7 +223,7 @@ export const Stage5Verification: React.FC<Stage5VerificationProps> = ({
           className="absolute w-3 h-3 bg-red-500 rounded-full opacity-50 transform -translate-x-1/2 -translate-y-1/2"
           style={{
             left: `${currentGaze.x * 100}%`,
-            top: `${currentGaze.y * 100}%`
+            top: `${(1.0 - currentGaze.y) * 100}%` // INVERT Y: 0.0 → bottom, 1.0 → top
           }}
         ></div>
       )}
