@@ -341,19 +341,8 @@ export const VisionTestPage: React.FC = () => {
     setAnswers(prev => ({ ...prev, [questionId]: answer }));
   };
 
-  // Submit answer to backend
-  const submitAnswer = async (questionId: string, answer: string) => {
-    try {
-      await axios.post('/api/v1/sessions/submit-answer', {
-        sessionId,
-        questionId,
-        studentAnswer: answer
-      });
-      console.log('✅ Answer submitted:', questionId);
-    } catch (error) {
-      console.error('Failed to submit answer:', error);
-    }
-  };
+  // NOTE: Answers are stored in local state and submitted together with the vision session
+  // Individual answer submission is not needed for Vision TEST - answers are auto-saved in state
 
   // Handle user click for adaptive learning
   const handleUserClick = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
@@ -580,7 +569,6 @@ export const VisionTestPage: React.FC = () => {
                           key={option.id}
                           onClick={() => {
                             handleAnswerSelect(currentQuestion.id, option.text);
-                            submitAnswer(currentQuestion.id, option.text);
                           }}
                           className={`w-full p-4 text-left rounded-lg border-2 transition-colors ${
                             answers[currentQuestion.id] === option.text
@@ -600,7 +588,6 @@ export const VisionTestPage: React.FC = () => {
                       type="text"
                       value={answers[currentQuestion.id] || ''}
                       onChange={(e) => handleAnswerSelect(currentQuestion.id, e.target.value)}
-                      onBlur={(e) => submitAnswer(currentQuestion.id, e.target.value)}
                       className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-input text-foreground"
                       placeholder="답변을 입력하세요"
                     />
@@ -611,7 +598,6 @@ export const VisionTestPage: React.FC = () => {
                     <textarea
                       value={answers[currentQuestion.id] || ''}
                       onChange={(e) => handleAnswerSelect(currentQuestion.id, e.target.value)}
-                      onBlur={(e) => submitAnswer(currentQuestion.id, e.target.value)}
                       className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-input text-foreground min-h-[120px]"
                       placeholder="답변을 작성하세요"
                     />
