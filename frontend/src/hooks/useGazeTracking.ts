@@ -4,6 +4,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { FaceLandmarker, FilesetResolver, FaceLandmarkerResult } from '@mediapipe/tasks-vision';
 import { GazePoint, GazeType, GazeEstimation, FaceLandmarks } from '../types/vision.types';
+import { ConcentrationRawData } from '../types/concentration.types';
 
 interface UseGazeTrackingOptions {
   enabled: boolean;
@@ -16,6 +17,7 @@ interface UseGazeTrackingOptions {
     headPose: { yaw: number; pitch: number };
     timestamp: number;
   }) => void; // Raw iris offset and head pose callback (for calibration)
+  onConcentrationData?: (data: ConcentrationRawData) => void; // 집중력 분석용 원시 데이터 콜백
 }
 
 interface UseGazeTrackingReturn {
@@ -33,7 +35,7 @@ interface UseGazeTrackingReturn {
 export const useGazeTracking = (
   options: UseGazeTrackingOptions
 ): UseGazeTrackingReturn => {
-  const { enabled, onGazePoint, calibrationMatrix, onFacePosition, onRawGazeData } = options;
+  const { enabled, onGazePoint, calibrationMatrix, onFacePosition, onRawGazeData, onConcentrationData } = options;
 
   const [isInitialized, setIsInitialized] = useState(false);
   const [isTracking, setIsTracking] = useState(false);
@@ -674,6 +676,62 @@ export const useGazeTracking = (
       onGazePoint(gazePoint);
     }
 
+    // === 집중력 분석용 데이터 생성 ===
+    if (onConcentrationData) {
+      // 동공 크기 추정 (홍채 크기 기반)
+      const leftEyeWidth = Math.abs(leftEyeOuter.x - leftEyeInner.x);
+      const rightEyeWidth = Math.abs(rightEyeOuter.x - rightEyeInner.x);
+      // const avgEyeWidth = (leftEyeWidth + rightEyeWidth) / 2; // Reserved for future use
+
+      // 홍채 중심과 눈 모서리 사이 거리로 동공 크기 근사
+      const leftIrisToOuter = Math.abs(leftIris.x - leftEyeOuter.x);
+      const leftIrisToInner = Math.abs(leftIris.x - leftEyeInner.x);
+      const rightIrisToOuter = Math.abs(rightIris.x - rightEyeOuter.x);
+      const rightIrisToInner = Math.abs(rightIris.x - rightEyeInner.x);
+
+      const leftPupilRatio = Math.min(leftIrisToOuter, leftIrisToInner) / leftEyeWidth;
+      const rightPupilRatio = Math.min(rightIrisToOuter, rightIrisToInner) / rightEyeWidth;
+      const avgPupilSize = (leftPupilRatio + rightPupilRatio) / 2;
+
+      // 눈 움직임 속도 계산
+      let eyeMovementVelocity = 0;
+      if (lastGazeRef.current) {
+        const dx = calibratedX - lastGazeRef.current.x;
+        const dy = calibratedY - lastGazeRef.current.y;
+        const dt = (timestamp - lastGazeRef.current.timestamp) / 1000; // 초 단위
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        eyeMovementVelocity = dt > 0 ? distance / dt : 0;
+      }
+
+      // Head pose 계산 (이미 estimateGazeFromLandmarks에서 계산됨)
+      const eyesCenterX = (leftEyeCenter.x + leftEyeCenter.x) / 2;
+      const eyesCenterY = (leftEyeCenter.y + rightEyeCenter.y) / 2;
+      const headYaw = (noseTip.x - eyesCenterX) / video.videoWidth;
+      const headPitch = (noseTip.y - eyesCenterY) / video.videoHeight;
+
+      // 머리 기울기 (roll) 추정 - 두 눈의 Y축 차이로 계산
+      const headRoll = Math.atan2(
+        rightEyeCenter.y - leftEyeCenter.y,
+        rightEyeCenter.x - leftEyeCenter.x
+      );
+
+      const concentrationRawData: ConcentrationRawData = {
+        pupilSize: avgPupilSize,
+        eyeAspectRatio: avgEAR,
+        gazeVector: { x: calibratedX, y: calibratedY },
+        eyeMovementVelocity,
+        headPose: {
+          yaw: headYaw,
+          pitch: headPitch,
+          roll: headRoll
+        },
+        fixationPoint: gazeType === GazeType.FIXATION ? { x: calibratedX, y: calibratedY } : null,
+        timestamp
+      };
+
+      onConcentrationData(concentrationRawData);
+    }
+
     // Update FPS counter
     fpsCounterRef.current.frames++;
     const now = Date.now();
@@ -684,7 +742,7 @@ export const useGazeTracking = (
 
     // Schedule next frame
     animationFrameRef.current = window.requestAnimationFrame(detectAndEstimateGaze);
-  }, [isTracking, onGazePoint, calibrationMatrix, onFacePosition, onRawGazeData]);
+  }, [isTracking, onGazePoint, calibrationMatrix, onFacePosition, onRawGazeData, onConcentrationData]);
 
   // Start detection loop when tracking starts
   useEffect(() => {
@@ -869,43 +927,26 @@ function estimateGazeFromLandmarks(
   const frontalFactor = 1 - (Math.abs(headYaw) * 2 + Math.abs(headPitch));
   const confidence = Math.max(0.3, Math.min(1.0, (eyeSymmetryX + frontalFactor) / 2));
 
-  // === COMPREHENSIVE DEBUG LOGGING ===
-  console.group('🔍 Gaze Calculation Debug');
-  console.log('📊 Raw Iris Offsets:', {
-    leftX: leftIrisOffsetX.toFixed(4),
-    rightX: rightIrisOffsetX.toFixed(4),
-    leftY: leftIrisOffsetY.toFixed(4),
-    rightY: rightIrisOffsetY.toFixed(4)
-  });
-  console.log('📐 Normalized Ratios:', {
-    avgIrisX: avgIrisRatioX.toFixed(4),
-    avgIrisY: avgIrisRatioY.toFixed(4)
-  });
-  console.log('🎭 Head Pose:', {
-    yaw: headYaw.toFixed(4),
-    pitch: headPitch.toFixed(4)
-  });
-  console.log('⚡ Sensitivity:', {
-    baseX: baseSensitivityX,
-    baseY: baseSensitivityY,
-    adaptiveX: adaptiveMultiplierX.toFixed(2),
-    adaptiveY: adaptiveMultiplierY.toFixed(2)
-  });
-  console.log('🔧 Compensated Values:', {
-    headCompensatedX: headCompensatedX.toFixed(4),
-    headCompensatedY: headCompensatedY.toFixed(4)
-  });
-  console.log('✅ Final Coordinates:', {
-    rawX: rawX.toFixed(4),
-    finalX: x.toFixed(4),
-    finalY: y.toFixed(4),
-    confidence: confidence.toFixed(2)
-  });
-  console.log('🎯 Status:', {
-    inBoundsX: x >= 0 && x <= 1 ? '✅' : '❌',
-    inBoundsY: y >= 0 && y <= 1 ? '✅' : '❌'
-  });
-  console.groupEnd();
+  // === DEBUG LOGGING (development mode only) ===
+  // Only log every 60 frames (~1 second at 60fps) to reduce console spam
+  const isDev = import.meta.env.DEV;
+  if (isDev && Math.random() < 0.016) {
+    console.group('🔍 Gaze Calculation Debug');
+    console.log('📊 Raw Iris:', {
+      avgX: avgIrisRatioX.toFixed(4),
+      avgY: avgIrisRatioY.toFixed(4)
+    });
+    console.log('🎭 Head:', {
+      yaw: headYaw.toFixed(4),
+      pitch: headPitch.toFixed(4)
+    });
+    console.log('✅ Final:', {
+      x: x.toFixed(4),
+      y: y.toFixed(4),
+      conf: confidence.toFixed(2)
+    });
+    console.groupEnd();
+  }
 
   return { x, y, confidence };
 }
