@@ -51,6 +51,9 @@ export const CalibrationScreenNew: React.FC<CalibrationScreenNewProps> = ({
   // Current calibrated gaze (after Stage 4)
   const [currentCalibratedGaze, setCurrentCalibratedGaze] = useState<Point | null>(null);
 
+  // Stage 3 calibrated gaze (using naturalCenter but not corners)
+  const [currentStage3Gaze, setCurrentStage3Gaze] = useState<Point | null>(null);
+
   // Camera overlay toggle
   const [showCameraOverlay, setShowCameraOverlay] = useState(true);
 
@@ -192,6 +195,19 @@ export const CalibrationScreenNew: React.FC<CalibrationScreenNewProps> = ({
 
   // ==================== GAZE DATA CALCULATION ====================
 
+  // Update Stage 3 gaze (naturalCenter-based, before corners calibration)
+  useEffect(() => {
+    if (stage === CalibrationStage.CORNER_CALIBRATION && currentRawGaze) {
+      // Use calculateCalibratedGaze with naturalCenter but without corner-based sensitivity
+      const calibrated = calculateCalibratedGaze(
+        currentRawGaze.irisOffset,
+        currentRawGaze.headPose,
+        profile
+      );
+      setCurrentStage3Gaze(calibrated);
+    }
+  }, [currentRawGaze, stage, profile]);
+
   // Update calibrated gaze for Stage 5
   useEffect(() => {
     if (stage === CalibrationStage.VERIFICATION && currentRawGaze) {
@@ -241,7 +257,7 @@ export const CalibrationScreenNew: React.FC<CalibrationScreenNewProps> = ({
 
       {stage === CalibrationStage.CORNER_CALIBRATION && (
         <Stage3CornerCalibration
-          currentGaze={currentGaze ? { x: currentGaze.x, y: currentGaze.y } : null}
+          currentGaze={currentStage3Gaze}
           currentRawGaze={currentRawGaze}
           onComplete={handleCornerCalibrationComplete}
         />

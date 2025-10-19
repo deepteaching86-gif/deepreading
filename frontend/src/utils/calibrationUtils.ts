@@ -166,9 +166,12 @@ export function calculateCalibratedGaze(
   const rawGazeX = 0.5 + (relativeIris.x * sensitivity.baseX) + (relativeHead.yaw * sensitivity.headYawMultiplier);
   const rawGazeY = 0.5 + (relativeIris.y * sensitivity.baseY) + (relativeHead.pitch * sensitivity.headPitchMultiplier);
 
+  // 2.5. Apply mirror flip for horizontal axis (matching useGazeTracking behavior)
+  const mirroredGazeX = 1.0 - rawGazeX;
+
   // 3. Apply camera parallax correction
   const correctedGaze = applyCameraParallax(
-    { x: rawGazeX, y: rawGazeY },
+    { x: mirroredGazeX, y: rawGazeY },
     cameraPosition
   );
 
@@ -370,10 +373,10 @@ export function createEmptyCalibrationProfile(userId: string): CalibrationProfil
       },
       corners: [],
       sensitivity: {
-        baseX: 80,
-        baseY: 50,
-        headYawMultiplier: 15,
-        headPitchMultiplier: 10
+        baseX: 35,  // Updated to match useGazeTracking values
+        baseY: 35,  // Updated to match useGazeTracking values
+        headYawMultiplier: 8,   // Updated to match useGazeTracking values
+        headPitchMultiplier: 0  // Not used in current implementation
       },
       verificationScore: 0
     },
