@@ -205,25 +205,15 @@ export const CalibrationScreenNew: React.FC<CalibrationScreenNewProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black">
-      {/* Video and Canvas - positioned for overlay */}
-      <div className="fixed bottom-4 right-4 z-40" style={{
-        width: '256px',
-        height: '192px',
-        display: isTracking && showCameraOverlay && stage !== CalibrationStage.CAMERA_MARKING ? 'block' : 'none'
-      }}>
+      {/* Hidden video and canvas for gaze tracking */}
+      <div className="hidden">
         <video
           ref={videoRef}
           autoPlay
           playsInline
           muted
-          className="absolute top-0 left-0 w-full h-full object-cover"
-          style={{ transform: 'scaleX(-1)' }}
         />
-        <canvas
-          ref={canvasRef}
-          className="absolute top-0 left-0 w-full h-full object-cover pointer-events-none"
-          style={{ transform: 'scaleX(-1)' }}
-        />
+        <canvas ref={canvasRef} />
       </div>
 
       {/* Stage routing */}
@@ -312,8 +302,47 @@ export const CalibrationScreenNew: React.FC<CalibrationScreenNewProps> = ({
               <span className="text-xs">✕</span>
             </button>
 
-            {/* Video container - actual video/canvas are positioned here via CSS */}
+            {/* Video and Canvas container */}
             <div className="relative w-full h-48 rounded-t-xl overflow-hidden bg-black">
+              {/* Mirror video feed from webcam */}
+              <video
+                autoPlay
+                playsInline
+                muted
+                ref={(el) => {
+                  if (el && videoRef.current?.srcObject) {
+                    el.srcObject = videoRef.current.srcObject;
+                    el.play().catch(console.error);
+                  }
+                }}
+                className="absolute top-0 left-0 w-full h-full object-cover"
+                style={{ transform: 'scaleX(-1)' }}
+              />
+
+              {/* FaceMesh overlay canvas - needs continuous update */}
+              <canvas
+                ref={(el) => {
+                  if (el && canvasRef.current) {
+                    el.width = 256;
+                    el.height = 192;
+                    const ctx = el.getContext('2d');
+
+                    const drawFrame = () => {
+                      if (ctx && canvasRef.current && el) {
+                        ctx.clearRect(0, 0, 256, 192);
+                        ctx.save();
+                        ctx.scale(-1, 1);
+                        ctx.drawImage(canvasRef.current, -256, 0, 256, 192);
+                        ctx.restore();
+                        requestAnimationFrame(drawFrame);
+                      }
+                    };
+                    drawFrame();
+                  }
+                }}
+                className="absolute top-0 left-0 w-full h-full object-cover pointer-events-none"
+              />
+
               {/* Gaze indicator overlay */}
               {currentGaze && (
                 <div
