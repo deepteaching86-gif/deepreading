@@ -869,10 +869,10 @@ function estimateGazeFromLandmarks(
   const noseTipX = landmarks.noseTip.x;
   const headYaw = (noseTipX - eyesCenterX) / videoWidth;
 
-  // Combine iris position with head rotation - MUCH HIGHER base values
-  // NOTE: Remove adaptive multiplier - it was cutting sensitivity in half (0.48-0.53)
-  const baseSensitivityX = 80; // 40 → 80 for full screen coverage
-  const headCompensatedX = (avgIrisRatioX * baseSensitivityX) - (headYaw * 15.0);
+  // Combine iris position with head rotation
+  // BALANCED sensitivity for equal X/Y responsiveness
+  const baseSensitivityX = 35; // Reduced from 80 for more stable tracking
+  const headCompensatedX = (avgIrisRatioX * baseSensitivityX) - (headYaw * 8.0); // Reduced head influence
 
   // === VERTICAL (Y-axis) CALCULATION ===
   // Calculate vertical iris distance from eye center
@@ -908,19 +908,18 @@ function estimateGazeFromLandmarks(
     });
   }
 
-  // Combine iris position with head rotation - MUCH HIGHER base values
-  // IMPORTANT: Do NOT add headPitch - it causes constant downward bias
-  // NOTE: Remove adaptive multiplier - it was cutting sensitivity in half (0.48-0.53)
-  const baseSensitivityY = 50; // 25 → 50 for full screen coverage
+  // Combine iris position with head rotation
+  // INCREASED Y sensitivity to match X responsiveness
+  const baseSensitivityY = 35; // Increased from 50 → 35 to match X (equal sensitivity)
   const headCompensatedY = (avgIrisRatioY * baseSensitivityY);
 
   // === FINAL GAZE COORDINATES ===
   // Horizontal: Center at 0.5, FLIP for correct left-right mapping
-  const rawX = 0.5 + (headCompensatedX * 1.2);  // 0.8 → 1.2 for better coverage
+  const rawX = 0.5 + (headCompensatedX * 1.5);  // Increased multiplier for better coverage
   const x = 1.0 - rawX;  // FLIP: Mirror horizontally (left ↔ right)
 
   // Vertical: Center at 0.5
-  const y = 0.5 + (headCompensatedY * 1.2);  // 0.8 → 1.2 for better coverage
+  const y = 0.5 + (headCompensatedY * 2.0);  // Increased multiplier significantly for more vertical range
 
   // Calculate confidence
   const eyeSymmetryX = 1 - Math.abs(leftIrisRatioX - rightIrisRatioX) * 20;
