@@ -252,10 +252,10 @@ export const VisionTestPage: React.FC = () => {
       console.log('✅ Vision session started:', response.visionSessionId);
     } catch (error: any) {
       console.error('❌ Failed to start vision session:', error);
-      console.error('❌ Error details:', {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status,
+      console.error('❌ Backend error message:', error.response?.data?.message);
+      console.error('❌ Backend error details:', JSON.stringify(error.response?.data, null, 2));
+      console.error('❌ HTTP status:', error.response?.status);
+      console.error('❌ Request data:', {
         sessionId,
         calibrationId: calibration.calibrationId
       });
