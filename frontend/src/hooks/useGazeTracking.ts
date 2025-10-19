@@ -998,19 +998,18 @@ function estimateGazeFromLandmarks(
   const y = rawY; // No clamping here - let smoothing handle it
 
   // === DEBUG: Y CALCULATION CHAIN ===
-  if (import.meta.env.DEV) {
-    console.log('🔍 Y Calculation Chain:', {
-      avgIrisRatioY: avgIrisRatioY.toFixed(4),
-      headPitch: headPitch.toFixed(4),
-      pitchInfluence: pitchInfluence.toFixed(4),
-      depthCorrectedY: depthCorrectedY.toFixed(4),
-      baseSensitivityY: baseSensitivityY,
-      headCompensatedY: headCompensatedY.toFixed(4),
-      yMultiplier: yMultiplier.toFixed(1),
-      rawY: rawY.toFixed(4),
-      finalY: y.toFixed(4)
-    });
-  }
+  // TEMPORARY: Always log for debugging Y-axis issue (remove DEV check)
+  console.log('🔍 Y Calculation Chain:', {
+    avgIrisRatioY: avgIrisRatioY.toFixed(4),
+    headPitch: headPitch.toFixed(4),
+    pitchInfluence: pitchInfluence.toFixed(4),
+    depthCorrectedY: depthCorrectedY.toFixed(4),
+    baseSensitivityY: baseSensitivityY,
+    headCompensatedY: headCompensatedY.toFixed(4),
+    yMultiplier: yMultiplier.toFixed(1),
+    rawY: rawY.toFixed(4),
+    finalY: y.toFixed(4)
+  });
 
   // Calculate confidence
   const eyeSymmetryX = 1 - Math.abs(leftIrisRatioX - rightIrisRatioX) * 20;
