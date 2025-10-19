@@ -635,6 +635,13 @@ export const useGazeTracking = (
       onRawGazeData
     );
 
+    // Clamp gaze values to valid screen range (0.0 ~ 1.0) BEFORE smoothing
+    // This prevents temporal filter from creating invalid values
+    const clampedGaze = {
+      x: Math.max(0.0, Math.min(1.0, gaze.x)),
+      y: Math.max(0.0, Math.min(1.0, gaze.y))
+    };
+
     // Apply temporal smoothing (EMA filter) to reduce single-frame noise
     // Alpha = 0.3 means 30% new value, 70% previous value
     // Higher alpha = more responsive but noisier
@@ -643,12 +650,12 @@ export const useGazeTracking = (
 
     if (!smoothedGazeRef.current) {
       // First frame - initialize with current gaze
-      smoothedGazeRef.current = { x: gaze.x, y: gaze.y };
+      smoothedGazeRef.current = { x: clampedGaze.x, y: clampedGaze.y };
     } else {
       // Apply EMA: smoothed = alpha * new + (1 - alpha) * previous
       smoothedGazeRef.current = {
-        x: SMOOTHING_ALPHA * gaze.x + (1 - SMOOTHING_ALPHA) * smoothedGazeRef.current.x,
-        y: SMOOTHING_ALPHA * gaze.y + (1 - SMOOTHING_ALPHA) * smoothedGazeRef.current.y
+        x: SMOOTHING_ALPHA * clampedGaze.x + (1 - SMOOTHING_ALPHA) * smoothedGazeRef.current.x,
+        y: SMOOTHING_ALPHA * clampedGaze.y + (1 - SMOOTHING_ALPHA) * smoothedGazeRef.current.y
       };
     }
 
