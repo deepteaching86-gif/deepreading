@@ -35,6 +35,7 @@ export const CalibrationScreenSimple: React.FC<CalibrationScreenSimpleProps> = (
   const [currentPointIndex, setCurrentPointIndex] = useState(0);
   const [pointCountdown, setPointCountdown] = useState(0);
   const [collectedData, setCollectedData] = useState<CalibrationPoint[]>([]);
+  const [showVideoOverlay, setShowVideoOverlay] = useState(true);
   const rawGazeDataRef = useRef<Array<{ irisOffset: { x: number; y: number }; headPose: { yaw: number; pitch: number } }>>([]);
 
   // Gaze tracking hook for face detection and calibration
@@ -340,7 +341,7 @@ export const CalibrationScreenSimple: React.FC<CalibrationScreenSimpleProps> = (
     return (
       <div className="fixed inset-0 bg-gray-900 z-50">
         {/* Progress bar */}
-        <div className="absolute top-0 left-0 right-0 h-2 bg-gray-800">
+        <div className="absolute top-0 left-0 right-0 h-2 bg-gray-800 z-10">
           <div
             className="h-full bg-green-500 transition-all duration-500"
             style={{ width: `${progress}%` }}
@@ -348,7 +349,7 @@ export const CalibrationScreenSimple: React.FC<CalibrationScreenSimpleProps> = (
         </div>
 
         {/* Instructions */}
-        <div className="absolute top-8 left-1/2 transform -translate-x-1/2 text-center z-20">
+        <div className="absolute top-8 left-1/2 transform -translate-x-1/2 text-center z-30">
           <h2 className="text-2xl font-bold text-white mb-2">
             시선 보정 ({currentPointIndex + 1}/9)
           </h2>
@@ -359,8 +360,8 @@ export const CalibrationScreenSimple: React.FC<CalibrationScreenSimpleProps> = (
           </p>
         </div>
 
-        {/* Calibration points overlay */}
-        <div className="absolute inset-0 flex items-center justify-center">
+        {/* Calibration points overlay - HIGH Z-INDEX for visibility */}
+        <div className="absolute inset-0 flex items-center justify-center z-40">
           {calibrationPoints.map((point, index) => {
             const isActive = index === currentPointIndex;
             const isCompleted = index < currentPointIndex;
@@ -368,7 +369,7 @@ export const CalibrationScreenSimple: React.FC<CalibrationScreenSimpleProps> = (
             return (
               <div
                 key={point.id}
-                className="absolute transition-all duration-300"
+                className="absolute transition-all duration-300 z-50"
                 style={{
                   left: `${point.x * 100}%`,
                   top: `${point.y * 100}%`,
@@ -379,19 +380,19 @@ export const CalibrationScreenSimple: React.FC<CalibrationScreenSimpleProps> = (
                 <div
                   className={`rounded-full transition-all duration-300 ${
                     isActive
-                      ? 'w-8 h-8 bg-yellow-400 animate-pulse'
+                      ? 'w-12 h-12 bg-yellow-400 animate-pulse'
                       : isCompleted
-                      ? 'w-4 h-4 bg-green-500'
-                      : 'w-4 h-4 bg-gray-600'
+                      ? 'w-6 h-6 bg-green-500'
+                      : 'w-6 h-6 bg-gray-500'
                   }`}
                   style={{
-                    boxShadow: isActive ? '0 0 30px rgba(250, 204, 21, 0.8)' : 'none'
+                    boxShadow: isActive ? '0 0 40px rgba(250, 204, 21, 0.9)' : 'none'
                   }}
                 />
 
                 {/* Countdown number */}
                 {isActive && pointCountdown > 0 && (
-                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white font-bold text-2xl">
+                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white font-bold text-3xl z-50">
                     {pointCountdown}
                   </div>
                 )}
@@ -400,27 +401,38 @@ export const CalibrationScreenSimple: React.FC<CalibrationScreenSimpleProps> = (
           })}
         </div>
 
-        {/* Camera feed (smaller, bottom-right corner) */}
-        <div className="absolute bottom-4 right-4 w-64 h-48 rounded-lg overflow-hidden bg-black shadow-2xl border-2 border-gray-700">
-          <video
-            ref={videoRef}
-            className="w-full h-full object-cover"
-            style={{ transform: 'scaleX(-1)' }}
-            autoPlay
-            playsInline
-            muted
-          />
-          <canvas
-            ref={canvasRef}
-            className="absolute inset-0 w-full h-full"
-          />
+        {/* Camera feed toggle button */}
+        <button
+          onClick={() => setShowVideoOverlay(!showVideoOverlay)}
+          className="absolute top-20 right-4 bg-black/70 hover:bg-black/90 text-white px-4 py-2 rounded-lg transition-colors z-50 flex items-center gap-2"
+        >
+          {showVideoOverlay ? '👁️ 카메라 숨기기' : '👁️ 카메라 보기'}
+        </button>
 
-          {/* Status indicator */}
-          <div className="absolute top-2 left-2 flex items-center gap-2 bg-black/70 px-2 py-1 rounded">
-            <div className={`w-2 h-2 rounded-full ${faceDetected ? 'bg-green-500' : 'bg-red-500'}`} />
-            <span className="text-white text-xs">{faceDetected ? '추적 중' : '얼굴 없음'}</span>
+        {/* Camera feed (smaller, bottom-right corner) - CONDITIONAL RENDERING */}
+        {showVideoOverlay && (
+          <div className="absolute bottom-4 right-4 w-64 h-48 rounded-lg overflow-hidden bg-black shadow-2xl border-2 border-gray-700 z-20">
+            <video
+              ref={videoRef}
+              className="w-full h-full object-cover"
+              style={{ transform: 'scaleX(-1)' }}
+              autoPlay
+              playsInline
+              muted
+            />
+            <canvas
+              ref={canvasRef}
+              className="absolute inset-0 w-full h-full"
+              style={{ transform: 'scaleX(-1)' }}
+            />
+
+            {/* Status indicator */}
+            <div className="absolute top-2 left-2 flex items-center gap-2 bg-black/70 px-2 py-1 rounded z-10">
+              <div className={`w-2 h-2 rounded-full ${faceDetected ? 'bg-green-500' : 'bg-red-500'}`} />
+              <span className="text-white text-xs">{faceDetected ? '추적 중' : '얼굴 없음'}</span>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     );
   }
