@@ -162,6 +162,19 @@ export const CalibrationScreenSimple: React.FC<CalibrationScreenSimpleProps> = (
   // Handle calibration completion and model training
   const handleCalibrationComplete = useCallback(() => {
     console.log('🎓 Training calibration model...');
+    console.log('📊 Collected calibration points:', collectedData.length);
+
+    // Check if we have enough data points
+    if (collectedData.length < 3) {
+      console.error('❌ Not enough calibration points:', collectedData.length);
+      console.error('⚠️ Need at least 3 points, retrying calibration...');
+      // Reset and restart calibration
+      setCurrentPointIndex(0);
+      setPointCountdown(3);
+      setCollectedData([]);
+      rawGazeDataRef.current = [];
+      return;
+    }
 
     // Train polynomial regression model
     const model = trainCalibrationModel(collectedData, 2, 0.01);
