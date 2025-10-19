@@ -329,8 +329,8 @@ export const CalibrationScreenNew: React.FC<CalibrationScreenNewProps> = ({
               <span className="text-xs">✕</span>
             </button>
 
-            {/* Video and Canvas container */}
-            <div className="relative w-full h-48 rounded-t-xl overflow-hidden bg-black">
+            {/* Video and Canvas container - MIRROR ENTIRE CONTAINER for selfie view */}
+            <div className="relative w-full h-48 rounded-t-xl overflow-hidden bg-black" style={{ transform: 'scaleX(-1)' }}>
               {/* Mirror video feed from webcam */}
               <video
                 ref={overlayVideoRef}
@@ -338,7 +338,6 @@ export const CalibrationScreenNew: React.FC<CalibrationScreenNewProps> = ({
                 playsInline
                 muted
                 className="absolute top-0 left-0 w-full h-full object-cover"
-                style={{ transform: 'scaleX(-1)' }}
               />
 
               {/* FaceMesh overlay canvas - needs continuous update */}
@@ -367,7 +366,7 @@ export const CalibrationScreenNew: React.FC<CalibrationScreenNewProps> = ({
 
               {/* Removed gaze indicator - now shown on main calibration screen */}
 
-              {/* Face tracking indicator */}
+              {/* Face tracking indicator - positioned from LEFT because container is mirrored */}
               <div className="absolute bottom-2 left-2 bg-black/60 px-2 py-1 rounded text-white text-xs flex items-center gap-1 z-10">
                 <span className="inline-block w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
                 <span>Live</span>
