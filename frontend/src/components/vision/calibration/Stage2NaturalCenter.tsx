@@ -45,17 +45,26 @@ export const Stage2NaturalCenter: React.FC<Stage2NaturalCenterProps> = ({
     }
   }, [hasStarted]);
 
-  // Collect samples using interval instead of useEffect on currentRawGaze
+  // Collect samples using ref to avoid recreating interval on every currentRawGaze update
+  const currentRawGazeRef = useRef(currentRawGaze);
+
+  // Update ref without triggering re-renders
   useEffect(() => {
-    if (isCollecting && currentRawGaze) {
+    currentRawGazeRef.current = currentRawGaze;
+  }, [currentRawGaze]);
+
+  // Collect samples using interval (fixed - no dependency on currentRawGaze)
+  useEffect(() => {
+    if (isCollecting) {
       // Sample collection at 30Hz (every ~33ms)
       collectionIntervalRef.current = setInterval(() => {
-        if (currentRawGaze) {
+        const gaze = currentRawGazeRef.current;
+        if (gaze) {
           const sample: GazeData = {
-            irisOffsetX: currentRawGaze.irisOffset.x,
-            irisOffsetY: currentRawGaze.irisOffset.y,
-            headYaw: currentRawGaze.headPose.yaw,
-            headPitch: currentRawGaze.headPose.pitch,
+            irisOffsetX: gaze.irisOffset.x,
+            irisOffsetY: gaze.irisOffset.y,
+            headYaw: gaze.headPose.yaw,
+            headPitch: gaze.headPose.pitch,
             timestamp: Date.now()
           };
 
@@ -75,7 +84,7 @@ export const Stage2NaturalCenter: React.FC<Stage2NaturalCenterProps> = ({
         }
       };
     }
-  }, [isCollecting, currentRawGaze]);
+  }, [isCollecting]);
 
   // Update progress and check completion
   useEffect(() => {
