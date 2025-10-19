@@ -250,9 +250,19 @@ export const VisionTestPage: React.FC = () => {
       console.log('🎯 Concentration monitoring started');
 
       console.log('✅ Vision session started:', response.visionSessionId);
-    } catch (error) {
-      console.error('Failed to start vision session:', error);
-      setState(prev => ({ ...prev, error: 'Vision 세션 시작 실패' }));
+    } catch (error: any) {
+      console.error('❌ Failed to start vision session:', error);
+      console.error('❌ Error details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        sessionId,
+        calibrationId: calibration.calibrationId
+      });
+      setState(prev => ({
+        ...prev,
+        error: `Vision 세션 시작 실패: ${error.response?.data?.message || error.message}`
+      }));
     }
   };
 
