@@ -287,13 +287,13 @@ export interface VisionTestState {
   error?: string;
 }
 
-// MediaPipe Types
+// MediaPipe Types with 3D depth support
 export interface FaceLandmarks {
-  leftEye: { x: number; y: number };
-  rightEye: { x: number; y: number };
-  leftIris: { x: number; y: number };
-  rightIris: { x: number; y: number };
-  noseTip: { x: number; y: number };
+  leftEye: { x: number; y: number; z?: number };
+  rightEye: { x: number; y: number; z?: number };
+  leftIris: { x: number; y: number; z?: number };
+  rightIris: { x: number; y: number; z?: number };
+  noseTip: { x: number; y: number; z?: number };
 }
 
 export interface GazeEstimation {

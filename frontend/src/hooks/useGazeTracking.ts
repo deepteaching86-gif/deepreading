@@ -620,11 +620,11 @@ export const useGazeTracking = (
     };
 
     const faceLandmarks: FaceLandmarks = {
-      leftEye: { x: leftEyeCenter.x, y: leftEyeCenter.y },
-      rightEye: { x: rightEyeCenter.x, y: rightEyeCenter.y },
-      leftIris: { x: leftIris.x, y: leftIris.y },
-      rightIris: { x: rightIris.x, y: rightIris.y },
-      noseTip: { x: noseTip.x, y: noseTip.y }
+      leftEye: { x: leftEyeCenter.x, y: leftEyeCenter.y, z: leftEyeOuter.z },
+      rightEye: { x: rightEyeCenter.x, y: rightEyeCenter.y, z: rightEyeOuter.z },
+      leftIris: { x: leftIris.x, y: leftIris.y, z: leftIris.z },
+      rightIris: { x: rightIris.x, y: rightIris.y, z: rightIris.z },
+      noseTip: { x: noseTip.x, y: noseTip.y, z: noseTip.z }
     };
 
     // Estimate gaze
@@ -908,7 +908,7 @@ function estimateGazeFromLandmarks(
   const baseSensitivityX = 35; // Reduced from 80 for more stable tracking
   const headCompensatedX = (avgIrisRatioX * baseSensitivityX) - (headYaw * 8.0); // Reduced head influence
 
-  // === VERTICAL (Y-axis) CALCULATION ===
+  // === VERTICAL (Y-axis) CALCULATION WITH 3D DEPTH ===
   // Calculate vertical iris distance from eye center
   // Video coords: Y increases downward (top=0, bottom=height)
   // Looking UP: iris.y < eye.y → negative offset
@@ -926,6 +926,32 @@ function estimateGazeFromLandmarks(
   const noseTipY = landmarks.noseTip.y;
   const headPitch = (noseTipY - eyesCenterY) / videoHeight;
 
+  // === 3D DEPTH-BASED VERTICAL CORRECTION ===
+  // Use Z-depth from landmarks to improve vertical gaze accuracy
+  // When looking up: eyelid occludes iris → use head pitch as primary signal
+  // Z-depth indicates viewing distance → closer = more head movement influence
+
+  // Get Z-depth from iris landmarks
+  // MediaPipe provides Z in normalized scale where Z=0 is camera plane
+  // Negative Z = closer to camera, Positive Z = farther from camera
+  const leftZ = landmarks.leftIris.z ?? 0;
+  const rightZ = landmarks.rightIris.z ?? 0;
+  const avgZ = (leftZ + rightZ) / 2;
+
+  // Calculate depth-aware pitch multiplier
+  // Closer viewing (more negative Z): Head pitch has MORE influence on vertical gaze
+  // Farther viewing (less negative Z): Iris position has MORE influence
+  // Use exponential function to scale influence: e^(-Z*2)
+  // When Z=-0.1 (close): factor ≈ 1.22 (22% boost)
+  // When Z=0.0 (normal): factor = 1.0 (baseline)
+  // When Z=0.1 (far): factor ≈ 0.82 (18% reduction)
+  const depthFactor = Math.exp(-avgZ * 2.0);
+  const pitchInfluence = 0.5 * depthFactor; // Dynamic pitch influence based on depth
+
+  // Apply depth-corrected pitch compensation to vertical iris ratio
+  // This helps when iris is occluded by eyelid during upward gaze
+  const depthCorrectedY = avgIrisRatioY + (headPitch * pitchInfluence);
+
   // === RAW DATA CALLBACK (for calibration) ===
   // Call the callback with raw iris offset and head pose BEFORE any sensitivity calculations
   if (onRawGazeData) {
@@ -942,10 +968,10 @@ function estimateGazeFromLandmarks(
     });
   }
 
-  // Combine iris position with head rotation
+  // Combine iris position with head rotation using depth-corrected value
   // INCREASED Y sensitivity to match X responsiveness
   const baseSensitivityY = 35; // Increased from 50 → 35 to match X (equal sensitivity)
-  const headCompensatedY = (avgIrisRatioY * baseSensitivityY);
+  const headCompensatedY = (depthCorrectedY * baseSensitivityY);
 
   // === FINAL GAZE COORDINATES ===
   // Horizontal: Center at 0.5, FLIP for correct left-right mapping
@@ -967,14 +993,20 @@ function estimateGazeFromLandmarks(
   // Only log every 60 frames (~1 second at 60fps) to reduce console spam
   const isDev = import.meta.env.DEV;
   if (isDev && Math.random() < 0.016) {
-    console.group('🔍 Gaze Calculation Debug');
+    console.group('🔍 Gaze Calculation Debug (3D)');
     console.log('📊 Raw Iris:', {
       avgX: avgIrisRatioX.toFixed(4),
-      avgY: avgIrisRatioY.toFixed(4)
+      avgY: avgIrisRatioY.toFixed(4),
+      avgZ: avgZ.toFixed(4)
     });
     console.log('🎭 Head:', {
       yaw: headYaw.toFixed(4),
       pitch: headPitch.toFixed(4)
+    });
+    console.log('🌊 3D Depth:', {
+      depthFactor: depthFactor.toFixed(3),
+      pitchInfluence: pitchInfluence.toFixed(3),
+      depthCorrectedY: depthCorrectedY.toFixed(4)
     });
     console.log('✅ Final:', {
       x: x.toFixed(4),
