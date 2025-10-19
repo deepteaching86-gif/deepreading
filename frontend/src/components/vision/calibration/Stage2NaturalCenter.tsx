@@ -77,6 +77,14 @@ export const Stage2NaturalCenter: React.FC<Stage2NaturalCenterProps> = ({
 
     if (samples.length === 0) {
       console.warn('⚠️ No samples collected for natural center');
+
+      // Reset states to allow restart
+      setHasStarted(false);
+      setSamples([]);
+      setProgress(0);
+      setStartTime(null);
+
+      console.log('🔄 Restarting collection...');
       return;
     }
 

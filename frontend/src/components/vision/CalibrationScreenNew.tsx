@@ -205,10 +205,25 @@ export const CalibrationScreenNew: React.FC<CalibrationScreenNewProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black">
-      {/* Video elements */}
-      <div className={showCameraOverlay ? "hidden" : "hidden"}>
-        <video ref={videoRef} autoPlay playsInline muted />
-        <canvas ref={canvasRef} />
+      {/* Video and Canvas - positioned for overlay */}
+      <div className="fixed bottom-4 right-4 z-40" style={{
+        width: '256px',
+        height: '192px',
+        display: isTracking && showCameraOverlay && stage !== CalibrationStage.CAMERA_MARKING ? 'block' : 'none'
+      }}>
+        <video
+          ref={videoRef}
+          autoPlay
+          playsInline
+          muted
+          className="absolute top-0 left-0 w-full h-full object-cover"
+          style={{ transform: 'scaleX(-1)' }}
+        />
+        <canvas
+          ref={canvasRef}
+          className="absolute top-0 left-0 w-full h-full object-cover pointer-events-none"
+          style={{ transform: 'scaleX(-1)' }}
+        />
       </div>
 
       {/* Stage routing */}
@@ -284,9 +299,9 @@ export const CalibrationScreenNew: React.FC<CalibrationScreenNewProps> = ({
         )}
       </div>
 
-      {/* Camera Overlay - Bottom Right */}
+      {/* Camera Overlay UI - Bottom Right */}
       {isTracking && showCameraOverlay && stage !== CalibrationStage.CAMERA_MARKING && (
-        <div className="fixed bottom-4 right-4 z-50">
+        <div className="fixed bottom-4 right-4 z-50 w-64">
           <div className="relative bg-card/95 backdrop-blur-md rounded-xl shadow-2xl border border-border overflow-hidden">
             {/* Toggle button */}
             <button
@@ -297,35 +312,25 @@ export const CalibrationScreenNew: React.FC<CalibrationScreenNewProps> = ({
               <span className="text-xs">✕</span>
             </button>
 
-            {/* Video feed */}
-            <div className="relative w-64 h-48">
-              <video
-                ref={(el) => {
-                  if (el && videoRef.current) {
-                    el.srcObject = videoRef.current.srcObject;
-                  }
-                }}
-                autoPlay
-                playsInline
-                muted
-                className="w-full h-full object-cover rounded-t-xl"
-              />
-
+            {/* Video container - actual video/canvas are positioned here via CSS */}
+            <div className="relative w-full h-48 rounded-t-xl overflow-hidden bg-black">
               {/* Gaze indicator overlay */}
               {currentGaze && (
                 <div
-                  className="absolute w-3 h-3 bg-green-500 rounded-full transform -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+                  className="absolute w-3 h-3 bg-green-500 rounded-full transform -translate-x-1/2 -translate-y-1/2 pointer-events-none shadow-lg z-10"
                   style={{
                     left: `${currentGaze.x * 100}%`,
                     top: `${currentGaze.y * 100}%`,
-                    opacity: currentGaze.confidence * 0.8
+                    opacity: currentGaze.confidence * 0.8,
+                    boxShadow: '0 0 8px rgba(34, 197, 94, 0.6)'
                   }}
                 />
               )}
 
               {/* Face tracking indicator */}
-              <div className="absolute bottom-2 left-2 bg-black/60 px-2 py-1 rounded text-white text-xs">
-                📹 Live
+              <div className="absolute bottom-2 left-2 bg-black/60 px-2 py-1 rounded text-white text-xs flex items-center gap-1 z-10">
+                <span className="inline-block w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                <span>Live</span>
               </div>
             </div>
 
