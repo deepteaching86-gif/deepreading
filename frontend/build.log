@@ -1,0 +1,6 @@
+
+> literacy-assessment-frontend@1.0.0 build
+> tsc && vite build
+
+src/components/vision/CalibrationScreenSimple.tsx(32,29): error TS6133: 'setCalibrationPoints' is declared but its value is never read.
+src/components/vision/CalibrationScreenSimple.tsx(330,11): error TS6133: 'currentPoint' is declared but its value is never read.

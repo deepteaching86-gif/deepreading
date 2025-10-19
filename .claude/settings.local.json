@@ -85,7 +85,9 @@
       "Bash(else echo \"No Netlify state found\")",
       "Bash(for i in {1..6})",
       "Bash(do echo \"⏳ 대기 중... $i0초\")",
-      "Bash(do echo \"⏳ Netlify 배포 대기 중... $i0초\")"
+      "Bash(do echo \"⏳ Netlify 배포 대기 중... $i0초\")",
+      "Bash(pip install SuperClaude)",
+      "Bash(python:*)"
     ],
     "deny": [],
     "ask": []
