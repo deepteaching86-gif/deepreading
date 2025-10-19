@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from '../../lib/axios';
-import { CalibrationScreenNew } from '../../components/vision/CalibrationScreenNew';
+import { CalibrationScreenSimple } from '../../components/vision/CalibrationScreenSimple';
 import { ConcentrationMonitor, ConcentrationAlertModal } from '../../components/vision/ConcentrationMonitor';
 import { useGazeTracking } from '../../hooks/useGazeTracking';
 import {
@@ -404,23 +404,19 @@ export const VisionTestPage: React.FC = () => {
   // Render calibration stage
   if (state.stage === 'calibration' && !calibrationResult) {
     return (
-      <CalibrationScreenNew
+      <CalibrationScreenSimple
         userId={userId}
-        onCalibrationComplete={(profile) => {
-          // Save calibration profile for adaptive learning
-          setCalibrationProfile(profile);
-          saveCalibrationProfile(profile);
-
-          // Convert CalibrationProfile to CalibrationResult
+        onCalibrationComplete={() => {
+          // Simple calibration doesn't need profile - just start the session
           const result: CalibrationResult = {
-            calibrationId: profile.userId + '-' + profile.createdAt.getTime(),
-            overallAccuracy: profile.quickCalibration.verificationScore,
+            calibrationId: userId + '-' + Date.now(),
+            overallAccuracy: 1.0, // Adaptive system handles accuracy
             points: [],
             transformMatrix: [
-              [profile.quickCalibration.sensitivity.baseX, 0, 0],
-              [0, profile.quickCalibration.sensitivity.baseY, 0],
+              [1, 0, 0],
+              [0, 1, 0],
               [0, 0, 1]
-            ],
+            ], // Identity matrix - no calibration needed
             deviceInfo: {
               userAgent: navigator.userAgent,
               screenWidth: window.screen.width,
