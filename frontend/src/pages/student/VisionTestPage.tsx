@@ -4,6 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from '../../lib/axios';
 import { CalibrationScreenSimple } from '../../components/vision/CalibrationScreenSimple';
 import { ConcentrationMonitor, ConcentrationAlertModal } from '../../components/vision/ConcentrationMonitor';
+import { DebugCameraOverlay } from '../../components/vision/DebugCameraOverlay';
 import { useGazeTracking } from '../../hooks/useGazeTracking';
 import {
   startVisionSession,
@@ -88,6 +89,7 @@ export const VisionTestPage: React.FC = () => {
     currentGaze,
     fps,
     videoRef,
+    canvasRef,
     startTracking,
     stopTracking
   } = useGazeTracking({
@@ -642,6 +644,13 @@ export const VisionTestPage: React.FC = () => {
         <ConcentrationAlertModal
           alert={selectedAlert}
           onClose={() => setSelectedAlert(null)}
+        />
+
+        {/* Debug Camera Overlay - Right Bottom */}
+        <DebugCameraOverlay
+          videoRef={videoRef}
+          canvasRef={canvasRef}
+          isTracking={isTracking}
         />
       </div>
     );
