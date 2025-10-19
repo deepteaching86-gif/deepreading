@@ -51,6 +51,10 @@ export const useGazeTracking = (
   const fpsCounterRef = useRef({ frames: 0, lastTime: Date.now() });
   const lastGazeRef = useRef<{ x: number; y: number; timestamp: number } | null>(null);
 
+  // Temporal smoothing filter - Exponential Moving Average (EMA)
+  // Reduces single-frame noise while maintaining responsiveness
+  const smoothedGazeRef = useRef<{ x: number; y: number } | null>(null);
+
   // Initialize MediaPipe Tasks Vision
   const initialize = useCallback(async () => {
     try {
@@ -631,12 +635,33 @@ export const useGazeTracking = (
       onRawGazeData
     );
 
+    // Apply temporal smoothing (EMA filter) to reduce single-frame noise
+    // Alpha = 0.3 means 30% new value, 70% previous value
+    // Higher alpha = more responsive but noisier
+    // Lower alpha = smoother but less responsive
+    const SMOOTHING_ALPHA = 0.3;
+
+    if (!smoothedGazeRef.current) {
+      // First frame - initialize with current gaze
+      smoothedGazeRef.current = { x: gaze.x, y: gaze.y };
+    } else {
+      // Apply EMA: smoothed = alpha * new + (1 - alpha) * previous
+      smoothedGazeRef.current = {
+        x: SMOOTHING_ALPHA * gaze.x + (1 - SMOOTHING_ALPHA) * smoothedGazeRef.current.x,
+        y: SMOOTHING_ALPHA * gaze.y + (1 - SMOOTHING_ALPHA) * smoothedGazeRef.current.y
+      };
+    }
+
+    // Use smoothed values for final gaze
+    const smoothedX = smoothedGazeRef.current.x;
+    const smoothedY = smoothedGazeRef.current.y;
+
     // Apply calibration
-    let calibratedX = gaze.x;
-    let calibratedY = gaze.y;
+    let calibratedX = smoothedX;
+    let calibratedY = smoothedY;
 
     if (calibrationMatrix) {
-      const transformed = applyAffineTransform(gaze.x, gaze.y, calibrationMatrix);
+      const transformed = applyAffineTransform(smoothedX, smoothedY, calibrationMatrix);
       calibratedX = transformed.x;
       calibratedY = transformed.y;
     }
@@ -921,9 +946,9 @@ function estimateGazeFromLandmarks(
   const x = 1.0 - rawX;  // FLIP: Mirror horizontally (left ↔ right)
 
   // Vertical: Center at 0.5, ASYMMETRIC multiplier for better upward range
-  // Looking UP (negative headCompensatedY): Use 3.5x multiplier to compensate for iris detection difficulty
+  // Looking UP (negative headCompensatedY): Use 5.0x multiplier to break ceiling limit (synchronized with calibrationUtils)
   // Looking DOWN (positive headCompensatedY): Use 2.0x multiplier (standard)
-  const yMultiplier = headCompensatedY < 0 ? 3.5 : 2.0;
+  const yMultiplier = headCompensatedY < 0 ? 5.0 : 2.0;
   const y = 0.5 + (headCompensatedY * yMultiplier);
 
   // Calculate confidence
