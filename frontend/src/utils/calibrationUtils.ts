@@ -168,12 +168,14 @@ export function calculateCalibratedGaze(
 
   // 2.5. Apply final multipliers (matching useGazeTracking behavior)
   // X: 1.5x for better horizontal coverage
-  // Y: 2.0x for better vertical range
+  // Y: ASYMMETRIC - 3.5x for upward (negative), 2.0x for downward (positive)
   const FINAL_MULTIPLIER_X = 1.5;
-  const FINAL_MULTIPLIER_Y = 2.0;
+  const FINAL_MULTIPLIER_Y_UP = 3.5;   // Looking up - compensate for iris detection difficulty
+  const FINAL_MULTIPLIER_Y_DOWN = 2.0; // Looking down - standard sensitivity
 
   const rawGazeX = 0.5 + (baseGazeX * FINAL_MULTIPLIER_X);
-  const rawGazeY = 0.5 + (baseGazeY * FINAL_MULTIPLIER_Y);
+  const yMultiplier = baseGazeY < 0 ? FINAL_MULTIPLIER_Y_UP : FINAL_MULTIPLIER_Y_DOWN;
+  const rawGazeY = 0.5 + (baseGazeY * yMultiplier);
 
   // 2.6. Apply mirror flip for horizontal axis
   const mirroredGazeX = 1.0 - rawGazeX;

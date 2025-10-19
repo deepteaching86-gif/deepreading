@@ -918,8 +918,11 @@ function estimateGazeFromLandmarks(
   const rawX = 0.5 + (headCompensatedX * 1.5);  // Increased multiplier for better coverage
   const x = 1.0 - rawX;  // FLIP: Mirror horizontally (left ↔ right)
 
-  // Vertical: Center at 0.5
-  const y = 0.5 + (headCompensatedY * 2.0);  // Increased multiplier significantly for more vertical range
+  // Vertical: Center at 0.5, ASYMMETRIC multiplier for better upward range
+  // Looking UP (negative headCompensatedY): Use 3.5x multiplier to compensate for iris detection difficulty
+  // Looking DOWN (positive headCompensatedY): Use 2.0x multiplier (standard)
+  const yMultiplier = headCompensatedY < 0 ? 3.5 : 2.0;
+  const y = 0.5 + (headCompensatedY * yMultiplier);
 
   // Calculate confidence
   const eyeSymmetryX = 1 - Math.abs(leftIrisRatioX - rightIrisRatioX) * 20;
