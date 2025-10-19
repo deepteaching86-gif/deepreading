@@ -7,6 +7,7 @@ import { ConcentrationMonitor, ConcentrationAlertModal } from '../../components/
 import { DebugCameraOverlay } from '../../components/vision/DebugCameraOverlay';
 import { useGazeTracking } from '../../hooks/useGazeTracking';
 import {
+  startCalibration,
   startVisionSession,
   saveGazeData,
   submitVisionSession,
@@ -417,27 +418,45 @@ export const VisionTestPage: React.FC = () => {
     return (
       <CalibrationScreenSimple
         userId={userId}
-        onCalibrationComplete={() => {
-          // Simple calibration doesn't need profile - just start the session
-          const result: CalibrationResult = {
-            calibrationId: userId + '-' + Date.now(),
-            overallAccuracy: 1.0, // Adaptive system handles accuracy
-            points: [],
-            transformMatrix: [
-              [1, 0, 0],
-              [0, 1, 0],
-              [0, 0, 1]
-            ], // Identity matrix - no calibration needed
-            deviceInfo: {
-              userAgent: navigator.userAgent,
-              screenWidth: window.screen.width,
-              screenHeight: window.screen.height,
-              devicePixelRatio: window.devicePixelRatio,
-              platform: navigator.platform
-            },
-            expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
-          };
-          handleCalibrationComplete(result);
+        onCalibrationComplete={async () => {
+          try {
+            // Create calibration in backend to get valid UUID calibrationId
+            const calibrationResponse = await startCalibration({
+              userId,
+              deviceInfo: {
+                userAgent: navigator.userAgent,
+                screenWidth: window.screen.width,
+                screenHeight: window.screen.height,
+                devicePixelRatio: window.devicePixelRatio,
+                platform: navigator.platform
+              }
+            });
+
+            const result: CalibrationResult = {
+              calibrationId: calibrationResponse.calibrationId, // UUID from backend
+              overallAccuracy: 1.0, // Adaptive system handles accuracy
+              points: [],
+              transformMatrix: [
+                [1, 0, 0],
+                [0, 1, 0],
+                [0, 0, 1]
+              ], // Identity matrix - no calibration needed
+              deviceInfo: {
+                userAgent: navigator.userAgent,
+                screenWidth: window.screen.width,
+                screenHeight: window.screen.height,
+                devicePixelRatio: window.devicePixelRatio,
+                platform: navigator.platform
+              },
+              expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days
+            };
+
+            console.log('✅ Calibration created:', result.calibrationId);
+            handleCalibrationComplete(result);
+          } catch (error) {
+            console.error('❌ Failed to create calibration:', error);
+            setState(prev => ({ ...prev, error: '캘리브레이션 생성 실패' }));
+          }
         }}
         onCancel={() => navigate('/student/dashboard')}
       />
