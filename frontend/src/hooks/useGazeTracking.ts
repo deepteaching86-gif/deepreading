@@ -1009,25 +1009,25 @@ function estimateGazeFromLandmarks(
   }
 
   // Combine iris position with head rotation using depth-corrected value
-  // ROOT PROBLEM IDENTIFIED: avgIrisRatioY is very small (-0.0002 level)
-  // This means iris Y offset is nearly zero, suggesting:
-  // 1. Iris landmarks not varying with eye movement, OR
-  // 2. Normalization by videoHeight reducing signal too much
-  // SOLUTION: Use ONLY headPitch for Y-axis (it shows 0.18 variation which is good)
-  // Expected: headPitch ~0.18 × 2.0 = 0.36 → rawY = 0.5 + 0.36 = 0.86 ✓
-  const baseSensitivityY = 2.0; // Use headPitch as primary Y signal (reduced from 3.0)
-  const headCompensatedY = (headPitch * baseSensitivityY); // Use headPitch directly, ignore iris offset
+  // Y-AXIS FIX: Increase sensitivity to allow full vertical range
+  // Previous baseSensitivityY = 2.0 was too low, causing y to stick around 0.86
+  // With headPitch ~0.18, we need higher multiplier to reach full 0.0-1.0 range
+  const baseSensitivityY = 6.0; // INCREASED from 2.0 to 6.0 for full vertical coverage
+  const headCompensatedY = (headPitch * baseSensitivityY); // Use headPitch directly
 
   // === FINAL GAZE COORDINATES ===
   // Horizontal: Center at 0.5, FLIP for correct left-right mapping
   const rawX = 0.5 + (headCompensatedX * 2.5);  // Increased to 2.5 for corner coverage
   const x = 1.0 - rawX;  // FLIP: Mirror horizontally (left ↔ right)
 
-  // Vertical: CRITICAL FIX - Subtract instead of add to fix inverted Y-axis
-  // PROBLEM: headCompensatedY is negative, and 0.5 + (negative) gives small Y (top)
-  // But we want: head down (big negative) → Y large (bottom)
-  // SOLUTION: Use SUBTRACTION to invert the sign
-  const yMultiplier = 1.0; // Multiplier for sensitivity control
+  // Vertical: CRITICAL FIX - Use headPitch directly with increased sensitivity
+  // headPitch ranges roughly -0.2 (looking up) to +0.2 (looking down)
+  // With sensitivity 6.0: -0.2*6.0 = -1.2, +0.2*6.0 = +1.2
+  // rawY = 0.5 - headCompensatedY gives us:
+  //   - Looking UP (headPitch=-0.2): 0.5 - (-1.2) = 1.7 → clamp to 1.0
+  //   - Looking CENTER (headPitch=0): 0.5 - 0 = 0.5
+  //   - Looking DOWN (headPitch=+0.2): 0.5 - 1.2 = -0.7 → clamp to 0.0
+  const yMultiplier = 1.5; // INCREASED from 1.0 to 1.5 for more vertical responsiveness
   const rawY = 0.5 - (headCompensatedY * yMultiplier); // SUBTRACT to fix inversion!
   const y = rawY; // No clamping here - let smoothing handle it
 
