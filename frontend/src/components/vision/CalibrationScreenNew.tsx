@@ -51,6 +51,9 @@ export const CalibrationScreenNew: React.FC<CalibrationScreenNewProps> = ({
   // Current calibrated gaze (after Stage 4)
   const [currentCalibratedGaze, setCurrentCalibratedGaze] = useState<Point | null>(null);
 
+  // Camera overlay toggle
+  const [showCameraOverlay, setShowCameraOverlay] = useState(true);
+
   // Gaze tracking hook
   const {
     isTracking,
@@ -202,8 +205,8 @@ export const CalibrationScreenNew: React.FC<CalibrationScreenNewProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black">
-      {/* Hidden video elements for gaze tracking */}
-      <div className="hidden">
+      {/* Video elements */}
+      <div className={showCameraOverlay ? "hidden" : "hidden"}>
         <video ref={videoRef} autoPlay playsInline muted />
         <canvas ref={canvasRef} />
       </div>
@@ -280,6 +283,78 @@ export const CalibrationScreenNew: React.FC<CalibrationScreenNewProps> = ({
           </div>
         )}
       </div>
+
+      {/* Camera Overlay - Bottom Right */}
+      {isTracking && showCameraOverlay && stage !== CalibrationStage.CAMERA_MARKING && (
+        <div className="fixed bottom-4 right-4 z-50">
+          <div className="relative bg-card/95 backdrop-blur-md rounded-xl shadow-2xl border border-border overflow-hidden">
+            {/* Toggle button */}
+            <button
+              onClick={() => setShowCameraOverlay(false)}
+              className="absolute top-2 right-2 w-6 h-6 bg-card/90 border border-border rounded-full flex items-center justify-center hover:bg-accent transition-colors z-10"
+              title="카메라 숨기기"
+            >
+              <span className="text-xs">✕</span>
+            </button>
+
+            {/* Video feed */}
+            <div className="relative w-64 h-48">
+              <video
+                ref={(el) => {
+                  if (el && videoRef.current) {
+                    el.srcObject = videoRef.current.srcObject;
+                  }
+                }}
+                autoPlay
+                playsInline
+                muted
+                className="w-full h-full object-cover rounded-t-xl"
+              />
+
+              {/* Gaze indicator overlay */}
+              {currentGaze && (
+                <div
+                  className="absolute w-3 h-3 bg-green-500 rounded-full transform -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+                  style={{
+                    left: `${currentGaze.x * 100}%`,
+                    top: `${currentGaze.y * 100}%`,
+                    opacity: currentGaze.confidence * 0.8
+                  }}
+                />
+              )}
+
+              {/* Face tracking indicator */}
+              <div className="absolute bottom-2 left-2 bg-black/60 px-2 py-1 rounded text-white text-xs">
+                📹 Live
+              </div>
+            </div>
+
+            {/* Info panel */}
+            <div className="bg-card/80 px-3 py-2 text-xs space-y-1">
+              <div className="text-card-foreground/70">
+                상태: {isTracking ? '✓ 추적 중' : '✗ 대기'}
+              </div>
+              {currentGaze && (
+                <div className="text-card-foreground/70">
+                  시선: ({(currentGaze.x * 100).toFixed(0)}%, {(currentGaze.y * 100).toFixed(0)}%)
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Show Camera Button (when hidden) */}
+      {isTracking && !showCameraOverlay && stage !== CalibrationStage.CAMERA_MARKING && (
+        <button
+          onClick={() => setShowCameraOverlay(true)}
+          className="fixed bottom-4 right-4 z-50 px-3 py-2 bg-primary text-primary-foreground rounded-lg shadow-lg hover:bg-primary/90 transition-all flex items-center gap-2"
+          title="카메라 표시"
+        >
+          <span className="text-sm">📹</span>
+          <span className="text-sm font-medium">카메라</span>
+        </button>
+      )}
     </div>
   );
 };

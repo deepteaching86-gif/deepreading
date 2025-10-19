@@ -3,6 +3,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from '../../lib/axios';
 import { CalibrationScreenNew } from '../../components/vision/CalibrationScreenNew';
+import { ConcentrationMonitor, ConcentrationAlertModal } from '../../components/vision/ConcentrationMonitor';
 import { useGazeTracking } from '../../hooks/useGazeTracking';
 import {
   startVisionSession,
@@ -22,6 +23,9 @@ import {
   saveCalibrationProfile,
   recordUserClick
 } from '../../utils/calibrationUtils';
+import { ConcentrationRawData, ConcentrationScore, ConcentrationAlert } from '../../types/concentration.types';
+import { concentrationAnalyzer } from '../../utils/concentrationAnalysis';
+import { concentrationSessionManager } from '../../services/concentrationService';
 
 export const VisionTestPage: React.FC = () => {
   const { sessionId } = useParams<{ sessionId: string }>();
@@ -48,6 +52,14 @@ export const VisionTestPage: React.FC = () => {
     irisOffset: Point;
     headPose: { yaw: number; pitch: number };
   } | null>(null);
+
+  // 집중력 모니터링 state
+  const [currentConcentrationScore, setCurrentConcentrationScore] = useState<ConcentrationScore | null>(null);
+  const [concentrationAlerts, setConcentrationAlerts] = useState<ConcentrationAlert[]>([]);
+  const [selectedAlert, setSelectedAlert] = useState<ConcentrationAlert | null>(null);
+  const [showConcentrationMonitor, setShowConcentrationMonitor] = useState(true); // 집중력 모니터 표시 여부
+  const lastConcentrationUpdateRef = useRef<number>(Date.now());
+  const CONCENTRATION_UPDATE_INTERVAL = 1000; // 1초 단위 업데이트
 
   // Gaze data buffer
   const gazeBufferRef = useRef<GazePoint[]>([]);
@@ -92,6 +104,32 @@ export const VisionTestPage: React.FC = () => {
         headPose: data.headPose
       });
     }, []),
+    onConcentrationData: useCallback((rawData: ConcentrationRawData) => {
+      // 실시간으로 집중력 분석기에 데이터 전달
+      const score = concentrationAnalyzer.analyze(rawData);
+
+      // 1초마다 집중력 점수 업데이트
+      const now = Date.now();
+      if (now - lastConcentrationUpdateRef.current >= CONCENTRATION_UPDATE_INTERVAL) {
+        setCurrentConcentrationScore(score);
+        lastConcentrationUpdateRef.current = now;
+
+        // 세션 매니저에 점수 추가
+        concentrationSessionManager.addScore(score);
+
+        // 새 알림 확인
+        const currentSession = concentrationSessionManager.getCurrentSession();
+        if (currentSession && currentSession.alerts.length > concentrationAlerts.length) {
+          const newAlerts = currentSession.alerts.slice(concentrationAlerts.length);
+          setConcentrationAlerts(currentSession.alerts);
+
+          // 첫 번째 새 알림 자동 표시
+          if (newAlerts.length > 0) {
+            setSelectedAlert(newAlerts[0]);
+          }
+        }
+      }
+    }, [concentrationAlerts.length]),
     calibrationMatrix: calibrationResult?.transformMatrix,
     targetFPS: 30
   });
@@ -205,6 +243,10 @@ export const VisionTestPage: React.FC = () => {
 
       // Start gaze tracking
       await startTracking();
+
+      // Start concentration monitoring session
+      concentrationSessionManager.startSession(response.visionSessionId);
+      console.log('🎯 Concentration monitoring started');
 
       console.log('✅ Vision session started:', response.visionSessionId);
     } catch (error) {
@@ -331,6 +373,16 @@ export const VisionTestPage: React.FC = () => {
       // Save final gaze data
       await saveGazeChunk();
 
+      // End concentration session and generate report
+      const concentrationSession = concentrationSessionManager.endSession();
+      if (concentrationSession) {
+        console.log('📊 Concentration session ended:', {
+          duration: concentrationSession.endTime! - concentrationSession.startTime,
+          averageScore: concentrationSession.averageScore,
+          alertsCount: concentrationSession.alerts.length
+        });
+      }
+
       // Submit vision session
       await submitVisionSession({
         visionSessionId
@@ -411,7 +463,7 @@ export const VisionTestPage: React.FC = () => {
               <span className="text-xs text-muted-foreground">{fps} FPS</span>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <div className="px-3 py-1 bg-primary/10 text-primary rounded-full text-xs font-medium">
                 Vision TEST
               </div>
@@ -549,12 +601,53 @@ export const VisionTestPage: React.FC = () => {
           />
         )}
 
+        {/* Concentration Monitor Overlay - Bottom of Camera View */}
+        {showConcentrationMonitor && currentConcentrationScore && (
+          <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50 w-[500px]">
+            <div className="bg-card/95 backdrop-blur-md rounded-xl shadow-2xl border border-border p-4">
+              {/* Toggle button */}
+              <button
+                onClick={() => setShowConcentrationMonitor(false)}
+                className="absolute -top-2 -right-2 w-6 h-6 bg-card border border-border rounded-full flex items-center justify-center hover:bg-accent transition-colors"
+                title="집중력 모니터 숨기기"
+              >
+                <span className="text-xs">✕</span>
+              </button>
+
+              <ConcentrationMonitor
+                currentScore={currentConcentrationScore}
+                recentAlerts={concentrationAlerts}
+                compact={false}
+                onAlertClick={(alert) => setSelectedAlert(alert)}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Show Concentration Monitor Button (when hidden) */}
+        {!showConcentrationMonitor && (
+          <button
+            onClick={() => setShowConcentrationMonitor(true)}
+            className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50 px-4 py-2 bg-primary text-primary-foreground rounded-full shadow-lg hover:bg-primary/90 transition-all flex items-center gap-2"
+            title="집중력 모니터 표시"
+          >
+            <span className="text-sm">🎯</span>
+            <span className="text-sm font-medium">집중력 모니터</span>
+          </button>
+        )}
+
         {/* Error message */}
         {state.error && (
           <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 bg-destructive text-destructive-foreground px-6 py-3 rounded-lg shadow-lg z-50">
             {state.error}
           </div>
         )}
+
+        {/* Concentration Alert Modal */}
+        <ConcentrationAlertModal
+          alert={selectedAlert}
+          onClose={() => setSelectedAlert(null)}
+        />
       </div>
     );
   }

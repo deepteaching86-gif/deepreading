@@ -22,18 +22,22 @@ export const Stage2NaturalCenter: React.FC<Stage2NaturalCenterProps> = ({
   const [progress, setProgress] = useState(0); // 0-100
   const [isCollecting, setIsCollecting] = useState(false);
   const [startTime, setStartTime] = useState<number | null>(null);
+  const [hasStarted, setHasStarted] = useState(false); // Track if collection has started
 
   const DURATION = CALIBRATION_CONSTANTS.NATURAL_CENTER_DURATION;
 
-  // Start collection when component mounts
+  // Start collection when component mounts or remounts
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsCollecting(true);
-      setStartTime(Date.now());
-    }, 1000); // 1 second delay to let user position themselves
+    if (!hasStarted) {
+      const timer = setTimeout(() => {
+        setIsCollecting(true);
+        setStartTime(Date.now());
+        setHasStarted(true);
+      }, 1000); // 1 second delay to let user position themselves
 
-    return () => clearTimeout(timer);
-  }, []);
+      return () => clearTimeout(timer);
+    }
+  }, [hasStarted]);
 
   // Collect gaze data samples whenever new data arrives
   useEffect(() => {
