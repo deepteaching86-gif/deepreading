@@ -552,10 +552,12 @@ export const useGazeTracking = (
       left: leftEAR.toFixed(3),
       right: rightEAR.toFixed(3),
       average: avgEAR.toFixed(3),
-      status: avgEAR > 0.18 ? 'OPEN' : 'CLOSED'
+      status: avgEAR > 0.12 ? 'OPEN' : 'CLOSED'
     });
 
-    const EAR_THRESHOLD = 0.18;
+    // Lowered threshold from 0.18 to 0.12 to allow tracking when looking up
+    // When eyes look up, upper eyelid covers more iris, reducing EAR
+    const EAR_THRESHOLD = 0.12;
 
     if (avgEAR < EAR_THRESHOLD) {
       console.warn('👓 Eyes closed or occluded');
