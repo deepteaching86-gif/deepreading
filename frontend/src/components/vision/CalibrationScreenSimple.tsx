@@ -127,55 +127,77 @@ export const CalibrationScreenSimple: React.FC<CalibrationScreenSimpleProps> = (
   if (stage === 'camera_check') {
     return (
       <div className="fixed inset-0 bg-gray-900 z-50 flex flex-col items-center justify-center">
-        {/* Hidden video and canvas */}
-        <video
-          ref={videoRef}
-          className="hidden"
-          autoPlay
-          playsInline
-          muted
-        />
-        <canvas ref={canvasRef} className="hidden" />
-
         {/* Instructions */}
         <div className="absolute top-8 left-1/2 transform -translate-x-1/2 text-center z-20">
           <h2 className="text-2xl font-bold text-white mb-2">
             📹 카메라 위치 확인
           </h2>
           <p className="text-gray-300 text-lg">
-            얼굴을 화면 중앙에 위치시켜주세요
+            얼굴을 가이드 영역 중앙에 위치시켜주세요
           </p>
         </div>
 
-        {/* Face guide - centered */}
+        {/* Camera feed with face guide overlay */}
         <div className="relative">
-          <div className="w-64 h-80 border-4 border-dashed rounded-2xl pointer-events-none"
-            style={{
-              borderColor: faceCentered ? 'rgba(34, 197, 94, 0.6)' : 'rgba(239, 68, 68, 0.6)',
-              boxShadow: faceCentered
-                ? '0 0 30px rgba(34, 197, 94, 0.4)'
-                : '0 0 30px rgba(239, 68, 68, 0.4)'
-            }}
-          >
-            {/* Status text */}
-            <div className="absolute -bottom-16 left-1/2 transform -translate-x-1/2 text-center">
-              {!faceDetected && (
-                <p className="text-red-400 font-semibold">❌ 얼굴이 감지되지 않습니다</p>
-              )}
-              {faceDetected && !faceCentered && (
-                <p className="text-yellow-400 font-semibold">⚠️ 위치를 조정해주세요</p>
-              )}
-              {faceCentered && (
-                <div>
-                  <p className="text-green-400 font-bold text-xl mb-2">
-                    ✅ 완벽합니다!
-                  </p>
-                  <p className="text-white text-3xl font-bold">
-                    {countdown}
-                  </p>
-                </div>
-              )}
+          {/* Video container with rounded corners */}
+          <div className="relative w-[480px] h-[640px] rounded-2xl overflow-hidden bg-black">
+            {/* Live camera feed */}
+            <video
+              ref={videoRef}
+              className="absolute inset-0 w-full h-full object-cover"
+              style={{ transform: 'scaleX(-1)' }} // Mirror mode
+              autoPlay
+              playsInline
+              muted
+            />
+
+            {/* FaceMesh overlay canvas */}
+            <canvas
+              ref={canvasRef}
+              className="absolute inset-0 w-full h-full"
+              style={{ transform: 'scaleX(-1)' }} // Mirror mode
+            />
+
+            {/* Face guide overlay - centered oval */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div
+                className="w-64 h-80 border-4 border-dashed rounded-[50%] transition-all duration-300"
+                style={{
+                  borderColor: faceCentered ? 'rgba(34, 197, 94, 0.8)' : 'rgba(239, 68, 68, 0.6)',
+                  boxShadow: faceCentered
+                    ? '0 0 40px rgba(34, 197, 94, 0.6), inset 0 0 40px rgba(34, 197, 94, 0.1)'
+                    : '0 0 40px rgba(239, 68, 68, 0.4), inset 0 0 40px rgba(239, 68, 68, 0.1)'
+                }}
+              />
             </div>
+
+            {/* Center crosshair */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div className="relative w-8 h-8">
+                <div className="absolute top-1/2 left-0 w-full h-0.5 bg-white/50 transform -translate-y-1/2"></div>
+                <div className="absolute left-1/2 top-0 w-0.5 h-full bg-white/50 transform -translate-x-1/2"></div>
+              </div>
+            </div>
+          </div>
+
+          {/* Status text below camera */}
+          <div className="absolute -bottom-20 left-1/2 transform -translate-x-1/2 text-center w-full">
+            {!faceDetected && (
+              <p className="text-red-400 font-semibold text-lg">❌ 얼굴이 감지되지 않습니다</p>
+            )}
+            {faceDetected && !faceCentered && (
+              <p className="text-yellow-400 font-semibold text-lg">⚠️ 가이드 영역 안으로 위치를 조정해주세요</p>
+            )}
+            {faceCentered && (
+              <div>
+                <p className="text-green-400 font-bold text-2xl mb-2">
+                  ✅ 완벽합니다!
+                </p>
+                <p className="text-white text-4xl font-bold animate-pulse">
+                  {countdown}
+                </p>
+              </div>
+            )}
           </div>
         </div>
 
