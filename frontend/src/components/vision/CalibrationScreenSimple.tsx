@@ -370,15 +370,16 @@ export const CalibrationScreenSimple: React.FC<CalibrationScreenSimpleProps> = (
 
     return (
       <div className="fixed inset-0 bg-gray-900 z-50">
-        {/* Video and canvas - ALWAYS rendered */}
-        <video
-          ref={videoRef}
-          className="hidden"
-          autoPlay
-          playsInline
-          muted
-        />
-        <canvas ref={canvasRef} className="hidden" />
+        {/* Video and canvas - hidden but keep refs active for face tracking */}
+        <div className="hidden">
+          <video
+            ref={videoRef}
+            autoPlay
+            playsInline
+            muted
+          />
+          <canvas ref={canvasRef} />
+        </div>
 
         {/* Progress bar */}
         <div className="absolute top-0 left-0 right-0 h-2 bg-gray-800 z-10">
