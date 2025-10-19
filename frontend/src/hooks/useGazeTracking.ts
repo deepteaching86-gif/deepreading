@@ -515,6 +515,30 @@ export const useGazeTracking = (
 
     const landmarks = result.faceLandmarks[0];
 
+    // Call onFacePosition if provided
+    if (onFacePosition && landmarks.length > 0) {
+      // Calculate face bounding box from landmarks
+      const allX = landmarks.map(l => l.x);
+      const allY = landmarks.map(l => l.y);
+      const minX = Math.min(...allX);
+      const maxX = Math.max(...allX);
+      const minY = Math.min(...allY);
+      const maxY = Math.max(...allY);
+
+      // Calculate center and size (normalized 0-1)
+      const centerX = (minX + maxX) / 2;
+      const centerY = (minY + maxY) / 2;
+      const width = maxX - minX;
+      const height = maxY - minY;
+
+      onFacePosition({
+        x: centerX,
+        y: centerY,
+        width,
+        height
+      });
+    }
+
     // Convert normalized coordinates to pixel coordinates for our calculations
     const toPixelCoords = (landmark: { x: number; y: number; z: number }) => ({
       x: landmark.x * video.videoWidth,

@@ -139,23 +139,22 @@ export const CalibrationScreenSimple: React.FC<CalibrationScreenSimpleProps> = (
 
         {/* Camera feed with face guide overlay */}
         <div className="relative">
-          {/* Video container with rounded corners */}
-          <div className="relative w-[480px] h-[640px] rounded-2xl overflow-hidden bg-black">
-            {/* Live camera feed */}
+          {/* Video container - maintain aspect ratio with object-contain */}
+          <div className="relative w-[640px] h-[480px] rounded-2xl overflow-hidden bg-black">
+            {/* Live camera feed - mirror mode for natural viewing */}
             <video
               ref={videoRef}
-              className="absolute inset-0 w-full h-full object-cover"
-              style={{ transform: 'scaleX(-1)' }} // Mirror mode
+              className="absolute inset-0 w-full h-full object-contain"
+              style={{ transform: 'scaleX(-1)' }} // Mirror mode for video
               autoPlay
               playsInline
               muted
             />
 
-            {/* FaceMesh overlay canvas */}
+            {/* FaceMesh overlay canvas - NO MIRROR to keep text readable */}
             <canvas
               ref={canvasRef}
               className="absolute inset-0 w-full h-full"
-              style={{ transform: 'scaleX(-1)' }} // Mirror mode
             />
 
             {/* Face guide overlay - centered oval */}
