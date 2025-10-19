@@ -163,10 +163,19 @@ export function calculateCalibratedGaze(
   };
 
   // 2. Apply user-specific sensitivity
-  const rawGazeX = 0.5 + (relativeIris.x * sensitivity.baseX) + (relativeHead.yaw * sensitivity.headYawMultiplier);
-  const rawGazeY = 0.5 + (relativeIris.y * sensitivity.baseY) + (relativeHead.pitch * sensitivity.headPitchMultiplier);
+  const baseGazeX = (relativeIris.x * sensitivity.baseX) + (relativeHead.yaw * sensitivity.headYawMultiplier);
+  const baseGazeY = (relativeIris.y * sensitivity.baseY) + (relativeHead.pitch * sensitivity.headPitchMultiplier);
 
-  // 2.5. Apply mirror flip for horizontal axis (matching useGazeTracking behavior)
+  // 2.5. Apply final multipliers (matching useGazeTracking behavior)
+  // X: 1.5x for better horizontal coverage
+  // Y: 2.0x for better vertical range
+  const FINAL_MULTIPLIER_X = 1.5;
+  const FINAL_MULTIPLIER_Y = 2.0;
+
+  const rawGazeX = 0.5 + (baseGazeX * FINAL_MULTIPLIER_X);
+  const rawGazeY = 0.5 + (baseGazeY * FINAL_MULTIPLIER_Y);
+
+  // 2.6. Apply mirror flip for horizontal axis
   const mirroredGazeX = 1.0 - rawGazeX;
 
   // 3. Apply camera parallax correction
