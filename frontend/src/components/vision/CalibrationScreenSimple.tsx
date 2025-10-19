@@ -272,10 +272,11 @@ export const CalibrationScreenSimple: React.FC<CalibrationScreenSimpleProps> = (
               muted
             />
 
-            {/* FaceMesh overlay canvas - NO MIRROR to keep text readable */}
+            {/* FaceMesh overlay canvas - MIRROR to match video and make text readable */}
             <canvas
               ref={canvasRef}
               className="absolute inset-0 w-full h-full"
+              style={{ transform: 'scaleX(-1)' }}
             />
 
             {/* Face guide overlay - centered oval */}
@@ -409,30 +410,52 @@ export const CalibrationScreenSimple: React.FC<CalibrationScreenSimpleProps> = (
           {showVideoOverlay ? '👁️ 카메라 숨기기' : '👁️ 카메라 보기'}
         </button>
 
-        {/* Camera feed (smaller, bottom-right corner) - CONDITIONAL RENDERING */}
-        {showVideoOverlay && (
-          <div className="absolute bottom-4 right-4 w-64 h-48 rounded-lg overflow-hidden bg-black shadow-2xl border-2 border-gray-700 z-20">
-            <video
-              ref={videoRef}
-              className="w-full h-full object-cover"
-              style={{ transform: 'scaleX(-1)' }}
-              autoPlay
-              playsInline
-              muted
-            />
-            <canvas
-              ref={canvasRef}
-              className="absolute inset-0 w-full h-full"
-              style={{ transform: 'scaleX(-1)' }}
-            />
+        {/* Hidden video/canvas for ref assignment - ALWAYS rendered */}
+        <div className="fixed" style={{ left: '-9999px' }}>
+          <video
+            ref={videoRef}
+            autoPlay
+            playsInline
+            muted
+          />
+          <canvas ref={canvasRef} />
+        </div>
 
-            {/* Status indicator */}
-            <div className="absolute top-2 left-2 flex items-center gap-2 bg-black/70 px-2 py-1 rounded z-10">
-              <div className={`w-2 h-2 rounded-full ${faceDetected ? 'bg-green-500' : 'bg-red-500'}`} />
-              <span className="text-white text-xs">{faceDetected ? '추적 중' : '얼굴 없음'}</span>
-            </div>
+        {/* Camera feed display (smaller, bottom-right corner) - CONDITIONAL VISIBILITY */}
+        <div className={`absolute bottom-4 right-4 w-64 h-48 rounded-lg overflow-hidden bg-black shadow-2xl border-2 border-gray-700 z-20 ${!showVideoOverlay ? 'hidden' : ''}`}>
+          <video
+            className="w-full h-full object-cover"
+            style={{ transform: 'scaleX(-1)' }}
+            ref={(el) => {
+              if (el && videoRef.current) {
+                el.srcObject = videoRef.current.srcObject;
+              }
+            }}
+            autoPlay
+            playsInline
+            muted
+          />
+          <canvas
+            className="absolute inset-0 w-full h-full"
+            style={{ transform: 'scaleX(-1)' }}
+            ref={(el) => {
+              if (el && canvasRef.current) {
+                const ctx = el.getContext('2d');
+                const srcCtx = canvasRef.current.getContext('2d');
+                if (ctx && srcCtx) {
+                  el.width = canvasRef.current.width;
+                  el.height = canvasRef.current.height;
+                }
+              }
+            }}
+          />
+
+          {/* Status indicator */}
+          <div className="absolute top-2 left-2 flex items-center gap-2 bg-black/70 px-2 py-1 rounded z-10">
+            <div className={`w-2 h-2 rounded-full ${faceDetected ? 'bg-green-500' : 'bg-red-500'}`} />
+            <span className="text-white text-xs">{faceDetected ? '추적 중' : '얼굴 없음'}</span>
           </div>
-        )}
+        </div>
       </div>
     );
   }
