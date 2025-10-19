@@ -990,10 +990,12 @@ function estimateGazeFromLandmarks(
   const rawX = 0.5 + (headCompensatedX * 1.5);  // Increased multiplier for better coverage
   const x = 1.0 - rawX;  // FLIP: Mirror horizontally (left ↔ right)
 
-  // Vertical: Center at 0.5, ASYMMETRIC multiplier for better upward range
-  // Looking UP (negative headCompensatedY): Use 5.0x multiplier to break ceiling limit (synchronized with calibrationUtils)
-  // Looking DOWN (positive headCompensatedY): Use 2.0x multiplier (standard)
-  const yMultiplier = headCompensatedY < 0 ? 5.0 : 2.0;
+  // Vertical: Center at 0.5, REDUCED multiplier to prevent overflow
+  // PROBLEM FOUND: yMultiplier 5.0 caused rawY > 2.0, which got clamped to 1.0
+  // FIX: Reduce multiplier to keep rawY in 0.0~1.0 range
+  // Looking UP (negative headCompensatedY): Use 1.0x multiplier
+  // Looking DOWN (positive headCompensatedY): Use 1.0x multiplier
+  const yMultiplier = 1.0; // REDUCED from 5.0/2.0 to prevent Y overflow
   const rawY = 0.5 + (headCompensatedY * yMultiplier);
   const y = rawY; // No clamping here - let smoothing handle it
 
