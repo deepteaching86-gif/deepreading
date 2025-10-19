@@ -996,7 +996,7 @@ function estimateGazeFromLandmarks(
 
   // === FINAL GAZE COORDINATES ===
   // Horizontal: Center at 0.5, FLIP for correct left-right mapping
-  const rawX = 0.5 + (headCompensatedX * 1.5);  // Increased multiplier for better coverage
+  const rawX = 0.5 + (headCompensatedX * 2.5);  // Increased to 2.5 for corner coverage
   const x = 1.0 - rawX;  // FLIP: Mirror horizontally (left ↔ right)
 
   // Vertical: CRITICAL FIX - Subtract instead of add to fix inverted Y-axis
