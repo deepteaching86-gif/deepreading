@@ -123,8 +123,22 @@ export const startCalibration = async (
       );
     }
 
-    // Generate calibration ID
-    const calibrationId = `calib_${Date.now()}_${userId.substring(0, 8)}`;
+    // Create calibration in database immediately to get valid UUID
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 7); // 7 days validity
+
+    const calibration = await prisma.visionCalibration.create({
+      data: {
+        userId,
+        calibrationPoints: [], // Empty initially, will be updated during validation
+        overallAccuracy: 0, // Will be calculated during validation
+        transformMatrix: [[1, 0, 0], [0, 1, 0], [0, 0, 1]], // Identity matrix initially
+        deviceInfo: deviceInfo as any,
+        expiresAt
+      }
+    });
+
+    const calibrationId = calibration.id; // Use database-generated UUID
 
     // Generate 9-point calibration grid (3x3)
     const points: Array<{ id: number; x: number; y: number }> = [];
