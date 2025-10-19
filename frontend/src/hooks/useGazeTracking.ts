@@ -981,9 +981,14 @@ function estimateGazeFromLandmarks(
   }
 
   // Combine iris position with head rotation using depth-corrected value
-  // INCREASED Y sensitivity to match X responsiveness
-  const baseSensitivityY = 35; // Increased from 50 → 35 to match X (equal sensitivity)
-  const headCompensatedY = (depthCorrectedY * baseSensitivityY);
+  // ROOT PROBLEM IDENTIFIED: avgIrisRatioY is very small (-0.0002 level)
+  // This means iris Y offset is nearly zero, suggesting:
+  // 1. Iris landmarks not varying with eye movement, OR
+  // 2. Normalization by videoHeight reducing signal too much
+  // SOLUTION: Use ONLY headPitch for Y-axis (it shows 0.18 variation which is good)
+  // Expected: headPitch ~0.18 × 2.0 = 0.36 → rawY = 0.5 + 0.36 = 0.86 ✓
+  const baseSensitivityY = 2.0; // Use headPitch as primary Y signal (reduced from 3.0)
+  const headCompensatedY = (headPitch * baseSensitivityY); // Use headPitch directly, ignore iris offset
 
   // === FINAL GAZE COORDINATES ===
   // Horizontal: Center at 0.5, FLIP for correct left-right mapping
