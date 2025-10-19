@@ -999,13 +999,12 @@ function estimateGazeFromLandmarks(
   const rawX = 0.5 + (headCompensatedX * 1.5);  // Increased multiplier for better coverage
   const x = 1.0 - rawX;  // FLIP: Mirror horizontally (left ↔ right)
 
-  // Vertical: Center at 0.5, REDUCED multiplier to prevent overflow
-  // PROBLEM FOUND: yMultiplier 5.0 caused rawY > 2.0, which got clamped to 1.0
-  // FIX: Reduce multiplier to keep rawY in 0.0~1.0 range
-  // Looking UP (negative headCompensatedY): Use 1.0x multiplier
-  // Looking DOWN (positive headCompensatedY): Use 1.0x multiplier
-  const yMultiplier = 1.0; // REDUCED from 5.0/2.0 to prevent Y overflow
-  const rawY = 0.5 + (headCompensatedY * yMultiplier);
+  // Vertical: CRITICAL FIX - Subtract instead of add to fix inverted Y-axis
+  // PROBLEM: headCompensatedY is negative, and 0.5 + (negative) gives small Y (top)
+  // But we want: head down (big negative) → Y large (bottom)
+  // SOLUTION: Use SUBTRACTION to invert the sign
+  const yMultiplier = 1.0; // Multiplier for sensitivity control
+  const rawY = 0.5 - (headCompensatedY * yMultiplier); // SUBTRACT to fix inversion!
   const y = rawY; // No clamping here - let smoothing handle it
 
   // === DEBUG: Y CALCULATION CHAIN ===
