@@ -57,7 +57,7 @@ export const VisionTestPage: React.FC = () => {
   const [currentConcentrationScore, setCurrentConcentrationScore] = useState<ConcentrationScore | null>(null);
   const [concentrationAlerts, setConcentrationAlerts] = useState<ConcentrationAlert[]>([]);
   const [selectedAlert, setSelectedAlert] = useState<ConcentrationAlert | null>(null);
-  const [showConcentrationMonitor, setShowConcentrationMonitor] = useState(true); // 집중력 모니터 표시 여부
+  const [showConcentrationMonitor, setShowConcentrationMonitor] = useState(false); // 집중력 모니터 표시 여부 (기본 OFF)
   const [showGazeOverlay, setShowGazeOverlay] = useState(false); // 실시간 시선 추적 오버레이 표시 여부
   const lastConcentrationUpdateRef = useRef<number>(Date.now());
   const CONCENTRATION_UPDATE_INTERVAL = 1000; // 1초 단위 업데이트
@@ -306,7 +306,7 @@ export const VisionTestPage: React.FC = () => {
     } else {
       // Show questions only (memory test)
       setShowQuestions(true);
-      stopTracking(); // Stop tracking during questions
+      // Keep tracking during questions (don't stop)
     }
   }, [currentPassage, saveGazeChunk, stopTracking]);
 
@@ -329,7 +329,7 @@ export const VisionTestPage: React.FC = () => {
         setCurrentQuestion(questions[nextQuestionIndex]);
       }
 
-      // Restart tracking for next passage
+      // Ensure tracking is active for next passage
       if (!isTracking) {
         await startTracking();
       }
@@ -541,7 +541,7 @@ export const VisionTestPage: React.FC = () => {
                   style={{
                     fontSize: `${currentPassage.fontSize}px`,
                     lineHeight: currentPassage.lineHeight,
-                    letterSpacing: '0.01em' // 글자 간격 약간 추가
+                    letterSpacing: '0.02em' // 글자 간격 더 추가
                   }}
                 >
                   {currentPassage.text}
