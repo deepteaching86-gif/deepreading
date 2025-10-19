@@ -633,10 +633,11 @@ export const VisionTestPage: React.FC = () => {
         {/* Real-time Gaze Tracking Overlay (User-Controlled) */}
         {currentGaze && showGazeOverlay && (
           <div
-            className="fixed w-6 h-6 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none z-50 transition-all duration-100"
+            className="fixed w-6 h-6 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none z-50"
             style={{
               left: `${currentGaze.x * 100}%`,
-              top: `${currentGaze.y * 100}%`
+              top: `${currentGaze.y * 100}%`,
+              transition: 'none' // No transition for real-time tracking
             }}
           >
             {/* Pulsing outer ring */}
