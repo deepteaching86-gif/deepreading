@@ -233,7 +233,7 @@ export const Stage3CornerCalibration: React.FC<Stage3CornerCalibrationProps> = (
           className="absolute w-4 h-4 bg-red-500 rounded-full opacity-50 transform -translate-x-1/2 -translate-y-1/2"
           style={{
             left: `${currentGaze.x * 100}%`,
-            top: `${currentGaze.y * 100}%`
+            top: `${(1.0 - currentGaze.y) * 100}%` // INVERT Y: 0.0 → bottom, 1.0 → top
           }}
         ></div>
       )}
