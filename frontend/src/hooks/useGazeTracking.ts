@@ -922,9 +922,13 @@ function estimateGazeFromLandmarks(
   const avgIrisRatioY = (leftIrisRatioY + rightIrisRatioY) / 2;
 
   // Head pitch compensation (up-down head tilt)
+  // CRITICAL FIX: Invert headPitch sign!
+  // When looking UP: nose moves UP → noseTip.y < eyesCenter.y → should give NEGATIVE headPitch → smaller Y (top of screen)
+  // When looking DOWN: nose moves DOWN → noseTip.y > eyesCenter.y → should give POSITIVE headPitch → larger Y (bottom of screen)
+  // MediaPipe coords: Y increases downward, so we need to NEGATE the difference
   const eyesCenterY = (landmarks.leftEye.y + landmarks.rightEye.y) / 2;
   const noseTipY = landmarks.noseTip.y;
-  const headPitch = (noseTipY - eyesCenterY) / videoHeight;
+  const headPitch = -(noseTipY - eyesCenterY) / videoHeight; // NEGATED: flip the sign!
 
   // === 3D DEPTH-BASED VERTICAL CORRECTION ===
   // Use Z-depth from landmarks to improve vertical gaze accuracy
