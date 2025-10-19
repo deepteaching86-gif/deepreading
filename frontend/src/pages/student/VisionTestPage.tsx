@@ -1,5 +1,5 @@
 // Vision TEST Page - Main testing interface with real-time gaze tracking
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from '../../lib/axios';
 import { CalibrationScreenSimple } from '../../components/vision/CalibrationScreenSimple';
@@ -9,8 +9,7 @@ import { useGazeTracking } from '../../hooks/useGazeTracking';
 import {
   startCalibration,
   startVisionSession,
-  submitVisionSession,
-  getActiveCalibration
+  submitVisionSession
 } from '../../services/vision.service';
 import {
   VisionTestState,
@@ -219,40 +218,24 @@ export const VisionTestPage: React.FC = () => {
     }
   }, [visionSessionId, currentPassage]);
 
-  // Check for existing calibration on mount
-  useEffect(() => {
-    const checkCalibration = async () => {
-      try {
-        const response = await getActiveCalibration(userId);
-        if (response.found && response.calibration) {
-          // Skip calibration if valid calibration exists
-          const result: CalibrationResult = {
-            calibrationId: response.calibration.calibrationId,
-            overallAccuracy: response.calibration.overallAccuracy,
-            points: [],
-            transformMatrix: [[1, 0, 0], [0, 1, 0], [0, 0, 1]], // Identity matrix as fallback
-            deviceInfo: {
-              userAgent: navigator.userAgent,
-              screenWidth: window.screen.width,
-              screenHeight: window.screen.height,
-              devicePixelRatio: window.devicePixelRatio,
-              platform: navigator.platform
-            },
-            expiresAt: new Date(response.calibration.expiresAt)
-          };
-
-          setCalibrationResult(result);
-          await handleStartVisionSession(result);
-        }
-      } catch (error) {
-        console.log('No active calibration found, starting new calibration');
-      }
-    };
-
-    if (userId && sessionId) {
-      checkCalibration();
-    }
-  }, [userId, sessionId]);
+  // NOTE: 자동 캘리브레이션 스킵 비활성화 - 사용자가 직접 "진행하기" 버튼을 눌러야 함
+  // useEffect(() => {
+  //   const checkCalibration = async () => {
+  //     try {
+  //       const response = await getActiveCalibration(userId);
+  //       if (response.found && response.calibration) {
+  //         const result: CalibrationResult = { ... };
+  //         setCalibrationResult(result);
+  //         await handleStartVisionSession(result);
+  //       }
+  //     } catch (error) {
+  //       console.log('No active calibration found, starting new calibration');
+  //     }
+  //   };
+  //   if (userId && sessionId) {
+  //     checkCalibration();
+  //   }
+  // }, [userId, sessionId]);
 
   // Handle calibration complete
   const handleCalibrationComplete = async (result: CalibrationResult) => {
@@ -563,8 +546,8 @@ export const VisionTestPage: React.FC = () => {
                   className="text-foreground whitespace-pre-wrap cursor-pointer"
                   style={{
                     fontSize: `${currentPassage.fontSize}px`,
-                    lineHeight: currentPassage.lineHeight,
-                    letterSpacing: '0.02em' // 글자 간격 더 추가
+                    lineHeight: '2.0', // 줄간격 증가 (기본 1.5 → 2.0)
+                    letterSpacing: '0.02em' // 글자 간격
                   }}
                 >
                   {currentPassage.text}

@@ -296,18 +296,23 @@ export const useGazeTracking = (
           ctx.strokeRect(guideX, guideY, guideWidth, guideHeight);
           ctx.setLineDash([]);
 
-          // Draw guide text
+          // Draw guide text (반전 적용 for 거울 모드)
+          ctx.save();
+          ctx.scale(-1, 1); // 텍스트만 다시 반전 (거울 모드에서 읽기 가능하게)
           ctx.font = 'bold 16px Arial';
           ctx.fillStyle = '#22c55e';
           ctx.strokeStyle = 'black';
           ctx.lineWidth = 3;
           const guideText = '👤 여기에 얼굴 위치';
           const textMetrics = ctx.measureText(guideText);
-          const textX = (canvas.width - textMetrics.width) / 2;
+          const textX = -(canvas.width + textMetrics.width) / 2;
           ctx.strokeText(guideText, textX, guideY - 10);
           ctx.fillText(guideText, textX, guideY - 10);
+          ctx.restore();
 
-          // Draw detection status
+          // Draw detection status (반전 적용 for 거울 모드)
+          ctx.save();
+          ctx.scale(-1, 1); // 텍스트만 다시 반전
           ctx.font = 'bold 20px Arial';
           ctx.strokeStyle = 'black';
           ctx.lineWidth = 3;
@@ -315,8 +320,9 @@ export const useGazeTracking = (
           const statusText = result.faceLandmarks.length > 0
             ? `✅ Face: ${result.faceLandmarks.length}`
             : '❌ No Face';
-          ctx.strokeText(statusText, 10, 30);
-          ctx.fillText(statusText, 10, 30);
+          ctx.strokeText(statusText, -canvas.width + 10, 30);
+          ctx.fillText(statusText, -canvas.width + 10, 30);
+          ctx.restore();
 
           // If face detected, draw landmarks
           if (result.faceLandmarks.length > 0) {
@@ -1009,32 +1015,24 @@ function estimateGazeFromLandmarks(
   }
 
   // Combine iris position with head rotation using depth-corrected value
-  // Y-AXIS ROOT CAUSE FIX:
-  // Issue: headPitch calculation was NEGATED (line 955), but subtraction assumes POSITIVE pitch
-  // When user looks DOWN: headPitch is NEGATIVE (due to negation)
-  // rawY = 0.5 - (negative_value * sensitivity) = 0.5 - (-X) = 0.5 + X → INCREASES (goes DOWN) ✓ CORRECT
-  //
-  // When user looks UP: headPitch is POSITIVE (due to negation)
-  // rawY = 0.5 - (positive_value * sensitivity) = 0.5 - X → DECREASES (goes UP) ✓ CORRECT
-  //
-  // ACTUAL PROBLEM: Sensitivity was TOO HIGH (6.0), causing overflow
-  // With headPitch=0.18, baseSensitivity=6.0, yMultiplier=1.5:
-  //   rawY = 0.5 - (0.18 * 6.0 * 1.5) = 0.5 - 1.62 = -1.12 → clamped to 0.0, then smoothed to 1.0
-  //
-  // SOLUTION: Use original balanced sensitivity (2.0) with adaptive multiplier for screen size
-  const baseSensitivityY = 2.0; // RESET to original 2.0 - previous 6.0 caused overflow
-  const headCompensatedY = (headPitch * baseSensitivityY); // Use headPitch directly
+  // Y-AXIS SENSITIVITY FIX:
+  // Problem: Y축 움직임이 감지되지 않음 (0.85-0.86에 고정)
+  // Solution: baseSensitivityY를 4.0으로 증가 (2.0 → 4.0)
+  // 이전: headPitch ~±0.2 범위에서 rawY = 0.5 ± 0.4 (0.1 ~ 0.9)
+  // 현재: headPitch ~±0.2 범위에서 rawY = 0.5 ± 0.8 (0.0 ~ 1.0까지 커버)
+  const baseSensitivityY = 4.0; // 2.0 → 4.0으로 증가하여 위아래 움직임 감도 향상
+  const headCompensatedY = (headPitch * baseSensitivityY);
 
   // === FINAL GAZE COORDINATES ===
   // Horizontal: Center at 0.5, FLIP for correct left-right mapping
   const rawX = 0.5 + (headCompensatedX * 2.5);  // Increased to 2.5 for corner coverage
   const x = 1.0 - rawX;  // FLIP: Mirror horizontally (left ↔ right)
 
-  // Vertical: With baseSensitivityY=2.0, headPitch ~±0.2 typical range:
-  //   - Looking UP (headPitch=+0.2): rawY = 0.5 - (0.2*2.0) = 0.5 - 0.4 = 0.1 (top)
+  // Vertical: With baseSensitivityY=4.0, headPitch ~±0.2 typical range:
+  //   - Looking UP (headPitch=+0.2): rawY = 0.5 - (0.2*4.0) = 0.5 - 0.8 = -0.3 → clamped to 0.0 (top)
   //   - Looking CENTER (headPitch=0): rawY = 0.5 - 0 = 0.5 (middle)
-  //   - Looking DOWN (headPitch=-0.2): rawY = 0.5 - (-0.4) = 0.9 (bottom)
-  const yMultiplier = 1.0; // Reset to 1.0 - no additional multiplication needed
+  //   - Looking DOWN (headPitch=-0.2): rawY = 0.5 - (-0.8) = 1.3 → clamped to 1.0 (bottom)
+  const yMultiplier = 1.0;
   const rawY = 0.5 - (headCompensatedY * yMultiplier); // SUBTRACT for correct direction mapping
   const y = rawY; // No clamping here - let smoothing handle it
 
