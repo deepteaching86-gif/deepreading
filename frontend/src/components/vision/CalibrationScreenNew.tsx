@@ -54,6 +54,9 @@ export const CalibrationScreenNew: React.FC<CalibrationScreenNewProps> = ({
   // Camera overlay toggle
   const [showCameraOverlay, setShowCameraOverlay] = useState(true);
 
+  // Ref for overlay video element
+  const overlayVideoRef = React.useRef<HTMLVideoElement>(null);
+
   // Gaze tracking hook
   const {
     isTracking,
@@ -201,6 +204,14 @@ export const CalibrationScreenNew: React.FC<CalibrationScreenNewProps> = ({
     }
   }, [currentRawGaze, stage, profile]);
 
+  // Setup overlay video srcObject (prevent AbortError)
+  useEffect(() => {
+    if (overlayVideoRef.current && videoRef.current?.srcObject) {
+      overlayVideoRef.current.srcObject = videoRef.current.srcObject;
+      overlayVideoRef.current.play().catch(console.error);
+    }
+  }, [isTracking, showCameraOverlay]);
+
   // ==================== RENDER ====================
 
   return (
@@ -306,15 +317,10 @@ export const CalibrationScreenNew: React.FC<CalibrationScreenNewProps> = ({
             <div className="relative w-full h-48 rounded-t-xl overflow-hidden bg-black">
               {/* Mirror video feed from webcam */}
               <video
+                ref={overlayVideoRef}
                 autoPlay
                 playsInline
                 muted
-                ref={(el) => {
-                  if (el && videoRef.current?.srcObject) {
-                    el.srcObject = videoRef.current.srcObject;
-                    el.play().catch(console.error);
-                  }
-                }}
                 className="absolute top-0 left-0 w-full h-full object-cover"
                 style={{ transform: 'scaleX(-1)' }}
               />
@@ -343,18 +349,7 @@ export const CalibrationScreenNew: React.FC<CalibrationScreenNewProps> = ({
                 className="absolute top-0 left-0 w-full h-full object-cover pointer-events-none"
               />
 
-              {/* Gaze indicator overlay */}
-              {currentGaze && (
-                <div
-                  className="absolute w-3 h-3 bg-green-500 rounded-full transform -translate-x-1/2 -translate-y-1/2 pointer-events-none shadow-lg z-10"
-                  style={{
-                    left: `${currentGaze.x * 100}%`,
-                    top: `${currentGaze.y * 100}%`,
-                    opacity: currentGaze.confidence * 0.8,
-                    boxShadow: '0 0 8px rgba(34, 197, 94, 0.6)'
-                  }}
-                />
-              )}
+              {/* Removed gaze indicator - now shown on main calibration screen */}
 
               {/* Face tracking indicator */}
               <div className="absolute bottom-2 left-2 bg-black/60 px-2 py-1 rounded text-white text-xs flex items-center gap-1 z-10">
