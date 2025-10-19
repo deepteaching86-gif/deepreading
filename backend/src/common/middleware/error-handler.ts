@@ -69,7 +69,17 @@ export function errorHandler(
         break;
 
       default:
-        message = 'Database error occurred';
+        // Include Prisma error details in development
+        message = env.NODE_ENV === 'development'
+          ? `Database error: ${error.code} - ${error.message}`
+          : 'Database error occurred';
+
+        // Log full Prisma error details
+        logger.error('Prisma error details:', {
+          code: error.code,
+          meta: error.meta,
+          clientVersion: error.clientVersion
+        });
     }
   }
 
