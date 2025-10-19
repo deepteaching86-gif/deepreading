@@ -994,7 +994,23 @@ function estimateGazeFromLandmarks(
   // Looking UP (negative headCompensatedY): Use 5.0x multiplier to break ceiling limit (synchronized with calibrationUtils)
   // Looking DOWN (positive headCompensatedY): Use 2.0x multiplier (standard)
   const yMultiplier = headCompensatedY < 0 ? 5.0 : 2.0;
-  const y = 0.5 + (headCompensatedY * yMultiplier);
+  const rawY = 0.5 + (headCompensatedY * yMultiplier);
+  const y = rawY; // No clamping here - let smoothing handle it
+
+  // === DEBUG: Y CALCULATION CHAIN ===
+  if (import.meta.env.DEV) {
+    console.log('🔍 Y Calculation Chain:', {
+      avgIrisRatioY: avgIrisRatioY.toFixed(4),
+      headPitch: headPitch.toFixed(4),
+      pitchInfluence: pitchInfluence.toFixed(4),
+      depthCorrectedY: depthCorrectedY.toFixed(4),
+      baseSensitivityY: baseSensitivityY,
+      headCompensatedY: headCompensatedY.toFixed(4),
+      yMultiplier: yMultiplier.toFixed(1),
+      rawY: rawY.toFixed(4),
+      finalY: y.toFixed(4)
+    });
+  }
 
   // Calculate confidence
   const eyeSymmetryX = 1 - Math.abs(leftIrisRatioX - rightIrisRatioX) * 20;
