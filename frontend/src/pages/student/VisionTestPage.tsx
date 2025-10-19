@@ -164,24 +164,58 @@ export const VisionTestPage: React.FC = () => {
     };
 
     // 임시: 로컬 저장소에 gaze data 저장 (403/429 에러 회피)
+    // 최적화: 데이터 압축 및 구조화로 저장 공간 절약
     try {
       const sessionKey = `gaze-data-${visionSessionId}-${chunk.passageId}`;
       const existingData = localStorage.getItem(sessionKey);
       const allChunks = existingData ? JSON.parse(existingData) : [];
 
+      // 최적화: 통계 정보만 저장하고 전체 gaze points는 저장하지 않음
+      // (실제 production에서는 backend API로 전송됨)
       allChunks.push({
-        ...chunk,
-        savedAt: new Date().toISOString()
+        passageId: chunk.passageId,
+        totalPoints: chunk.totalPoints,
+        startTime: chunk.startTime,
+        endTime: chunk.endTime,
+        savedAt: new Date().toISOString(),
+        // gazePoints는 저장하지 않음 - QuotaExceededError 방지
       });
 
+      // 최대 10개 청크만 유지 (오래된 것 삭제)
+      if (allChunks.length > 10) {
+        allChunks.splice(0, allChunks.length - 10);
+      }
+
       localStorage.setItem(sessionKey, JSON.stringify(allChunks));
-      console.log(`✅ Saved gaze chunk locally: ${chunk.totalPoints} points (total: ${allChunks.length} chunks)`);
+      console.log(`✅ Saved gaze chunk metadata locally: ${chunk.totalPoints} points (chunks: ${allChunks.length}/10)`);
 
       // Clear buffer
       gazeBufferRef.current = [];
       lastSaveTimeRef.current = Date.now();
     } catch (error: any) {
-      console.error('❌ Failed to save gaze chunk locally:', error);
+      if (error.name === 'QuotaExceededError') {
+        console.warn('⚠️ LocalStorage quota exceeded - clearing old gaze data');
+        try {
+          // Clear all old gaze data keys
+          const keysToRemove = [];
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith('gaze-data-')) {
+              keysToRemove.push(key);
+            }
+          }
+          keysToRemove.forEach(key => localStorage.removeItem(key));
+          console.log(`🗑️ Cleared ${keysToRemove.length} old gaze data keys`);
+
+          // Clear buffer without saving (data lost but prevents crash)
+          gazeBufferRef.current = [];
+          lastSaveTimeRef.current = Date.now();
+        } catch (cleanupError) {
+          console.error('❌ Failed to cleanup localStorage:', cleanupError);
+        }
+      } else {
+        console.error('❌ Failed to save gaze chunk locally:', error);
+      }
     }
   }, [visionSessionId, currentPassage]);
 
