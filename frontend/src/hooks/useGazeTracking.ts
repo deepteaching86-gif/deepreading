@@ -1007,16 +1007,18 @@ function estimateGazeFromLandmarks(
   const rawY = 0.5 - (headCompensatedY * yMultiplier); // SUBTRACT to fix inversion!
   const y = rawY; // No clamping here - let smoothing handle it
 
-  // === DEBUG: Y CALCULATION CHAIN ===
-  // TEMPORARY: Always log for debugging Y-axis issue (remove DEV check)
-  console.log('🔍 Y Calculation Chain:', {
+  // === DEBUG: X & Y CALCULATION CHAIN ===
+  console.log('🔍 X & Y Calculation:', {
+    // X-axis
+    avgIrisRatioX: avgIrisRatioX.toFixed(4),
+    headYaw: headYaw.toFixed(4),
+    headCompensatedX: headCompensatedX.toFixed(4),
+    rawX: rawX.toFixed(4),
+    finalX: x.toFixed(4),
+    // Y-axis
     avgIrisRatioY: avgIrisRatioY.toFixed(4),
     headPitch: headPitch.toFixed(4),
-    pitchInfluence: pitchInfluence.toFixed(4),
-    depthCorrectedY: depthCorrectedY.toFixed(4),
-    baseSensitivityY: baseSensitivityY,
     headCompensatedY: headCompensatedY.toFixed(4),
-    yMultiplier: yMultiplier.toFixed(1),
     rawY: rawY.toFixed(4),
     finalY: y.toFixed(4)
   });
