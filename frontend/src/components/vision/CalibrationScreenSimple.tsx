@@ -35,15 +35,18 @@ export const CalibrationScreenSimple: React.FC<CalibrationScreenSimpleProps> = (
   const [currentPointIndex, setCurrentPointIndex] = useState(0);
   const [pointCountdown, setPointCountdown] = useState(0);
   const [collectedData, setCollectedData] = useState<CalibrationPoint[]>([]);
-  const [showVideoOverlay, setShowVideoOverlay] = useState(true);
   const rawGazeDataRef = useRef<Array<{ irisOffset: { x: number; y: number }; headPose: { yaw: number; pitch: number } }>>([]);
+
+  // Track current gaze position for real-time marker
+  const [currentGaze, setCurrentGaze] = useState<{ x: number; y: number } | null>(null);
 
   // Gaze tracking hook for face detection and calibration
   const {
     isTracking,
     videoRef,
     canvasRef,
-    startTracking
+    startTracking,
+    currentGaze: hookGaze
   } = useGazeTracking({
     enabled: stage === 'camera_check' || stage === 'calibration',
     onFacePosition: useCallback((position: { x: number; y: number; width: number; height: number }) => {
@@ -66,8 +69,21 @@ export const CalibrationScreenSimple: React.FC<CalibrationScreenSimpleProps> = (
         });
       }
     }, [stage, pointCountdown]),
+    onGazePoint: useCallback((point: { x: number; y: number }) => {
+      // Update real-time gaze position during calibration
+      if (stage === 'calibration') {
+        setCurrentGaze(point);
+      }
+    }, [stage]),
     targetFPS: 30
   });
+
+  // Update gaze from hook
+  useEffect(() => {
+    if (hookGaze && stage === 'calibration') {
+      setCurrentGaze(hookGaze);
+    }
+  }, [hookGaze, stage]);
 
   // Start camera check
   const handleStartCheck = useCallback(async () => {
@@ -354,6 +370,16 @@ export const CalibrationScreenSimple: React.FC<CalibrationScreenSimpleProps> = (
 
     return (
       <div className="fixed inset-0 bg-gray-900 z-50">
+        {/* Video and canvas - ALWAYS rendered */}
+        <video
+          ref={videoRef}
+          className="hidden"
+          autoPlay
+          playsInline
+          muted
+        />
+        <canvas ref={canvasRef} className="hidden" />
+
         {/* Progress bar */}
         <div className="absolute top-0 left-0 right-0 h-2 bg-gray-800 z-10">
           <div
@@ -371,6 +397,9 @@ export const CalibrationScreenSimple: React.FC<CalibrationScreenSimpleProps> = (
             {pointCountdown > 0
               ? `점을 ${pointCountdown}초간 응시하세요`
               : '다음 점으로 이동 중...'}
+          </p>
+          <p className="text-blue-400 text-sm mt-2">
+            📍 파란색 점이 현재 시선 위치입니다
           </p>
         </div>
 
@@ -415,58 +444,50 @@ export const CalibrationScreenSimple: React.FC<CalibrationScreenSimpleProps> = (
           })}
         </div>
 
-        {/* Camera feed toggle button */}
-        <button
-          onClick={() => setShowVideoOverlay(!showVideoOverlay)}
-          className="absolute top-20 right-4 bg-black/70 hover:bg-black/90 text-white px-4 py-2 rounded-lg transition-colors z-50 flex items-center gap-2"
-        >
-          {showVideoOverlay ? '👁️ 카메라 숨기기' : '👁️ 카메라 보기'}
-        </button>
+        {/* Real-time Gaze Marker - BLUE DOT */}
+        {currentGaze && (
+          <div
+            className="absolute z-60 pointer-events-none transition-all duration-75"
+            style={{
+              left: `${currentGaze.x * 100}%`,
+              top: `${currentGaze.y * 100}%`,
+              transform: 'translate(-50%, -50%)'
+            }}
+          >
+            {/* Outer pulsing ring */}
+            <div className="absolute inset-0 w-10 h-10 bg-blue-400/30 rounded-full animate-ping" />
+            {/* Inner solid dot */}
+            <div className="relative w-3 h-3 bg-blue-500 rounded-full border-2 border-white shadow-lg" />
+          </div>
+        )}
 
-        {/* Hidden video/canvas for ref assignment - ALWAYS rendered */}
-        <div className="fixed" style={{ left: '-9999px' }}>
-          <video
-            ref={videoRef}
-            autoPlay
-            playsInline
-            muted
-          />
-          <canvas ref={canvasRef} />
+        {/* Data collection indicator */}
+        <div className="absolute bottom-4 left-4 bg-black/70 px-4 py-2 rounded-lg z-30">
+          <div className="flex items-center gap-2">
+            {rawGazeDataRef.current.length > 0 && (
+              <>
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                <span className="text-white text-xs">
+                  데이터 수집 중: {rawGazeDataRef.current.length} 샘플
+                </span>
+              </>
+            )}
+            {rawGazeDataRef.current.length === 0 && (
+              <>
+                <div className="w-2 h-2 bg-gray-500 rounded-full" />
+                <span className="text-gray-400 text-xs">대기 중...</span>
+              </>
+            )}
+          </div>
         </div>
 
-        {/* Camera feed display (smaller, bottom-right corner) - CONDITIONAL VISIBILITY */}
-        <div className={`absolute bottom-4 right-4 w-64 h-48 rounded-lg overflow-hidden bg-black shadow-2xl border-2 border-gray-700 z-20 ${!showVideoOverlay ? 'hidden' : ''}`}>
-          <video
-            className="w-full h-full object-cover"
-            style={{ transform: 'scaleX(-1)' }}
-            ref={(el) => {
-              if (el && videoRef.current) {
-                el.srcObject = videoRef.current.srcObject;
-              }
-            }}
-            autoPlay
-            playsInline
-            muted
-          />
-          <canvas
-            className="absolute inset-0 w-full h-full"
-            style={{ transform: 'scaleX(-1)' }}
-            ref={(el) => {
-              if (el && canvasRef.current) {
-                const ctx = el.getContext('2d');
-                const srcCtx = canvasRef.current.getContext('2d');
-                if (ctx && srcCtx) {
-                  el.width = canvasRef.current.width;
-                  el.height = canvasRef.current.height;
-                }
-              }
-            }}
-          />
-
-          {/* Status indicator */}
-          <div className="absolute top-2 left-2 flex items-center gap-2 bg-black/70 px-2 py-1 rounded z-10">
+        {/* Face detection status */}
+        <div className="absolute bottom-4 right-4 bg-black/70 px-4 py-2 rounded-lg z-30">
+          <div className="flex items-center gap-2">
             <div className={`w-2 h-2 rounded-full ${faceDetected ? 'bg-green-500' : 'bg-red-500'}`} />
-            <span className="text-white text-xs">{faceDetected ? '추적 중' : '얼굴 없음'}</span>
+            <span className="text-white text-xs">
+              {faceDetected ? '얼굴 인식' : '얼굴 없음'}
+            </span>
           </div>
         </div>
       </div>
