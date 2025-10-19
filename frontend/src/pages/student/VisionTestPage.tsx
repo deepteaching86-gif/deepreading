@@ -9,7 +9,6 @@ import { useGazeTracking } from '../../hooks/useGazeTracking';
 import {
   startCalibration,
   startVisionSession,
-  saveGazeData,
   submitVisionSession,
   getActiveCalibration
 } from '../../services/vision.service';
@@ -59,6 +58,7 @@ export const VisionTestPage: React.FC = () => {
   const [concentrationAlerts, setConcentrationAlerts] = useState<ConcentrationAlert[]>([]);
   const [selectedAlert, setSelectedAlert] = useState<ConcentrationAlert | null>(null);
   const [showConcentrationMonitor, setShowConcentrationMonitor] = useState(true); // 집중력 모니터 표시 여부
+  const [showGazeOverlay, setShowGazeOverlay] = useState(false); // 실시간 시선 추적 오버레이 표시 여부
   const lastConcentrationUpdateRef = useRef<number>(Date.now());
   const CONCENTRATION_UPDATE_INTERVAL = 1000; // 1초 단위 업데이트
 
@@ -163,19 +163,25 @@ export const VisionTestPage: React.FC = () => {
       totalPoints: gazeBufferRef.current.length
     };
 
+    // 임시: 로컬 저장소에 gaze data 저장 (403/429 에러 회피)
     try {
-      await saveGazeData({
-        visionSessionId,
-        gazeChunk: chunk
+      const sessionKey = `gaze-data-${visionSessionId}-${chunk.passageId}`;
+      const existingData = localStorage.getItem(sessionKey);
+      const allChunks = existingData ? JSON.parse(existingData) : [];
+
+      allChunks.push({
+        ...chunk,
+        savedAt: new Date().toISOString()
       });
 
-      console.log(`✅ Saved gaze chunk: ${chunk.totalPoints} points`);
+      localStorage.setItem(sessionKey, JSON.stringify(allChunks));
+      console.log(`✅ Saved gaze chunk locally: ${chunk.totalPoints} points (total: ${allChunks.length} chunks)`);
 
       // Clear buffer
       gazeBufferRef.current = [];
       lastSaveTimeRef.current = Date.now();
-    } catch (error) {
-      console.error('Failed to save gaze chunk:', error);
+    } catch (error: any) {
+      console.error('❌ Failed to save gaze chunk locally:', error);
     }
   }, [visionSessionId, currentPassage]);
 
@@ -467,14 +473,6 @@ export const VisionTestPage: React.FC = () => {
   if (state.stage === 'testing' && currentPassage) {
     return (
       <div className="min-h-screen bg-background">
-        {/* Hidden video for gaze tracking */}
-        <video
-          ref={videoRef}
-          className="hidden"
-          autoPlay
-          playsInline
-        />
-
         {/* Status bar */}
         <div className="fixed top-0 left-0 right-0 bg-card/95 backdrop-blur border-b border-border z-40">
           <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
@@ -490,6 +488,19 @@ export const VisionTestPage: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-3">
+              {/* 시선 추적 오버레이 토글 버튼 */}
+              <button
+                onClick={() => setShowGazeOverlay(!showGazeOverlay)}
+                className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                  showGazeOverlay
+                    ? 'bg-green-500/20 text-green-500 hover:bg-green-500/30'
+                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                }`}
+                title={showGazeOverlay ? "시선 추적 오버레이 끄기" : "시선 추적 오버레이 켜기"}
+              >
+                👁️ {showGazeOverlay ? 'ON' : 'OFF'}
+              </button>
+
               <div className="px-3 py-1 bg-primary/10 text-primary rounded-full text-xs font-medium">
                 Vision TEST
               </div>
@@ -526,10 +537,11 @@ export const VisionTestPage: React.FC = () => {
                 </div>
 
                 <div
-                  className="text-foreground leading-relaxed whitespace-pre-wrap cursor-pointer"
+                  className="text-foreground whitespace-pre-wrap cursor-pointer"
                   style={{
                     fontSize: `${currentPassage.fontSize}px`,
-                    lineHeight: currentPassage.lineHeight
+                    lineHeight: currentPassage.lineHeight,
+                    letterSpacing: '0.01em' // 글자 간격 약간 추가
                   }}
                 >
                   {currentPassage.text}
@@ -537,7 +549,10 @@ export const VisionTestPage: React.FC = () => {
 
                 {!showQuestions && (
                   <button
-                    onClick={handlePassageComplete}
+                    onClick={(e) => {
+                      e.stopPropagation(); // 부모 div의 onClick 이벤트 전파 방지
+                      handlePassageComplete();
+                    }}
                     className="mt-6 px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
                   >
                     다 읽었습니다
@@ -615,16 +630,25 @@ export const VisionTestPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Gaze indicator (for debugging) */}
-        {currentGaze && process.env.NODE_ENV === 'development' && (
+        {/* Real-time Gaze Tracking Overlay (User-Controlled) */}
+        {currentGaze && showGazeOverlay && (
           <div
-            className="fixed w-4 h-4 bg-red-500 rounded-full transform -translate-x-1/2 -translate-y-1/2 pointer-events-none z-50"
+            className="fixed w-6 h-6 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none z-50 transition-all duration-100"
             style={{
               left: `${currentGaze.x * 100}%`,
-              top: `${currentGaze.y * 100}%`,
-              opacity: currentGaze.confidence * 0.5
+              top: `${currentGaze.y * 100}%`
             }}
-          />
+          >
+            {/* Pulsing outer ring */}
+            <div className="absolute inset-0 bg-red-500 rounded-full animate-ping opacity-75"></div>
+            {/* Solid inner dot with border */}
+            <div
+              className="absolute inset-0 bg-red-500/60 border-2 border-red-500 rounded-full"
+              style={{
+                boxShadow: '0 0 20px rgba(239, 68, 68, 0.5)'
+              }}
+            ></div>
+          </div>
         )}
 
         {/* Concentration Monitor Overlay - Bottom of Camera View */}

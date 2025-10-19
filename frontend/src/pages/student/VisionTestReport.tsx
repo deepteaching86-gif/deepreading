@@ -22,8 +22,10 @@ import {
   AIAnalysisResult,
   HeatmapData,
   HeatmapCell,
-  PeerComparison
+  PeerComparison,
+  VisionPassage
 } from '../../types/vision.types';
+import { GazeReplayViewer } from '../../components/vision/GazeReplayViewer';
 
 export const VisionTestReport: React.FC = () => {
   const { sessionId } = useParams<{ sessionId: string }>();
@@ -40,6 +42,8 @@ export const VisionTestReport: React.FC = () => {
   const [peerComparison, setPeerComparison] = useState<PeerComparison | null>(null);
   const [studentName, setStudentName] = useState<string>('');
   const [testDate, setTestDate] = useState<Date | null>(null);
+  const [passages, setPassages] = useState<VisionPassage[]>([]);
+  const [visionSessionId, setVisionSessionId] = useState<string>('');
 
   // Load report data
   useEffect(() => {
@@ -56,6 +60,8 @@ export const VisionTestReport: React.FC = () => {
         setHeatmapData(reportResponse.heatmapData);
         setStudentName(reportResponse.studentName);
         setTestDate(reportResponse.testDate);
+        setPassages(reportResponse.passages);
+        setVisionSessionId(reportResponse.visionSessionId);
 
         // Peer comparison is in metrics.comparisonWithPeers
         if (reportResponse.metrics.comparisonWithPeers) {
@@ -414,6 +420,16 @@ export const VisionTestReport: React.FC = () => {
             </ResponsiveContainer>
           </div>
         </div>
+
+        {/* Gaze Replay Viewer */}
+        {passages.length > 0 && visionSessionId && (
+          <div className="mb-8">
+            <GazeReplayViewer
+              visionSessionId={visionSessionId}
+              passages={passages}
+            />
+          </div>
+        )}
 
         {/* Attention Heatmap */}
         <div className="mb-8">

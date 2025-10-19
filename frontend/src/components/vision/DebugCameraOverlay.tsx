@@ -17,7 +17,7 @@ export const DebugCameraOverlay: React.FC<DebugCameraOverlayProps> = ({
   canvasRef,
   isTracking
 }) => {
-  const [isVisible, setIsVisible] = useState(false);
+  const [isVisible, setIsVisible] = useState(true); // 기본으로 표시
   const [isExpanded, setIsExpanded] = useState(false);
   const [position, setPosition] = useState({ x: 20, y: 20 }); // 우측 하단 기준
   const isDragging = useRef(false);
