@@ -446,4 +446,157 @@ export class OnlineCalibration {
     this.points = [];
     this.model = null;
   }
+
+  /**
+   * Load initial calibration data
+   */
+  loadInitialCalibration(result: CalibrationResult): void {
+    this.points = [...result.points];
+    this.model = result.model;
+  }
+}
+
+// ===== USER PROFILE STORAGE =====
+
+const USER_PROFILE_STORAGE_KEY = 'vision-test-user-profile-v1';
+
+export interface UserProfile {
+  userId: string;
+  calibrations: CalibrationResult[];
+  bestAccuracy: number;
+  totalSessions: number;
+  lastUpdated: number;
+  deviceInfo: {
+    screenWidth: number;
+    screenHeight: number;
+    userAgent: string;
+  };
+}
+
+/**
+ * Save user profile to localStorage
+ */
+export function saveUserProfile(profile: UserProfile): void {
+  try {
+    localStorage.setItem(USER_PROFILE_STORAGE_KEY, JSON.stringify(profile));
+    console.log('✅ User profile saved:', {
+      userId: profile.userId,
+      calibrations: profile.calibrations.length,
+      bestAccuracy: profile.bestAccuracy.toFixed(4)
+    });
+  } catch (error) {
+    console.error('❌ Failed to save user profile:', error);
+  }
+}
+
+/**
+ * Load user profile from localStorage
+ */
+export function loadUserProfile(userId: string): UserProfile | null {
+  try {
+    const stored = localStorage.getItem(USER_PROFILE_STORAGE_KEY);
+    if (!stored) {
+      console.log('ℹ️ No user profile found');
+      return null;
+    }
+
+    const profile: UserProfile = JSON.parse(stored);
+
+    // Check if profile matches current user
+    if (profile.userId !== userId) {
+      console.log('⚠️ User ID mismatch - creating new profile');
+      return null;
+    }
+
+    console.log('✅ User profile loaded:', {
+      userId: profile.userId,
+      calibrations: profile.calibrations.length,
+      bestAccuracy: profile.bestAccuracy.toFixed(4),
+      totalSessions: profile.totalSessions
+    });
+
+    return profile;
+  } catch (error) {
+    console.error('❌ Failed to load user profile:', error);
+    return null;
+  }
+}
+
+/**
+ * Update user profile with new calibration
+ */
+export function updateUserProfile(
+  userId: string,
+  calibration: CalibrationResult
+): UserProfile {
+  // Load existing profile or create new
+  const existingProfile = loadUserProfile(userId);
+
+  const profile: UserProfile = existingProfile || {
+    userId,
+    calibrations: [],
+    bestAccuracy: 1.0, // Worst possible
+    totalSessions: 0,
+    lastUpdated: Date.now(),
+    deviceInfo: {
+      screenWidth: window.screen.width,
+      screenHeight: window.screen.height,
+      userAgent: navigator.userAgent
+    }
+  };
+
+  // Add new calibration
+  profile.calibrations.push(calibration);
+
+  // Keep only last 10 calibrations
+  if (profile.calibrations.length > 10) {
+    profile.calibrations = profile.calibrations.slice(-10);
+  }
+
+  // Update best accuracy
+  profile.bestAccuracy = Math.min(profile.bestAccuracy, calibration.accuracy);
+
+  // Update session count
+  profile.totalSessions += 1;
+
+  // Update timestamp
+  profile.lastUpdated = Date.now();
+
+  // Save profile
+  saveUserProfile(profile);
+
+  return profile;
+}
+
+/**
+ * Get best calibration from user profile
+ */
+export function getBestCalibration(userId: string): CalibrationResult | null {
+  const profile = loadUserProfile(userId);
+  if (!profile || profile.calibrations.length === 0) {
+    return null;
+  }
+
+  // Find calibration with best accuracy
+  let bestCalibration = profile.calibrations[0];
+  for (const calibration of profile.calibrations) {
+    if (calibration.accuracy < bestCalibration.accuracy) {
+      bestCalibration = calibration;
+    }
+  }
+
+  console.log('✅ Best calibration found:', {
+    accuracy: bestCalibration.accuracy.toFixed(4),
+    points: bestCalibration.points.length
+  });
+
+  return bestCalibration;
+}
+
+/**
+ * Clear user profile
+ */
+export function clearUserProfile(): void {
+  localStorage.removeItem(USER_PROFILE_STORAGE_KEY);
+  console.log('🗑️ User profile cleared');
 }

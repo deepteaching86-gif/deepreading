@@ -5,6 +5,8 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { FaceLandmarker, FilesetResolver, FaceLandmarkerResult } from '@mediapipe/tasks-vision';
 import { GazePoint, GazeType, GazeEstimation, FaceLandmarks } from '../types/vision.types';
 import { ConcentrationRawData } from '../types/concentration.types';
+import { AdaptiveKalmanFilter } from '../utils/kalmanFilter';
+import { loadCalibration, applyCalibrationModel, PolynomialRegressionModel } from '../utils/gazeCalibration';
 
 interface UseGazeTrackingOptions {
   enabled: boolean;
@@ -51,9 +53,15 @@ export const useGazeTracking = (
   const fpsCounterRef = useRef({ frames: 0, lastTime: Date.now() });
   const lastGazeRef = useRef<{ x: number; y: number; timestamp: number } | null>(null);
 
-  // Temporal smoothing filter - Exponential Moving Average (EMA)
-  // Reduces single-frame noise while maintaining responsiveness
-  const smoothedGazeRef = useRef<{ x: number; y: number } | null>(null);
+  // Kalman Filter for noise reduction (replaces EMA)
+  const kalmanFilterRef = useRef<AdaptiveKalmanFilter>(new AdaptiveKalmanFilter({
+    processNoise: 0.001,
+    measurementNoise: 0.05,
+    initialCovariance: 1.0
+  }));
+
+  // Calibration model
+  const calibrationModelRef = useRef<PolynomialRegressionModel | null>(null);
 
   // Initialize MediaPipe Tasks Vision
   const initialize = useCallback(async () => {
@@ -118,6 +126,22 @@ export const useGazeTracking = (
       setError('Face Landmarker not initialized');
       return;
     }
+
+    // Load calibration model if available
+    const storedCalibration = loadCalibration();
+    if (storedCalibration) {
+      calibrationModelRef.current = storedCalibration.model;
+      console.log('✅ Loaded stored calibration:', {
+        points: storedCalibration.points.length,
+        accuracy: storedCalibration.accuracy.toFixed(4),
+        order: storedCalibration.model.order
+      });
+    } else {
+      console.log('ℹ️ No calibration model found - using raw gaze estimates');
+    }
+
+    // Reset Kalman filter
+    kalmanFilterRef.current.reset();
 
     try {
       console.log('📹 Requesting camera access...');
@@ -660,7 +684,7 @@ export const useGazeTracking = (
       noseTip: { x: noseTip.x, y: noseTip.y, z: noseTip.z }
     };
 
-    // Estimate gaze
+    // Estimate gaze (returns raw gaze with iris + head pose)
     const gaze = estimateGazeFromLandmarks(
       faceLandmarks,
       video.videoWidth,
@@ -668,76 +692,101 @@ export const useGazeTracking = (
       onRawGazeData
     );
 
-    // Clamp gaze values to valid screen range (0.0 ~ 1.0) BEFORE smoothing
-    // This prevents temporal filter from creating invalid values
+    // Clamp gaze values to valid screen range (0.0 ~ 1.0) BEFORE filtering
     const clampedGaze = {
       x: Math.max(0.0, Math.min(1.0, gaze.x)),
       y: Math.max(0.0, Math.min(1.0, gaze.y))
     };
 
-    // Apply temporal smoothing (EMA filter) to reduce single-frame noise
-    // Alpha = 0.3 means 30% new value, 70% previous value
-    // Higher alpha = more responsive but noisier
-    // Lower alpha = smoother but less responsive
-    const SMOOTHING_ALPHA = 0.3;
+    // Apply calibration model if available
+    let calibratedGaze = clampedGaze;
+    if (calibrationModelRef.current && onRawGazeData) {
+      // Extract raw gaze data from the most recent callback
+      // Note: onRawGazeData is already called in estimateGazeFromLandmarks
+      // We need to use the stored values from faceLandmarks
+      const avgIrisRatioX = (faceLandmarks.leftIris.x - faceLandmarks.leftEye.x +
+                            faceLandmarks.rightIris.x - faceLandmarks.rightEye.x) / (2 * video.videoWidth);
+      const avgIrisRatioY = (faceLandmarks.leftIris.y - faceLandmarks.leftEye.y +
+                            faceLandmarks.rightIris.y - faceLandmarks.rightEye.y) / (2 * video.videoHeight);
 
-    if (!smoothedGazeRef.current) {
-      // First frame - initialize with current gaze
-      smoothedGazeRef.current = { x: clampedGaze.x, y: clampedGaze.y };
-    } else {
-      // Apply EMA: smoothed = alpha * new + (1 - alpha) * previous
-      smoothedGazeRef.current = {
-        x: SMOOTHING_ALPHA * clampedGaze.x + (1 - SMOOTHING_ALPHA) * smoothedGazeRef.current.x,
-        y: SMOOTHING_ALPHA * clampedGaze.y + (1 - SMOOTHING_ALPHA) * smoothedGazeRef.current.y
-      };
+      const eyesCenterX = (faceLandmarks.leftEye.x + faceLandmarks.rightEye.x) / 2;
+      const noseTipX = faceLandmarks.noseTip.x;
+      const headYaw = (noseTipX - eyesCenterX) / video.videoWidth;
+
+      const eyesCenterY = (faceLandmarks.leftEye.y + faceLandmarks.rightEye.y) / 2;
+      const noseTipY = faceLandmarks.noseTip.y;
+      const headPitch = -(noseTipY - eyesCenterY) / video.videoHeight;
+
+      // Apply polynomial regression model
+      calibratedGaze = applyCalibrationModel(
+        calibrationModelRef.current,
+        avgIrisRatioX,
+        avgIrisRatioY,
+        headYaw,
+        headPitch
+      );
+
+      console.log('📐 Applied calibration model:', {
+        raw: `${clampedGaze.x.toFixed(3)}, ${clampedGaze.y.toFixed(3)}`,
+        calibrated: `${calibratedGaze.x.toFixed(3)}, ${calibratedGaze.y.toFixed(3)}`
+      });
     }
 
-    // Use smoothed values for final gaze
-    const smoothedX = smoothedGazeRef.current.x;
-    const smoothedY = smoothedGazeRef.current.y;
+    // Apply Kalman Filter for noise reduction (replaces EMA)
+    const timestamp = Date.now();
+    const filteredGaze = kalmanFilterRef.current.filter(
+      calibratedGaze.x,
+      calibratedGaze.y,
+      timestamp
+    );
 
-    // Apply calibration
-    let calibratedX = smoothedX;
-    let calibratedY = smoothedY;
+    console.log('🎯 Kalman filtered:', {
+      input: `${calibratedGaze.x.toFixed(3)}, ${calibratedGaze.y.toFixed(3)}`,
+      filtered: `${filteredGaze.x.toFixed(3)}, ${filteredGaze.y.toFixed(3)}`
+    });
 
+    // Use filtered values for final gaze
+    let finalX = filteredGaze.x;
+    let finalY = filteredGaze.y;
+
+    // Apply legacy calibration matrix if provided (for backward compatibility)
     if (calibrationMatrix) {
-      const transformed = applyAffineTransform(smoothedX, smoothedY, calibrationMatrix);
-      calibratedX = transformed.x;
-      calibratedY = transformed.y;
+      const transformed = applyAffineTransform(finalX, finalY, calibrationMatrix);
+      finalX = transformed.x;
+      finalY = transformed.y;
     }
 
     const gazeEstimation: GazeEstimation = {
-      x: calibratedX,
-      y: calibratedY,
+      x: finalX,
+      y: finalY,
       confidence: gaze.confidence,
       landmarks: faceLandmarks
     };
 
     setCurrentGaze(gazeEstimation);
     console.log('🎯 Gaze updated:', {
-      x: calibratedX.toFixed(2),
-      y: calibratedY.toFixed(2),
+      x: finalX.toFixed(2),
+      y: finalY.toFixed(2),
       confidence: gaze.confidence
     });
 
     // Classify gaze type
-    const timestamp = Date.now();
     const gazeType = classifyGazeType(
-      calibratedX,
-      calibratedY,
+      finalX,
+      finalY,
       lastGazeRef.current,
       timestamp
     );
 
     const gazePoint: GazePoint = {
       timestamp,
-      x: calibratedX,
-      y: calibratedY,
+      x: finalX,
+      y: finalY,
       confidence: gaze.confidence,
       type: gazeType
     };
 
-    lastGazeRef.current = { x: calibratedX, y: calibratedY, timestamp };
+    lastGazeRef.current = { x: finalX, y: finalY, timestamp };
 
     if (onGazePoint) {
       onGazePoint(gazePoint);
@@ -763,8 +812,8 @@ export const useGazeTracking = (
       // 눈 움직임 속도 계산
       let eyeMovementVelocity = 0;
       if (lastGazeRef.current) {
-        const dx = calibratedX - lastGazeRef.current.x;
-        const dy = calibratedY - lastGazeRef.current.y;
+        const dx = finalX - lastGazeRef.current.x;
+        const dy = finalY - lastGazeRef.current.y;
         const dt = (timestamp - lastGazeRef.current.timestamp) / 1000; // 초 단위
         const distance = Math.sqrt(dx * dx + dy * dy);
         eyeMovementVelocity = dt > 0 ? distance / dt : 0;
@@ -785,14 +834,14 @@ export const useGazeTracking = (
       const concentrationRawData: ConcentrationRawData = {
         pupilSize: avgPupilSize,
         eyeAspectRatio: avgEAR,
-        gazeVector: { x: calibratedX, y: calibratedY },
+        gazeVector: { x: finalX, y: finalY },
         eyeMovementVelocity,
         headPose: {
           yaw: headYaw,
           pitch: headPitch,
           roll: headRoll
         },
-        fixationPoint: gazeType === GazeType.FIXATION ? { x: calibratedX, y: calibratedY } : null,
+        fixationPoint: gazeType === GazeType.FIXATION ? { x: finalX, y: finalY } : null,
         timestamp
       };
 

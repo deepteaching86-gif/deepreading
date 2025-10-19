@@ -10,6 +10,7 @@ import {
   trainCalibrationModel,
   saveCalibration,
   evaluateCalibrationAccuracy,
+  updateUserProfile,
   CalibrationPoint
 } from '../../utils/gazeCalibration';
 
@@ -20,6 +21,7 @@ interface CalibrationScreenSimpleProps {
 }
 
 export const CalibrationScreenSimple: React.FC<CalibrationScreenSimpleProps> = ({
+  userId,
   onCalibrationComplete,
   onCancel
 }) => {
@@ -167,13 +169,19 @@ export const CalibrationScreenSimple: React.FC<CalibrationScreenSimpleProps> = (
     const accuracy = evaluateCalibrationAccuracy(model, collectedData);
     console.log(`✅ Calibration accuracy: ${(accuracy * 100).toFixed(2)}% error`);
 
-    // Save to localStorage
-    saveCalibration({
+    // Create calibration result
+    const calibrationResult = {
       points: collectedData,
       model,
       accuracy,
       timestamp: Date.now()
-    });
+    };
+
+    // Save to localStorage
+    saveCalibration(calibrationResult);
+
+    // Update user profile with calibration history
+    updateUserProfile(userId, calibrationResult);
 
     // Move to completed stage
     setStage('completed');
@@ -182,7 +190,7 @@ export const CalibrationScreenSimple: React.FC<CalibrationScreenSimpleProps> = (
     setTimeout(() => {
       onCalibrationComplete();
     }, 1000);
-  }, [collectedData, onCalibrationComplete]);
+  }, [collectedData, userId, onCalibrationComplete]);
 
   // Instructions
   if (stage === 'instructions') {
