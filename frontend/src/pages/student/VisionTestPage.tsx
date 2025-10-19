@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from '../../lib/axios';
-import { CalibrationScreen } from '../../components/vision/CalibrationScreen';
+import { CalibrationScreenNew } from '../../components/vision/CalibrationScreenNew';
 import { useGazeTracking } from '../../hooks/useGazeTracking';
 import {
   startVisionSession,
@@ -300,9 +300,30 @@ export const VisionTestPage: React.FC = () => {
   // Render calibration stage
   if (state.stage === 'calibration' && !calibrationResult) {
     return (
-      <CalibrationScreen
+      <CalibrationScreenNew
         userId={userId}
-        onCalibrationComplete={handleCalibrationComplete}
+        onCalibrationComplete={(profile) => {
+          // Convert CalibrationProfile to CalibrationResult
+          const result: CalibrationResult = {
+            calibrationId: profile.userId + '-' + profile.createdAt.getTime(),
+            overallAccuracy: 0.85, // Default accuracy
+            points: [],
+            transformMatrix: [
+              [profile.quickCalibration.sensitivity.baseX, 0, 0],
+              [0, profile.quickCalibration.sensitivity.baseY, 0],
+              [0, 0, 1]
+            ],
+            deviceInfo: {
+              userAgent: navigator.userAgent,
+              screenWidth: window.screen.width,
+              screenHeight: window.screen.height,
+              devicePixelRatio: window.devicePixelRatio,
+              platform: navigator.platform
+            },
+            expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
+          };
+          handleCalibrationComplete(result);
+        }}
         onCancel={() => navigate('/student/dashboard')}
       />
     );
