@@ -447,14 +447,17 @@ export const useGazeTracking = (
               ctx.fill();
             }
 
-            // Draw landmark count
+            // Draw landmark count (반전 적용 for 거울 모드)
+            ctx.save();
+            ctx.scale(-1, 1); // 텍스트만 다시 반전
             ctx.font = 'bold 16px Arial';
             ctx.strokeStyle = 'black';
             ctx.lineWidth = 3;
             ctx.fillStyle = '#22c55e';
             const infoText = `Landmarks: ${landmarks.length}`;
-            ctx.strokeText(infoText, 10, 60);
-            ctx.fillText(infoText, 10, 60);
+            ctx.strokeText(infoText, -canvas.width + 10, 60);
+            ctx.fillText(infoText, -canvas.width + 10, 60);
+            ctx.restore();
           }
         }
       }
@@ -1016,22 +1019,22 @@ function estimateGazeFromLandmarks(
 
   // Combine iris position with head rotation using depth-corrected value
   // Y-AXIS SENSITIVITY FIX:
-  // Problem: Y축 움직임이 감지되지 않음 (0.85-0.86에 고정)
-  // Solution: baseSensitivityY를 4.0으로 증가 (2.0 → 4.0)
-  // 이전: headPitch ~±0.2 범위에서 rawY = 0.5 ± 0.4 (0.1 ~ 0.9)
-  // 현재: headPitch ~±0.2 범위에서 rawY = 0.5 ± 0.8 (0.0 ~ 1.0까지 커버)
-  const baseSensitivityY = 4.0; // 2.0 → 4.0으로 증가하여 위아래 움직임 감도 향상
-  const headCompensatedY = (headPitch * baseSensitivityY);
+  // Problem: Y축은 headPitch만 사용하고 avgIrisRatioY(눈동자 움직임)를 무시함
+  // Solution: depthCorrectedY (iris + head pitch 조합)를 사용하고 적절한 sensitivity 적용
+  // depthCorrectedY = avgIrisRatioY + (headPitch * pitchInfluence)
+  // pitchInfluence = 0.05는 너무 작아서 35로 증가 (iris + head 모두 반영)
+  const baseSensitivityY = 35; // X축과 동일하게 35로 설정 (balanced X/Y)
+  const headCompensatedY = (depthCorrectedY * baseSensitivityY);
 
   // === FINAL GAZE COORDINATES ===
   // Horizontal: Center at 0.5, FLIP for correct left-right mapping
   const rawX = 0.5 + (headCompensatedX * 2.5);  // Increased to 2.5 for corner coverage
   const x = 1.0 - rawX;  // FLIP: Mirror horizontally (left ↔ right)
 
-  // Vertical: With baseSensitivityY=4.0, headPitch ~±0.2 typical range:
-  //   - Looking UP (headPitch=+0.2): rawY = 0.5 - (0.2*4.0) = 0.5 - 0.8 = -0.3 → clamped to 0.0 (top)
-  //   - Looking CENTER (headPitch=0): rawY = 0.5 - 0 = 0.5 (middle)
-  //   - Looking DOWN (headPitch=-0.2): rawY = 0.5 - (-0.8) = 1.3 → clamped to 1.0 (bottom)
+  // Vertical: Use depth-corrected Y (iris + head pitch combined)
+  //   depthCorrectedY combines iris position with head pitch influence
+  //   baseSensitivityY=35 scales the combined value to screen space
+  //   Typical range: depthCorrectedY ~±0.03 → headCompensatedY ~±1.05 → rawY 0.0-1.0
   const yMultiplier = 1.0;
   const rawY = 0.5 - (headCompensatedY * yMultiplier); // SUBTRACT for correct direction mapping
   const y = rawY; // No clamping here - let smoothing handle it
