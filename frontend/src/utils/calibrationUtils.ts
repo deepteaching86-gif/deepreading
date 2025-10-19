@@ -1,0 +1,265 @@
+/**
+ * Calibration Utility Functions
+ */
+
+import {
+  Point,
+  GazeData,
+  CornerData,
+  SensitivityMatrix,
+  CalibrationProfile,
+  CALIBRATION_CONSTANTS
+} from '../types/calibration';
+
+/**
+ * Calculate distance between two points
+ */
+export function calculateDistance(p1: Point, p2: Point): number {
+  const dx = p1.x - p2.x;
+  const dy = p1.y - p2.y;
+  return Math.sqrt(dx * dx + dy * dy);
+}
+
+/**
+ * Calculate median of number array
+ */
+export function median(values: number[]): number {
+  if (values.length === 0) return 0;
+
+  const sorted = [...values].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+
+  if (sorted.length % 2 === 0) {
+    return (sorted[mid - 1] + sorted[mid]) / 2;
+  }
+  return sorted[mid];
+}
+
+/**
+ * Calculate average GazeData from samples
+ */
+export function averageGazeData(samples: GazeData[]): GazeData {
+  if (samples.length === 0) {
+    return {
+      irisOffsetX: 0,
+      irisOffsetY: 0,
+      headYaw: 0,
+      headPitch: 0,
+      timestamp: Date.now()
+    };
+  }
+
+  return {
+    irisOffsetX: median(samples.map(s => s.irisOffsetX)),
+    irisOffsetY: median(samples.map(s => s.irisOffsetY)),
+    headYaw: median(samples.map(s => s.headYaw)),
+    headPitch: median(samples.map(s => s.headPitch)),
+    timestamp: Date.now()
+  };
+}
+
+/**
+ * Calculate optimal sensitivity from corner calibration data
+ */
+export function calculateOptimalSensitivity(
+  naturalCenter: GazeData,
+  corners: CornerData[]
+): SensitivityMatrix {
+  // Find corners by position
+  const leftCorner = corners.find(c => c.target.x < 0.5);
+  const rightCorner = corners.find(c => c.target.x > 0.5);
+  const topCorner = corners.find(c => c.target.y < 0.5);
+  const bottomCorner = corners.find(c => c.target.y > 0.5);
+
+  if (!leftCorner || !rightCorner || !topCorner || !bottomCorner) {
+    console.warn('⚠️ Missing corner data, using default sensitivity');
+    return {
+      baseX: 80,
+      baseY: 50,
+      headYawMultiplier: 15,
+      headPitchMultiplier: 10
+    };
+  }
+
+  // Calculate X-axis sensitivity
+  const irisRangeX = Math.abs(
+    (rightCorner.avgMeasured.irisX - naturalCenter.irisOffsetX) -
+    (leftCorner.avgMeasured.irisX - naturalCenter.irisOffsetX)
+  );
+  const screenRangeX = Math.abs(rightCorner.target.x - leftCorner.target.x); // 0.7
+
+  const sensitivityX = irisRangeX > 0 ? screenRangeX / irisRangeX : 80;
+
+  // Calculate Y-axis sensitivity
+  const irisRangeY = Math.abs(
+    (bottomCorner.avgMeasured.irisY - naturalCenter.irisOffsetY) -
+    (topCorner.avgMeasured.irisY - naturalCenter.irisOffsetY)
+  );
+  const screenRangeY = Math.abs(bottomCorner.target.y - topCorner.target.y); // 0.7
+
+  const sensitivityY = irisRangeY > 0 ? screenRangeY / irisRangeY : 50;
+
+  // Calculate head pose multipliers
+  const headYawRange = Math.abs(
+    (rightCorner.avgMeasured.headYaw - naturalCenter.headYaw) -
+    (leftCorner.avgMeasured.headYaw - naturalCenter.headYaw)
+  );
+  const headYawMult = headYawRange > 0 ? screenRangeX / headYawRange : 15;
+
+  const headPitchRange = Math.abs(
+    (bottomCorner.avgMeasured.headPitch - naturalCenter.headPitch) -
+    (topCorner.avgMeasured.headPitch - naturalCenter.headPitch)
+  );
+  const headPitchMult = headPitchRange > 0 ? screenRangeY / headPitchRange : 10;
+
+  console.log('📊 Calculated Sensitivity:', {
+    baseX: sensitivityX.toFixed(2),
+    baseY: sensitivityY.toFixed(2),
+    headYawMult: headYawMult.toFixed(2),
+    headPitchMult: headPitchMult.toFixed(2),
+    irisRangeX: irisRangeX.toFixed(4),
+    irisRangeY: irisRangeY.toFixed(4)
+  });
+
+  return {
+    baseX: sensitivityX,
+    baseY: sensitivityY,
+    headYawMultiplier: headYawMult,
+    headPitchMultiplier: headPitchMult
+  };
+}
+
+/**
+ * Apply camera parallax correction
+ */
+export function applyCameraParallax(gaze: Point, cameraPos: Point): Point {
+  const { PARALLAX_FACTOR } = CALIBRATION_CONSTANTS;
+
+  return {
+    x: gaze.x + (cameraPos.x - 0.5) * PARALLAX_FACTOR * (gaze.y - 0.5),
+    y: gaze.y + (cameraPos.y - 0.5) * PARALLAX_FACTOR
+  };
+}
+
+/**
+ * Calculate gaze point with calibration data
+ */
+export function calculateCalibratedGaze(
+  irisOffset: Point,
+  headPose: { yaw: number; pitch: number },
+  calibration: CalibrationProfile
+): Point {
+  const { naturalCenter, sensitivity, cameraPosition } = calibration.quickCalibration;
+
+  // 1. Normalize relative to user's natural center
+  const relativeIris = {
+    x: irisOffset.x - naturalCenter.irisOffsetX,
+    y: irisOffset.y - naturalCenter.irisOffsetY
+  };
+
+  const relativeHead = {
+    yaw: headPose.yaw - naturalCenter.headYaw,
+    pitch: headPose.pitch - naturalCenter.headPitch
+  };
+
+  // 2. Apply user-specific sensitivity
+  const rawGazeX = 0.5 + (relativeIris.x * sensitivity.baseX) + (relativeHead.yaw * sensitivity.headYawMultiplier);
+  const rawGazeY = 0.5 + (relativeIris.y * sensitivity.baseY) + (relativeHead.pitch * sensitivity.headPitchMultiplier);
+
+  // 3. Apply camera parallax correction
+  const correctedGaze = applyCameraParallax(
+    { x: rawGazeX, y: rawGazeY },
+    cameraPosition
+  );
+
+  // 4. Apply adaptive learning correction (if available)
+  const finalGaze = applyAdaptiveCorrection(correctedGaze, calibration);
+
+  return finalGaze;
+}
+
+/**
+ * Apply adaptive learning correction
+ */
+function applyAdaptiveCorrection(gaze: Point, calibration: CalibrationProfile): Point {
+  const { errorSamples } = calibration.adaptiveLearning;
+
+  if (errorSamples.length < CALIBRATION_CONSTANTS.ADAPTIVE_MIN_SAMPLES) {
+    return gaze; // Not enough data
+  }
+
+  // Calculate average error from recent samples
+  const recentSamples = errorSamples.slice(-20); // Last 20 samples
+  const avgErrorX = median(recentSamples.map(s => s.error.x));
+  const avgErrorY = median(recentSamples.map(s => s.error.y));
+
+  return {
+    x: gaze.x + avgErrorX,
+    y: gaze.y + avgErrorY
+  };
+}
+
+/**
+ * Save calibration profile to localStorage
+ */
+export function saveCalibrationProfile(profile: CalibrationProfile): void {
+  try {
+    const serialized = JSON.stringify(profile);
+    localStorage.setItem('calibrationProfile', serialized);
+    console.log('✅ Calibration profile saved');
+  } catch (error) {
+    console.error('❌ Failed to save calibration profile:', error);
+  }
+}
+
+/**
+ * Load calibration profile from localStorage
+ */
+export function loadCalibrationProfile(): CalibrationProfile | null {
+  try {
+    const serialized = localStorage.getItem('calibrationProfile');
+    if (!serialized) return null;
+
+    const profile = JSON.parse(serialized);
+    console.log('✅ Calibration profile loaded');
+    return profile;
+  } catch (error) {
+    console.error('❌ Failed to load calibration profile:', error);
+    return null;
+  }
+}
+
+/**
+ * Create empty calibration profile
+ */
+export function createEmptyCalibrationProfile(userId: string): CalibrationProfile {
+  return {
+    userId,
+    createdAt: new Date(),
+    lastUpdated: new Date(),
+    quickCalibration: {
+      cameraPosition: { x: 0.5, y: 0.05 },
+      naturalCenter: {
+        irisOffsetX: 0,
+        irisOffsetY: 0,
+        headYaw: 0,
+        headPitch: 0,
+        timestamp: Date.now()
+      },
+      corners: [],
+      sensitivity: {
+        baseX: 80,
+        baseY: 50,
+        headYawMultiplier: 15,
+        headPitchMultiplier: 10
+      },
+      verificationScore: 0
+    },
+    adaptiveLearning: {
+      totalClicks: 0,
+      errorSamples: [],
+      refinementHistory: [],
+      currentAccuracy: 0
+    }
+  };
+}

@@ -11,6 +11,11 @@ interface UseGazeTrackingOptions {
   calibrationMatrix?: number[][]; // 3x3 affine transformation matrix
   targetFPS?: number; // Default 30 FPS
   onFacePosition?: (position: { x: number; y: number; width: number; height: number }) => void; // Face position callback
+  onRawGazeData?: (data: {
+    irisOffset: { x: number; y: number };
+    headPose: { yaw: number; pitch: number };
+    timestamp: number;
+  }) => void; // Raw iris offset and head pose callback (for calibration)
 }
 
 interface UseGazeTrackingReturn {
@@ -28,7 +33,7 @@ interface UseGazeTrackingReturn {
 export const useGazeTracking = (
   options: UseGazeTrackingOptions
 ): UseGazeTrackingReturn => {
-  const { enabled, onGazePoint, calibrationMatrix, onFacePosition } = options;
+  const { enabled, onGazePoint, calibrationMatrix, onFacePosition, onRawGazeData } = options;
 
   const [isInitialized, setIsInitialized] = useState(false);
   const [isTracking, setIsTracking] = useState(false);
@@ -615,7 +620,12 @@ export const useGazeTracking = (
     };
 
     // Estimate gaze
-    const gaze = estimateGazeFromLandmarks(faceLandmarks, video.videoWidth, video.videoHeight);
+    const gaze = estimateGazeFromLandmarks(
+      faceLandmarks,
+      video.videoWidth,
+      video.videoHeight,
+      onRawGazeData
+    );
 
     // Apply calibration
     let calibratedX = gaze.x;
@@ -674,7 +684,7 @@ export const useGazeTracking = (
 
     // Schedule next frame
     animationFrameRef.current = window.requestAnimationFrame(detectAndEstimateGaze);
-  }, [isTracking, onGazePoint, calibrationMatrix, onFacePosition]);
+  }, [isTracking, onGazePoint, calibrationMatrix, onFacePosition, onRawGazeData]);
 
   // Start detection loop when tracking starts
   useEffect(() => {
@@ -721,7 +731,12 @@ export const useGazeTracking = (
 function estimateGazeFromLandmarks(
   landmarks: FaceLandmarks,
   videoWidth: number,
-  videoHeight: number
+  videoHeight: number,
+  onRawGazeData?: (data: {
+    irisOffset: { x: number; y: number };
+    headPose: { yaw: number; pitch: number };
+    timestamp: number;
+  }) => void
 ): { x: number; y: number; confidence: number } {
   // === SCREEN SIZE ADAPTIVE SENSITIVITY ===
   // Calculate screen dimensions and viewing angle
@@ -818,6 +833,22 @@ function estimateGazeFromLandmarks(
   const eyesCenterY = (landmarks.leftEye.y + landmarks.rightEye.y) / 2;
   const noseTipY = landmarks.noseTip.y;
   const headPitch = (noseTipY - eyesCenterY) / videoHeight;
+
+  // === RAW DATA CALLBACK (for calibration) ===
+  // Call the callback with raw iris offset and head pose BEFORE any sensitivity calculations
+  if (onRawGazeData) {
+    onRawGazeData({
+      irisOffset: {
+        x: avgIrisRatioX, // Normalized iris offset X (-0.05 to +0.05 typically)
+        y: avgIrisRatioY  // Normalized iris offset Y
+      },
+      headPose: {
+        yaw: headYaw,     // Normalized head yaw (-1 to +1)
+        pitch: headPitch  // Normalized head pitch
+      },
+      timestamp: Date.now()
+    });
+  }
 
   // Combine iris position with head rotation - MUCH HIGHER base values
   // IMPORTANT: Do NOT add headPitch - it causes constant downward bias
