@@ -946,11 +946,23 @@ function estimateGazeFromLandmarks(
   // When Z=0.0 (normal): factor = 1.0 (baseline)
   // When Z=0.1 (far): factor ≈ 0.82 (18% reduction)
   const depthFactor = Math.exp(-avgZ * 2.0);
-  const pitchInfluence = 0.5 * depthFactor; // Dynamic pitch influence based on depth
+  const pitchInfluence = 0.05 * depthFactor; // REDUCED from 0.5 to 0.05 - was causing Y overflow to 1.0
 
   // Apply depth-corrected pitch compensation to vertical iris ratio
   // This helps when iris is occluded by eyelid during upward gaze
   const depthCorrectedY = avgIrisRatioY + (headPitch * pitchInfluence);
+
+  // DEBUG: Log if Y value is getting too large before final multipliers
+  if (import.meta.env.DEV && Math.abs(depthCorrectedY) > 0.05) {
+    console.warn('⚠️ Large depthCorrectedY:', {
+      avgIrisRatioY: avgIrisRatioY.toFixed(4),
+      headPitch: headPitch.toFixed(4),
+      pitchInfluence: pitchInfluence.toFixed(4),
+      depthCorrectedY: depthCorrectedY.toFixed(4),
+      avgZ: avgZ.toFixed(4),
+      depthFactor: depthFactor.toFixed(3)
+    });
+  }
 
   // === RAW DATA CALLBACK (for calibration) ===
   // Call the callback with raw iris offset and head pose BEFORE any sensitivity calculations
