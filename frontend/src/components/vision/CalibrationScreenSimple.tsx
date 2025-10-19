@@ -273,6 +273,25 @@ export const CalibrationScreenSimple: React.FC<CalibrationScreenSimpleProps> = (
     );
   }
 
+  // Render video and canvas in ALL stages to keep stream active
+  const renderVideoCanvas = () => (
+    <>
+      <video
+        ref={videoRef}
+        className={stage === 'camera_check' ? "absolute inset-0 w-full h-full object-contain" : "hidden"}
+        style={stage === 'camera_check' ? { transform: 'scaleX(-1)' } : undefined}
+        autoPlay
+        playsInline
+        muted
+      />
+      <canvas
+        ref={canvasRef}
+        className={stage === 'camera_check' ? "absolute inset-0 w-full h-full" : "hidden"}
+        style={stage === 'camera_check' ? { transform: 'scaleX(-1)' } : undefined}
+      />
+    </>
+  );
+
   // Camera check
   if (stage === 'camera_check') {
     return (
@@ -291,22 +310,8 @@ export const CalibrationScreenSimple: React.FC<CalibrationScreenSimpleProps> = (
         <div className="relative">
           {/* Video container - maintain aspect ratio with object-contain */}
           <div className="relative w-[640px] h-[480px] rounded-2xl overflow-hidden bg-black">
-            {/* Live camera feed - mirror mode for natural viewing */}
-            <video
-              ref={videoRef}
-              className="absolute inset-0 w-full h-full object-contain"
-              style={{ transform: 'scaleX(-1)' }} // Mirror mode for video
-              autoPlay
-              playsInline
-              muted
-            />
-
-            {/* FaceMesh overlay canvas - MIRROR to match video and make text readable */}
-            <canvas
-              ref={canvasRef}
-              className="absolute inset-0 w-full h-full"
-              style={{ transform: 'scaleX(-1)' }}
-            />
+            {/* Live camera feed and canvas - shared across stages */}
+            {renderVideoCanvas()}
 
             {/* Face guide overlay - centered oval */}
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
@@ -370,16 +375,8 @@ export const CalibrationScreenSimple: React.FC<CalibrationScreenSimpleProps> = (
 
     return (
       <div className="fixed inset-0 bg-gray-900 z-50">
-        {/* Video and canvas - hidden but keep refs active for face tracking */}
-        <div className="hidden">
-          <video
-            ref={videoRef}
-            autoPlay
-            playsInline
-            muted
-          />
-          <canvas ref={canvasRef} />
-        </div>
+        {/* Video and canvas - shared with camera_check, hidden during calibration */}
+        {renderVideoCanvas()}
 
         {/* Progress bar */}
         <div className="absolute top-0 left-0 right-0 h-2 bg-gray-800 z-10">
