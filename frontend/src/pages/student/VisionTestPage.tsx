@@ -20,7 +20,6 @@ import {
 } from '../../types/vision.types';
 import { CalibrationProfile, Point } from '../../types/calibration';
 import {
-  saveCalibrationProfile,
   recordUserClick
 } from '../../utils/calibrationUtils';
 import { ConcentrationRawData, ConcentrationScore, ConcentrationAlert } from '../../types/concentration.types';

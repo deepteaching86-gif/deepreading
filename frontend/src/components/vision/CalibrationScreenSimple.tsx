@@ -13,7 +13,6 @@ interface CalibrationScreenSimpleProps {
 }
 
 export const CalibrationScreenSimple: React.FC<CalibrationScreenSimpleProps> = ({
-  userId,
   onCalibrationComplete,
   onCancel
 }) => {
