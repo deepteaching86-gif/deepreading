@@ -1009,10 +1009,20 @@ function estimateGazeFromLandmarks(
   }
 
   // Combine iris position with head rotation using depth-corrected value
-  // Y-AXIS FIX: Increase sensitivity to allow full vertical range
-  // Previous baseSensitivityY = 2.0 was too low, causing y to stick around 0.86
-  // With headPitch ~0.18, we need higher multiplier to reach full 0.0-1.0 range
-  const baseSensitivityY = 6.0; // INCREASED from 2.0 to 6.0 for full vertical coverage
+  // Y-AXIS ROOT CAUSE FIX:
+  // Issue: headPitch calculation was NEGATED (line 955), but subtraction assumes POSITIVE pitch
+  // When user looks DOWN: headPitch is NEGATIVE (due to negation)
+  // rawY = 0.5 - (negative_value * sensitivity) = 0.5 - (-X) = 0.5 + X → INCREASES (goes DOWN) ✓ CORRECT
+  //
+  // When user looks UP: headPitch is POSITIVE (due to negation)
+  // rawY = 0.5 - (positive_value * sensitivity) = 0.5 - X → DECREASES (goes UP) ✓ CORRECT
+  //
+  // ACTUAL PROBLEM: Sensitivity was TOO HIGH (6.0), causing overflow
+  // With headPitch=0.18, baseSensitivity=6.0, yMultiplier=1.5:
+  //   rawY = 0.5 - (0.18 * 6.0 * 1.5) = 0.5 - 1.62 = -1.12 → clamped to 0.0, then smoothed to 1.0
+  //
+  // SOLUTION: Use original balanced sensitivity (2.0) with adaptive multiplier for screen size
+  const baseSensitivityY = 2.0; // RESET to original 2.0 - previous 6.0 caused overflow
   const headCompensatedY = (headPitch * baseSensitivityY); // Use headPitch directly
 
   // === FINAL GAZE COORDINATES ===
@@ -1020,15 +1030,12 @@ function estimateGazeFromLandmarks(
   const rawX = 0.5 + (headCompensatedX * 2.5);  // Increased to 2.5 for corner coverage
   const x = 1.0 - rawX;  // FLIP: Mirror horizontally (left ↔ right)
 
-  // Vertical: CRITICAL FIX - Use headPitch directly with increased sensitivity
-  // headPitch ranges roughly -0.2 (looking up) to +0.2 (looking down)
-  // With sensitivity 6.0: -0.2*6.0 = -1.2, +0.2*6.0 = +1.2
-  // rawY = 0.5 - headCompensatedY gives us:
-  //   - Looking UP (headPitch=-0.2): 0.5 - (-1.2) = 1.7 → clamp to 1.0
-  //   - Looking CENTER (headPitch=0): 0.5 - 0 = 0.5
-  //   - Looking DOWN (headPitch=+0.2): 0.5 - 1.2 = -0.7 → clamp to 0.0
-  const yMultiplier = 1.5; // INCREASED from 1.0 to 1.5 for more vertical responsiveness
-  const rawY = 0.5 - (headCompensatedY * yMultiplier); // SUBTRACT to fix inversion!
+  // Vertical: With baseSensitivityY=2.0, headPitch ~±0.2 typical range:
+  //   - Looking UP (headPitch=+0.2): rawY = 0.5 - (0.2*2.0) = 0.5 - 0.4 = 0.1 (top)
+  //   - Looking CENTER (headPitch=0): rawY = 0.5 - 0 = 0.5 (middle)
+  //   - Looking DOWN (headPitch=-0.2): rawY = 0.5 - (-0.4) = 0.9 (bottom)
+  const yMultiplier = 1.0; // Reset to 1.0 - no additional multiplication needed
+  const rawY = 0.5 - (headCompensatedY * yMultiplier); // SUBTRACT for correct direction mapping
   const y = rawY; // No clamping here - let smoothing handle it
 
   // === DEBUG: X & Y CALCULATION CHAIN ===
