@@ -1036,14 +1036,17 @@ function estimateGazeFromLandmarks(
 
   // Apply depth-corrected pitch compensation to vertical iris ratio
   // This helps when iris is occluded by eyelid during upward gaze
-  const depthCorrectedY = avgIrisRatioY + (headPitch * pitchInfluence);
+  // INCREASED pitchInfluence from 0.05 to 8.0 to better capture vertical head movement
+  const enhancedPitchInfluence = 8.0 * depthFactor; // Increased from 0.05
+  const depthCorrectedY = avgIrisRatioY + (headPitch * enhancedPitchInfluence);
 
-  // DEBUG: Log if Y value is getting too large before final multipliers
-  if (import.meta.env.DEV && Math.abs(depthCorrectedY) > 0.05) {
-    console.warn('⚠️ Large depthCorrectedY:', {
+  // DEBUG: Log vertical tracking components
+  if (import.meta.env.DEV && Math.random() < 0.033) { // ~2 times per second at 60fps
+    console.log('📊 Vertical Tracking Components:', {
       avgIrisRatioY: avgIrisRatioY.toFixed(4),
       headPitch: headPitch.toFixed(4),
-      pitchInfluence: pitchInfluence.toFixed(4),
+      enhancedPitchInfluence: enhancedPitchInfluence.toFixed(4),
+      headContribution: (headPitch * enhancedPitchInfluence).toFixed(4),
       depthCorrectedY: depthCorrectedY.toFixed(4),
       avgZ: avgZ.toFixed(4),
       depthFactor: depthFactor.toFixed(3)
