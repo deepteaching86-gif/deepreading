@@ -313,7 +313,7 @@ export const VisionTestPage: React.FC = () => {
             setVisionSessionId(existingData.visionSessionId);
             setPassages(existingData.passages || []);
             setCurrentPassage(existingData.passages?.[0] || null);
-            setState(prev => ({ ...prev, stage: 'reading', isCalibrating: false }));
+            setState(prev => ({ ...prev, stage: 'testing' }));
             console.log('✅ Retrieved existing vision session:', existingData.visionSessionId);
             return;
           }

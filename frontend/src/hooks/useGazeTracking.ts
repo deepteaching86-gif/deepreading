@@ -736,8 +736,8 @@ export const useGazeTracking = (
               } else if (currentGaze) {
                 // Fallback to 2D gaze estimation
                 const gazeDirFromCenter = {
-                  x: (currentGaze.raw.x - 0.5) * 2,
-                  y: (currentGaze.raw.y - 0.5) * 2
+                  x: (currentGaze.x - 0.5) * 2,
+                  y: (currentGaze.y - 0.5) * 2
                 };
                 draw3DGazeRay(leftEyeCenter, gazeDirFromCenter, '#00ffff', 'L');
                 draw3DGazeRay(rightEyeCenter, gazeDirFromCenter, '#ffff00', 'R');
@@ -751,8 +751,8 @@ export const useGazeTracking = (
               if (currentGaze) {
                 ctx.fillStyle = '#00ff00';
                 ctx.font = 'bold 14px monospace';
-                const screenX = Math.round(currentGaze.raw.x * canvas.width);
-                const screenY = Math.round(currentGaze.raw.y * canvas.height);
+                const screenX = Math.round(currentGaze.x * canvas.width);
+                const screenY = Math.round(currentGaze.y * canvas.height);
                 ctx.fillText(`Screen: (${screenX}, ${screenY})`, 10, canvas.height - 20);
               }
             }
@@ -1183,11 +1183,21 @@ export const useGazeTracking = (
     
     // Fallback: Estimate iris if landmarks not available
     if (!usingIrisLandmarks) {
+      // Calculate eye centers
+      const leftEyeCenterCalc = {
+        x: (leftEyeOuter.x + leftEyeInner.x) / 2,
+        y: (leftEyeTop.y + leftEyeBottom.y) / 2,
+        z: leftEyeOuter.z || 0
+      };
+      const rightEyeCenterCalc = {
+        x: (rightEyeOuter.x + rightEyeInner.x) / 2,
+        y: (rightEyeTop.y + rightEyeBottom.y) / 2,
+        z: rightEyeOuter.z || 0
+      };
+      
       // Calculate eye dimensions for estimation
       const leftEyeHeight = Math.abs(leftEyeTop.y - leftEyeBottom.y);
       const leftEyeWidth = Math.abs(leftEyeOuter.x - leftEyeInner.x);
-      const rightEyeHeight = Math.abs(rightEyeTop.y - rightEyeBottom.y);
-      const rightEyeWidth = Math.abs(rightEyeOuter.x - rightEyeInner.x);
       
       // JEOresearch-inspired: Smooth iris offset calculation
       // Use eye center with small dynamic offset based on head pose
@@ -1199,14 +1209,14 @@ export const useGazeTracking = (
       const irisOffsetY = headPitch * leftEyeHeight * 0.1;
       
       leftIris = {
-        x: leftEyeCenter.x + irisOffsetX,
-        y: leftEyeCenter.y + irisOffsetY,
+        x: leftEyeCenterCalc.x + irisOffsetX,
+        y: leftEyeCenterCalc.y + irisOffsetY,
         z: leftEyeOuter.z || 0
       };
       
       rightIris = {
-        x: rightEyeCenter.x + irisOffsetX,
-        y: rightEyeCenter.y + irisOffsetY,
+        x: rightEyeCenterCalc.x + irisOffsetX,
+        y: rightEyeCenterCalc.y + irisOffsetY,
         z: rightEyeOuter.z || 0
       };
       
@@ -1219,6 +1229,16 @@ export const useGazeTracking = (
         });
       }
     }
+
+    // Calculate eye centers for face landmarks
+    const leftEyeCenter = {
+      x: (leftEyeOuter.x + leftEyeInner.x) / 2,
+      y: (leftEyeTop.y + leftEyeBottom.y) / 2
+    };
+    const rightEyeCenter = {
+      x: (rightEyeOuter.x + rightEyeInner.x) / 2,
+      y: (rightEyeTop.y + rightEyeBottom.y) / 2
+    };
 
     const faceLandmarks: FaceLandmarks = {
       leftEye: { x: leftEyeCenter.x, y: leftEyeCenter.y, z: leftEyeOuter.z },
@@ -1364,7 +1384,7 @@ export const useGazeTracking = (
       }
 
       // Head pose 계산 (이미 estimateGazeFromLandmarks에서 계산됨)
-      const eyesCenterX = (leftEyeCenter.x + leftEyeCenter.x) / 2;
+      const eyesCenterX = (leftEyeCenter.x + rightEyeCenter.x) / 2;
       const eyesCenterY = (leftEyeCenter.y + rightEyeCenter.y) / 2;
       const headYaw = (noseTip.x - eyesCenterX) / video.videoWidth;
       const headPitch = (noseTip.y - eyesCenterY) / video.videoHeight;

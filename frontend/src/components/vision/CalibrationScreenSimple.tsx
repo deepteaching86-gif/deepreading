@@ -371,7 +371,7 @@ export const CalibrationScreenSimple: React.FC<CalibrationScreenSimpleProps> = (
     // Show video/canvas in ALL stages when tracking is active
     // This prevents stream loss during calibration stage
     const isVisible = isTracking && (stage === 'camera_check' || stage === 'calibration');
-    const shouldRenderVideo = stage !== 'instructions' && stage !== 'completed';
+    const shouldRenderVideo = (stage === 'camera_check' || stage === 'calibration');
     
     // Don't render at all in non-tracking stages
     if (!shouldRenderVideo) {
