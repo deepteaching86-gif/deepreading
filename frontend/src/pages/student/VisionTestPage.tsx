@@ -89,6 +89,13 @@ export const VisionTestPage: React.FC = () => {
 
   const userId = getUserId();
 
+  // Get 3D mode setting from localStorage - default to true for 3D mode
+  const [use3DMode] = useState(() => {
+    const stored = localStorage.getItem('gaze-tracking-3d-mode');
+    // Default to true if not set, or parse the stored value
+    return stored === null ? true : stored === 'true';
+  });
+
   // Stable callbacks for gaze tracking hook
   const handleRawGazeData = useCallback((data: {
     irisOffset: { x: number; y: number };
@@ -128,7 +135,7 @@ export const VisionTestPage: React.FC = () => {
     }
   }, []); // No dependencies - stable callback
 
-  // Gaze tracking hook
+  // Gaze tracking hook with 3D mode support
   const {
     isTracking,
     currentGaze,
@@ -143,7 +150,8 @@ export const VisionTestPage: React.FC = () => {
     onRawGazeData: handleRawGazeData,
     onConcentrationData: handleConcentrationData,
     calibrationMatrix: calibrationResult?.transformMatrix,
-    targetFPS: 30
+    targetFPS: 30,
+    use3DTracking: use3DMode // Pass 3D mode setting to gaze tracking hook
   });
 
   // Handle gaze point from tracking
@@ -257,6 +265,12 @@ export const VisionTestPage: React.FC = () => {
   // Start vision session with backend
   const handleStartVisionSession = async (calibration: CalibrationResult) => {
     if (!sessionId) return;
+    
+    // Prevent duplicate vision session creation
+    if (visionSessionId) {
+      console.log('⚠️ Vision session already started:', visionSessionId);
+      return;
+    }
 
     try {
       const response = await startVisionSession({
@@ -286,6 +300,28 @@ export const VisionTestPage: React.FC = () => {
 
       console.log('✅ Vision session started:', response.visionSessionId);
     } catch (error: any) {
+      // Check if the error is about duplicate session
+      if (error.response?.status === 400 && 
+          error.response?.data?.error?.includes('already started')) {
+        console.log('ℹ️ Vision session already exists for this test session');
+        
+        // Try to retrieve the existing session instead
+        try {
+          const existingSessionResponse = await axios.get(`/api/v1/sessions/${sessionId}/vision`);
+          if (existingSessionResponse.data?.data?.visionSessionId) {
+            const existingData = existingSessionResponse.data.data;
+            setVisionSessionId(existingData.visionSessionId);
+            setPassages(existingData.passages || []);
+            setCurrentPassage(existingData.passages?.[0] || null);
+            setState(prev => ({ ...prev, stage: 'reading', isCalibrating: false }));
+            console.log('✅ Retrieved existing vision session:', existingData.visionSessionId);
+            return;
+          }
+        } catch (retrieveError) {
+          console.error('Failed to retrieve existing session:', retrieveError);
+        }
+      }
+      
       console.error('❌ Failed to start vision session:', error);
       console.error('❌ Backend error message:', error.response?.data?.message);
       console.error('❌ Backend error details:', JSON.stringify(error.response?.data, null, 2));

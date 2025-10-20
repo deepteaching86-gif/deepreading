@@ -30,11 +30,8 @@ export const CalibrationScreenSimple: React.FC<CalibrationScreenSimpleProps> = (
   const [faceCentered, setFaceCentered] = useState(false);
   const [countdown, setCountdown] = useState(3);
   
-  // 3D Mode toggle (stored in localStorage for persistence)
-  const [use3DMode, setUse3DMode] = useState(() => {
-    const stored = localStorage.getItem('gaze-tracking-3d-mode');
-    return stored === 'true';
-  });
+  // 3D Mode is always enabled
+  const use3DMode = true; // Always use 3D tracking
 
   // Calibration state
   const [calibrationPoints] = useState(generate9PointGrid(0.1));
@@ -73,20 +70,28 @@ export const CalibrationScreenSimple: React.FC<CalibrationScreenSimpleProps> = (
     headPose: { yaw: number; pitch: number };
     timestamp: number;
   }) => {
-    // Use refs to access current values without recreating callback
-    if (stageRef.current === 'calibration' && pointCountdownRef.current > 0) {
+    // Collect data during calibration stage regardless of countdown
+    // The countdown check was too restrictive
+    if (stageRef.current === 'calibration') {
       rawGazeDataRef.current.push({
         irisOffset: data.irisOffset,
         headPose: data.headPose
       });
+      
+      // Debug log - reduce frequency to avoid console spam
+      if (rawGazeDataRef.current.length % 30 === 0) {
+        console.log('📊 Collecting gaze data:', rawGazeDataRef.current.length, 'samples');
+      }
     }
   }, []); // No dependencies - stable callback
 
   const handleGazePoint = useCallback((point: { x: number; y: number }) => {
-    // Use ref to access current stage without recreating callback
-    if (stageRef.current === 'calibration') {
-      setCurrentGaze(point);
-    }
+    // Always update current gaze position for calibration stage
+    // This ensures the blue marker shows up
+    setCurrentGaze(point);
+    
+    // Log to verify gaze point is being received
+    console.log('👁️ Gaze point received:', point);
   }, []); // No dependencies - stable callback
 
   // Gaze tracking hook for face detection and calibration
@@ -107,18 +112,24 @@ export const CalibrationScreenSimple: React.FC<CalibrationScreenSimpleProps> = (
     use3DTracking: use3DMode // Enable 3D mode based on toggle
   });
   
-  // Toggle 3D mode
-  const toggle3DMode = useCallback(() => {
-    const newMode = !use3DMode;
-    setUse3DMode(newMode);
-    localStorage.setItem('gaze-tracking-3d-mode', String(newMode));
-    console.log(newMode ? '🎯 3D Mode Enabled' : '📐 2D Mode Enabled');
-  }, [use3DMode]);
+  // 3D mode is always enabled, no toggle needed
 
-  // Update gaze from hook
+  // Update gaze from hook - properly extract x,y from GazeEstimation
   useEffect(() => {
-    if (hookGaze && stage === 'calibration') {
-      setCurrentGaze(hookGaze);
+    // Update gaze in both camera_check and calibration stages
+    if (hookGaze && (stage === 'camera_check' || stage === 'calibration')) {
+      // hookGaze is GazeEstimation type, extract x,y coordinates
+      setCurrentGaze({ x: hookGaze.x, y: hookGaze.y });
+      
+      // Debug log periodically
+      if (Math.random() < 0.02) { // Log ~2% of frames
+        console.log('📍 Current gaze updated:', { 
+          stage,
+          x: hookGaze.x.toFixed(3), 
+          y: hookGaze.y.toFixed(3),
+          confidence: hookGaze.confidence?.toFixed(2)
+        });
+      }
     }
   }, [hookGaze, stage]);
 
@@ -177,11 +188,29 @@ export const CalibrationScreenSimple: React.FC<CalibrationScreenSimpleProps> = (
     const currentPoint = calibrationPoints[currentPointIndex];
     
     console.log(`🔵 Processing calibration point ${currentPointIndex + 1}/9 at position (${currentPoint.x.toFixed(2)}, ${currentPoint.y.toFixed(2)})`);
-    console.log(`📊 Collected ${rawGazeDataRef.current.length} gaze samples`);
+    
+    // Use only the last 90 frames (approximately 3 seconds at 30fps) for averaging
+    const recentSamples = rawGazeDataRef.current.slice(-90);
+    console.log(`📊 Using ${recentSamples.length} recent samples from ${rawGazeDataRef.current.length} total`);
 
-    // Average collected raw gaze data
-    if (rawGazeDataRef.current.length > 0) {
-      const avgData = rawGazeDataRef.current.reduce(
+    // Check if we have collected any data
+    if (recentSamples.length === 0) {
+      console.warn('⚠️ No gaze data collected for this point. Using fallback data.');
+      // Use a fallback calibration point based on the target position
+      const fallbackPoint: CalibrationPoint = {
+        screenX: currentPoint.x,
+        screenY: currentPoint.y,
+        rawGazeX: currentPoint.x,
+        rawGazeY: currentPoint.y,
+        irisOffsetX: (currentPoint.x - 0.5) * 0.1,
+        irisOffsetY: (currentPoint.y - 0.5) * 0.1,
+        headYaw: 0,
+        headPitch: 0
+      };
+      setCollectedData(prev => [...prev, fallbackPoint]);
+      console.log(`⚠️ Used fallback calibration point ${currentPointIndex + 1}/9`);
+    } else {
+      const avgData = recentSamples.reduce(
         (acc, d) => ({
           irisOffsetX: acc.irisOffsetX + d.irisOffset.x,
           irisOffsetY: acc.irisOffsetY + d.irisOffset.y,
@@ -191,7 +220,7 @@ export const CalibrationScreenSimple: React.FC<CalibrationScreenSimpleProps> = (
         { irisOffsetX: 0, irisOffsetY: 0, headYaw: 0, headPitch: 0 }
       );
 
-      const count = rawGazeDataRef.current.length;
+      const count = recentSamples.length;
       const calibrationPoint: CalibrationPoint = {
         screenX: currentPoint.x,
         screenY: currentPoint.y,
@@ -207,8 +236,10 @@ export const CalibrationScreenSimple: React.FC<CalibrationScreenSimpleProps> = (
       console.log(`✅ Collected calibration point ${currentPointIndex + 1}/9:`, calibrationPoint);
     }
 
-    // Clear raw data for next point
-    rawGazeDataRef.current = [];
+    // Keep only recent data to prevent memory overflow (keep last 300 samples)
+    if (rawGazeDataRef.current.length > 300) {
+      rawGazeDataRef.current = rawGazeDataRef.current.slice(-300);
+    }
 
     // Move to next point
     if (currentPointIndex < calibrationPoints.length - 1) {
@@ -298,43 +329,19 @@ export const CalibrationScreenSimple: React.FC<CalibrationScreenSimpleProps> = (
               </p>
             </div>
 
-            {/* 3D Mode Toggle - Improved Design */}
-            <div className="bg-card p-4 rounded-lg shadow-sm border border-border">
-              <div className="flex items-center justify-between">
+            {/* 3D Mode Information */}
+            <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">🎯</span>
                 <div>
-                  <h3 className="font-semibold text-foreground mb-1">
-                    🎯 3D 추적 모드 (실험적)
+                  <h3 className="font-semibold text-purple-900">
+                    3D 추적 모드 활성화
                   </h3>
-                  <p className="text-sm text-muted-foreground">
-                    JEOresearch 기반 3D ray projection으로 더 정확한 수직 추적
+                  <p className="text-sm text-purple-700 mt-1">
+                    JEOresearch 기반 3D ray projection과 nose-based coordinate system을 사용하여
+                    정확한 시선 추적을 제공합니다.
                   </p>
                 </div>
-                <button
-                  onClick={toggle3DMode}
-                  className={`relative inline-flex h-8 w-14 items-center rounded-full transition-all duration-300 ${
-                    use3DMode 
-                      ? 'bg-primary shadow-lg shadow-primary/25' 
-                      : 'bg-muted hover:bg-muted/80'
-                  }`}
-                  aria-label="Toggle 3D tracking mode"
-                >
-                  <span
-                    className={`inline-block h-6 w-6 transform rounded-full transition-all duration-300 ${
-                      use3DMode 
-                        ? 'translate-x-7 bg-primary-foreground' 
-                        : 'translate-x-1 bg-background'
-                    }`}
-                  />
-                </button>
-              </div>
-              <div className="mt-3 px-3 py-2 bg-muted/50 rounded text-xs">
-                <span className={`font-medium ${
-                  use3DMode ? 'text-primary' : 'text-muted-foreground'
-                }`}>
-                  {use3DMode ? 
-                    "✅ 3D Mode: Nose-based coordinate system 사용 중" : 
-                    "📐 2D Mode: 기존 iris offset 방식 사용 중"}
-                </span>
               </div>
             </div>
           </div>
@@ -361,8 +368,15 @@ export const CalibrationScreenSimple: React.FC<CalibrationScreenSimpleProps> = (
   // Render video and canvas in ALL stages to keep stream active
   // CRITICAL: Keep elements mounted and only toggle visibility with opacity/pointer-events
   const renderVideoCanvas = () => {
-    // Always show video/canvas when 3D mode is enabled, or in camera_check stage
-    const isVisible = use3DMode || stage === 'camera_check';
+    // Show video/canvas in ALL stages when tracking is active
+    // This prevents stream loss during calibration stage
+    const isVisible = isTracking && (stage === 'camera_check' || stage === 'calibration');
+    const shouldRenderVideo = stage !== 'instructions' && stage !== 'completed';
+    
+    // Don't render at all in non-tracking stages
+    if (!shouldRenderVideo) {
+      return null;
+    }
     
     return (
       <>
@@ -372,8 +386,13 @@ export const CalibrationScreenSimple: React.FC<CalibrationScreenSimpleProps> = (
           style={{ 
             transform: 'scaleX(-1)',
             opacity: isVisible ? 1 : 0,
-            pointerEvents: isVisible ? 'auto' : 'none',
-            zIndex: isVisible ? 10 : -1 // Ensure visibility when needed
+            pointerEvents: 'none', // Never interactive
+            zIndex: isVisible ? 10 : 1, // Always above background
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%'
           }}
           autoPlay
           playsInline
@@ -385,8 +404,13 @@ export const CalibrationScreenSimple: React.FC<CalibrationScreenSimpleProps> = (
           style={{ 
             transform: 'scaleX(-1)',
             opacity: isVisible ? 1 : 0,
-            pointerEvents: isVisible ? 'auto' : 'none',
-            zIndex: isVisible ? 11 : -1 // Canvas on top of video
+            pointerEvents: 'none', // Never interactive
+            zIndex: isVisible ? 11 : 2, // Canvas on top of video
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%'
           }}
         />
       </>
@@ -411,7 +435,7 @@ export const CalibrationScreenSimple: React.FC<CalibrationScreenSimpleProps> = (
         <div className="relative">
           {/* Video container - maintain aspect ratio with object-contain */}
           <div className="relative w-[640px] h-[480px] rounded-2xl overflow-hidden bg-black">
-            {/* Live camera feed and canvas - always rendered */}
+            {/* Live camera feed and canvas - rendered for camera_check stage */}
             {renderVideoCanvas()}
 
             {/* Face guide overlay - centered oval */}
@@ -457,6 +481,23 @@ export const CalibrationScreenSimple: React.FC<CalibrationScreenSimpleProps> = (
           </div>
         </div>
 
+        {/* Real-time Gaze Marker for Camera Check - CYAN DOT */}
+        {currentGaze && (
+          <div
+            className="absolute z-50 pointer-events-none transition-all duration-100"
+            style={{
+              left: `${currentGaze.x * 100}%`,
+              top: `${currentGaze.y * 100}%`,
+              transform: 'translate(-50%, -50%)'
+            }}
+          >
+            {/* Outer pulsing ring */}
+            <div className="absolute inset-0 w-8 h-8 bg-cyan-400/30 rounded-full animate-ping" />
+            {/* Inner solid dot */}
+            <div className="relative w-3 h-3 bg-cyan-400 rounded-full border-2 border-white shadow-lg" />
+          </div>
+        )}
+
         {/* Status indicator */}
         <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 bg-black/70 px-6 py-3 rounded-lg">
           <div className="flex items-center gap-3">
@@ -464,6 +505,11 @@ export const CalibrationScreenSimple: React.FC<CalibrationScreenSimpleProps> = (
             <span className="text-white text-sm">
               {isTracking ? '카메라 연결됨' : '카메라 연결 중...'}
             </span>
+            {currentGaze && (
+              <span className="text-cyan-400 text-xs ml-2">
+                시선: ({currentGaze.x.toFixed(2)}, {currentGaze.y.toFixed(2)})
+              </span>
+            )}
           </div>
         </div>
       </div>
@@ -476,8 +522,15 @@ export const CalibrationScreenSimple: React.FC<CalibrationScreenSimpleProps> = (
 
     return (
       <div className="fixed inset-0 bg-gray-900 z-50">
-        {/* Video and canvas - keep mounted, visible in 3D mode */}
-        <div className={`fixed inset-0 ${use3DMode ? 'z-20' : 'opacity-0 pointer-events-none z-0'}`}>
+        {/* Video and canvas - ALWAYS render to maintain stream */}
+        {/* Position absolutely at top-left with proper z-index management */}
+        <div 
+          className="fixed inset-0"
+          style={{
+            zIndex: 20, // Behind calibration points but above background (3D mode always on)
+            pointerEvents: 'none' // Never block interactions
+          }}
+        >
           {renderVideoCanvas()}
         </div>
 

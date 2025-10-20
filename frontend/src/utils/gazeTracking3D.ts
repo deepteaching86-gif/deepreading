@@ -71,8 +71,13 @@ export const DEFAULT_VIRTUAL_MONITOR: VirtualMonitor = {
 // Average inter-pupillary distance in mm
 export const INTER_PUPILLARY_DISTANCE = 63;
 
-// Average eye radius in mm
+// Average eye radius in mm (based on JEOresearch)
+// Human eye is approximately 24mm diameter, so radius is 12mm
 export const EYE_RADIUS = 12;
+
+// Eye sphere model constants (from JEOresearch)
+export const EYE_SPHERE_SCALE = 1.0;  // Sphere radius multiplier
+export const IRIS_RADIUS_RATIO = 0.5; // Iris is about half the eye diameter
 
 // ============================================================================
 // Vector Operations
@@ -316,9 +321,13 @@ export class EyeSphereTracker {
   private leftEyeOffset: Point3D = { x: -INTER_PUPILLARY_DISTANCE / 2, y: 0, z: 0 };
   private rightEyeOffset: Point3D = { x: INTER_PUPILLARY_DISTANCE / 2, y: 0, z: 0 };
   private isCalibrated: boolean = false;
+  
+  // JEOresearch-inspired dynamic sphere radius
+  private dynamicEyeRadius: number = EYE_RADIUS;
 
   /**
    * Calibrate eye positions relative to face coordinate system
+   * Enhanced with JEOresearch approach
    */
   calibrate(
     faceCoords: FaceCoordinateSystem,
@@ -336,14 +345,21 @@ export class EyeSphereTracker {
     const rightOffset = subtractPoints(rightIris3D, faceCoords.center);
     this.rightEyeOffset = multiplyMatrixVector(transposedAxes, rightOffset);
     
+    // JEOresearch: Calculate dynamic eye radius based on inter-pupillary distance
+    const actualIPD = magnitude(subtractPoints(rightIris3D, leftIris3D));
+    const ipdRatio = actualIPD / INTER_PUPILLARY_DISTANCE;
+    this.dynamicEyeRadius = EYE_RADIUS * ipdRatio * EYE_SPHERE_SCALE;
+    
     // Store calibration scale
     this.calibrationScale = faceCoords.scale;
     this.isCalibrated = true;
 
-    console.log('👁️ Eye spheres calibrated:', {
+    console.log('👁️ Eye spheres calibrated (JEO):', {
       leftOffset: this.leftEyeOffset,
       rightOffset: this.rightEyeOffset,
-      scale: this.calibrationScale
+      scale: this.calibrationScale,
+      dynamicRadius: this.dynamicEyeRadius,
+      actualIPD: actualIPD
     });
   }
 
@@ -372,16 +388,19 @@ export class EyeSphereTracker {
       multiplyMatrixVector(faceCoords.axes, scaledRightOffset)
     );
     
+    // JEOresearch: Use dynamic eye radius scaled by distance
+    const scaledRadius = this.dynamicEyeRadius * scaleRatio;
+    
     return {
       left: {
         center: leftCenter,
         localOffset: scaledLeftOffset,
-        radius: EYE_RADIUS * scaleRatio
+        radius: scaledRadius
       },
       right: {
         center: rightCenter,
         localOffset: scaledRightOffset,
-        radius: EYE_RADIUS * scaleRatio
+        radius: scaledRadius
       }
     };
   }
@@ -410,9 +429,28 @@ export class EyeSphereTracker {
 
 /**
  * Create a ray from eye center through iris center
+ * JEOresearch: Enhanced with sphere-based projection
  */
-export function createGazeRay(eyeCenter: Point3D, irisCenter: Point3D): Ray3D {
-  const direction = normalize(subtractPoints(irisCenter, eyeCenter));
+export function createGazeRay(eyeCenter: Point3D, irisCenter: Point3D, eyeRadius: number = EYE_RADIUS): Ray3D {
+  // Calculate direction from eye center to iris
+  const rawDirection = subtractPoints(irisCenter, eyeCenter);
+  
+  // JEOresearch: Project iris onto eye sphere surface
+  const distanceToIris = magnitude(rawDirection);
+  
+  // If iris is inside the sphere, project it to the surface
+  if (distanceToIris < eyeRadius) {
+    const projectionScale = eyeRadius / distanceToIris;
+    const projectedIris = addPoints(eyeCenter, multiplyScalar(rawDirection, projectionScale));
+    const direction = normalize(subtractPoints(projectedIris, eyeCenter));
+    return {
+      origin: eyeCenter,
+      direction
+    };
+  }
+  
+  // Otherwise, use the raw direction
+  const direction = normalize(rawDirection);
   return {
     origin: eyeCenter,
     direction
@@ -421,6 +459,7 @@ export function createGazeRay(eyeCenter: Point3D, irisCenter: Point3D): Ray3D {
 
 /**
  * Compute combined binocular gaze ray
+ * JEOresearch: Enhanced with proper sphere radius
  */
 export function computeCombinedGaze(
   leftEye: EyeSphere3D,
@@ -428,13 +467,20 @@ export function computeCombinedGaze(
   leftIris: Point3D,
   rightIris: Point3D
 ): Ray3D {
-  // Individual gaze rays
-  const leftRay = createGazeRay(leftEye.center, leftIris);
-  const rightRay = createGazeRay(rightEye.center, rightIris);
+  // Individual gaze rays with sphere radii
+  const leftRay = createGazeRay(leftEye.center, leftIris, leftEye.radius);
+  const rightRay = createGazeRay(rightEye.center, rightIris, rightEye.radius);
   
-  // Combined direction (average of both rays)
+  // JEOresearch: Weight combination based on eye dominance (default: equal)
+  const leftWeight = 0.5;
+  const rightWeight = 0.5;
+  
+  // Weighted average of directions
   const combinedDirection = normalize(
-    addPoints(leftRay.direction, rightRay.direction)
+    addPoints(
+      multiplyScalar(leftRay.direction, leftWeight),
+      multiplyScalar(rightRay.direction, rightWeight)
+    )
   );
   
   // Origin is midpoint between eyes

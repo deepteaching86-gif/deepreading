@@ -2,7 +2,7 @@ import axios from 'axios';
 import { useAuthStore } from '../stores/authStore';
 
 const axiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000',
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3001',
   timeout: 180000, // 3 minutes default timeout for AI grading operations
   headers: {
     'Content-Type': 'application/json',

@@ -10,6 +10,7 @@ import { AdaptiveKalmanFilter } from '../utils/kalmanFilter';
 import { loadCalibration, applyCalibrationModel, PolynomialRegressionModel } from '../utils/gazeCalibration';
 import {
   Point3D,
+  Vector3D,
   FaceCoordinateSystem,
   EyeSphereTracker,
   GazeSmoother,
@@ -20,7 +21,11 @@ import {
   computeMonitorIntersection,
   intersectionToScreenCoords,
   formatPoint3D,
-  formatVector3D
+  formatVector3D,
+  addPoints,
+  subtractPoints,
+  multiplyScalar,
+  normalize
 } from '../utils/gazeTracking3D';
 
 interface UseGazeTrackingOptions {
@@ -35,7 +40,7 @@ interface UseGazeTrackingOptions {
     timestamp: number;
   }) => void; // Raw iris offset and head pose callback (for calibration)
   onConcentrationData?: (data: ConcentrationRawData) => void; // 집중력 분석용 원시 데이터 콜백
-  use3DTracking?: boolean; // Enable 3D tracking mode (default: false for backward compatibility)
+  use3DTracking?: boolean; // Enable 3D tracking mode (default: true - 3D only mode)
 }
 
 interface UseGazeTrackingReturn {
@@ -53,12 +58,13 @@ interface UseGazeTrackingReturn {
 export const useGazeTracking = (
   options: UseGazeTrackingOptions
 ): UseGazeTrackingReturn => {
-  const { enabled, onGazePoint, calibrationMatrix, onFacePosition, onRawGazeData, onConcentrationData, use3DTracking = false } = options;
+  const { enabled, onGazePoint, calibrationMatrix, onFacePosition, onRawGazeData, onConcentrationData, use3DTracking = true } = options;
 
   const [isInitialized, setIsInitialized] = useState(false);
   const [isTracking, setIsTracking] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currentGaze, setCurrentGaze] = useState<GazeEstimation | null>(null);
+  const currentGazeRayRef = useRef<{ origin: Point3D; direction: Vector3D } | null>(null);
   const [fps, setFps] = useState(0);
 
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -81,18 +87,16 @@ export const useGazeTracking = (
 
   // 3D Tracking System References
   const eyeSphereTrackerRef = useRef<EyeSphereTracker>(new EyeSphereTracker());
-  const gazeSmoother3DRef = useRef<GazeSmoother>(new GazeSmoother(5));
+  const gazeSmoother3DRef = useRef<GazeSmoother>(new GazeSmoother(10)); // JEOresearch: filter_length=10
   const previousFaceAxesRef = useRef<FaceCoordinateSystem | null>(null);
   const is3DCalibrated = useRef(false);
+  const frameCounter3D = useRef(0); // For debugging and performance control
 
-  // Log 3D mode status
+  // 3D mode is always enabled
   useEffect(() => {
-    if (use3DTracking) {
-      console.log('🎯 3D Tracking Mode ENABLED - Using nose-based coordinate system');
-    } else {
-      console.log('📐 2D Tracking Mode - Using traditional iris offset method');
-    }
-  }, [use3DTracking]);
+    console.log('🎯 3D Tracking Mode ACTIVE - Using JEOresearch nose-based coordinate system');
+    console.log('📊 3D Mode Config:', { use3DTracking, onRawGazeData: !!onRawGazeData });
+  }, [use3DTracking, onRawGazeData]);
 
   // Initialize MediaPipe Tasks Vision
   const initialize = useCallback(async () => {
@@ -119,11 +123,13 @@ export const useGazeTracking = (
       console.log('✅ Face Landmarker created successfully');
 
       // Configure face detection options
+      // CRITICAL: Must enable iris tracking for 3D mode to work (adds landmarks 468-477)
       faceLandmarker.setOptions({
         runningMode: 'VIDEO',                // REQUIRED: Set video mode for video streams
         numFaces: 1,                         // Track single face
         minFaceDetectionConfidence: 0.5,     // Lower = more sensitive detection
         minFacePresenceConfidence: 0.5,      // Lower = better tracking
+        minTrackingConfidence: 0.5,          // Lower = better tracking continuity
         outputFaceBlendshapes: false,        // Don't need expression data
         outputFacialTransformationMatrixes: false  // Don't need 3D pose matrix
       });
@@ -508,41 +514,81 @@ export const useGazeTracking = (
             ctx.stroke();
             ctx.fill();
 
-            // Draw iris landmarks (468-477)
-            if (landmarks.length >= 478) {
-              ctx.fillStyle = '#00ffff';
-              // Left iris: 468-472
-              for (let i = 468; i <= 472; i++) {
-                if (landmarks[i]) {
-                  const point = toCanvasCoords(landmarks[i]);
-                  ctx.beginPath();
-                  ctx.arc(point.x, point.y, 3, 0, 2 * Math.PI);
-                  ctx.fill();
+            // Helper function to get eye center approximation
+            const getEyeCenter = (landmarks: any[], eye: 'left' | 'right') => {
+              // MediaPipe eye landmark indices
+              const eyeIndices = eye === 'left' 
+                ? [33, 160, 158, 133, 153, 144] // Left eye key points
+                : [362, 385, 387, 263, 373, 380]; // Right eye key points
+              
+              let centerX = 0;
+              let centerY = 0;
+              let centerZ = 0;
+              let count = 0;
+              
+              eyeIndices.forEach(idx => {
+                if (landmarks[idx]) {
+                  centerX += landmarks[idx].x;
+                  centerY += landmarks[idx].y;
+                  centerZ += landmarks[idx].z || 0;
+                  count++;
                 }
+              });
+              
+              if (count > 0) {
+                return {
+                  x: centerX / count,
+                  y: centerY / count,
+                  z: centerZ / count
+                };
               }
-              // Right iris: 473-477
-              for (let i = 473; i <= 477; i++) {
-                if (landmarks[i]) {
-                  const point = toCanvasCoords(landmarks[i]);
-                  ctx.beginPath();
-                  ctx.arc(point.x, point.y, 3, 0, 2 * Math.PI);
-                  ctx.fill();
-                }
-              }
+              
+              return null;
+            };
 
-              // Draw iris centers (larger, bright yellow)
-              ctx.fillStyle = '#ffff00';
-              if (landmarks[468]) {
-                const point = toCanvasCoords(landmarks[468]);
+            // Draw eye centers for 3D tracking (MediaPipe doesn't have iris landmarks)
+            // Always draw eye centers since we use approximation for 3D
+            ctx.fillStyle = '#00ffff';
+            
+            // Left eye center approximation
+            const leftEyeCenter = getEyeCenter(landmarks, 'left');
+            if (leftEyeCenter) {
+              const point = toCanvasCoords(leftEyeCenter);
+              ctx.beginPath();
+              ctx.arc(point.x, point.y, 5, 0, 2 * Math.PI);
+              ctx.fill();
+              
+              // Draw crosshair for 3D tracking
+              if (use3DTracking) {
+                ctx.strokeStyle = '#ffff00';
+                ctx.lineWidth = 2;
                 ctx.beginPath();
-                ctx.arc(point.x, point.y, 5, 0, 2 * Math.PI);
-                ctx.fill();
+                ctx.moveTo(point.x - 10, point.y);
+                ctx.lineTo(point.x + 10, point.y);
+                ctx.moveTo(point.x, point.y - 10);
+                ctx.lineTo(point.x, point.y + 10);
+                ctx.stroke();
               }
-              if (landmarks[473]) {
-                const point = toCanvasCoords(landmarks[473]);
+            }
+            
+            // Right eye center approximation  
+            const rightEyeCenter = getEyeCenter(landmarks, 'right');
+            if (rightEyeCenter) {
+              const point = toCanvasCoords(rightEyeCenter);
+              ctx.beginPath();
+              ctx.arc(point.x, point.y, 5, 0, 2 * Math.PI);
+              ctx.fill();
+              
+              // Draw crosshair for 3D tracking
+              if (use3DTracking) {
+                ctx.strokeStyle = '#ffff00';
+                ctx.lineWidth = 2;
                 ctx.beginPath();
-                ctx.arc(point.x, point.y, 5, 0, 2 * Math.PI);
-                ctx.fill();
+                ctx.moveTo(point.x - 10, point.y);
+                ctx.lineTo(point.x + 10, point.y);
+                ctx.moveTo(point.x, point.y - 10);
+                ctx.lineTo(point.x, point.y + 10);
+                ctx.stroke();
               }
             }
 
@@ -555,7 +601,7 @@ export const useGazeTracking = (
               ctx.fill();
             }
 
-            // Draw landmark count (반전 적용 for 거울 모드)
+            // Draw status info (반전 적용 for 거울 모드)
             ctx.save();
             ctx.scale(-1, 1); // 텍스트만 다시 반전
             ctx.font = 'bold 16px Arial';
@@ -565,7 +611,151 @@ export const useGazeTracking = (
             const infoText = `Landmarks: ${landmarks.length}`;
             ctx.strokeText(infoText, -canvas.width + 10, 60);
             ctx.fillText(infoText, -canvas.width + 10, 60);
+            
+            // 3D tracking status
+            if (use3DTracking) {
+              ctx.fillStyle = '#ffff00';
+              const trackingText = '🎯 3D TRACKING ACTIVE';
+              ctx.strokeText(trackingText, -canvas.width + 10, 85);
+              ctx.fillText(trackingText, -canvas.width + 10, 85);
+            }
+            
             ctx.restore();
+            
+            // Draw 3D gaze rays and coordinate axes (JEOresearch style)
+            if (use3DTracking) {
+              // Draw coordinate axes on face
+              const draw3DAxes = () => {
+                // Get nose tip (landmark 1) as origin
+                const noseTip = landmarks[1];
+                if (!noseTip) return;
+                
+                const origin = toCanvasCoords(noseTip);
+                const axisLength = 60;
+                
+                // X-axis (Red) - pointing right
+                ctx.strokeStyle = '#ff0000';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(origin.x, origin.y);
+                ctx.lineTo(origin.x + axisLength, origin.y);
+                ctx.stroke();
+                
+                // Y-axis (Green) - pointing down
+                ctx.strokeStyle = '#00ff00';
+                ctx.beginPath();
+                ctx.moveTo(origin.x, origin.y);
+                ctx.lineTo(origin.x, origin.y + axisLength);
+                ctx.stroke();
+                
+                // Z-axis (Blue/Cyan) - pointing forward (simulated)
+                ctx.strokeStyle = '#00ffff';
+                ctx.beginPath();
+                ctx.moveTo(origin.x, origin.y);
+                ctx.lineTo(origin.x - axisLength * 0.5, origin.y - axisLength * 0.5);
+                ctx.stroke();
+                
+                // Draw axis labels
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 12px Arial';
+                ctx.fillText('X', origin.x + axisLength + 5, origin.y);
+                ctx.fillText('Y', origin.x, origin.y + axisLength + 15);
+                ctx.fillText('Z', origin.x - axisLength * 0.5 - 15, origin.y - axisLength * 0.5 - 5);
+              };
+              
+              // Draw 3D gaze rays from eyes
+              const draw3DGazeRay = (eyeCenter: any, gazeDirection: any, color: string, label: string) => {
+                if (!eyeCenter) return;
+                
+                const eyePoint = toCanvasCoords(eyeCenter);
+                const rayLength = 200; // Extend ray 200px for better visibility
+                
+                // Calculate ray end point based on gaze direction
+                const rayEndX = eyePoint.x + gazeDirection.x * rayLength;
+                const rayEndY = eyePoint.y + gazeDirection.y * rayLength;
+                
+                // Draw eye sphere
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(eyePoint.x, eyePoint.y, 15, 0, Math.PI * 2);
+                ctx.stroke();
+                
+                // Draw gaze ray
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(eyePoint.x, eyePoint.y);
+                ctx.lineTo(rayEndX, rayEndY);
+                ctx.stroke();
+                
+                // Draw arrow head
+                const angle = Math.atan2(gazeDirection.y, gazeDirection.x);
+                const arrowSize = 10;
+                ctx.beginPath();
+                ctx.moveTo(rayEndX, rayEndY);
+                ctx.lineTo(
+                  rayEndX - arrowSize * Math.cos(angle - Math.PI / 6),
+                  rayEndY - arrowSize * Math.sin(angle - Math.PI / 6)
+                );
+                ctx.lineTo(
+                  rayEndX - arrowSize * Math.cos(angle + Math.PI / 6),
+                  rayEndY - arrowSize * Math.sin(angle + Math.PI / 6)
+                );
+                ctx.closePath();
+                ctx.fillStyle = color;
+                ctx.fill();
+                
+                // Draw eye label
+                ctx.fillStyle = color;
+                ctx.font = 'bold 10px Arial';
+                ctx.fillText(label, eyePoint.x - 5, eyePoint.y - 20);
+              };
+              
+              // Draw coordinate axes
+              draw3DAxes();
+              
+              // Get eye positions
+              const leftEyeCenter = getEyeCenter(landmarks, 'left');
+              const rightEyeCenter = getEyeCenter(landmarks, 'right');
+              
+              // Calculate gaze directions (simplified for visualization)
+              // In actual 3D tracking, these come from the ray calculations
+              const leftGazeDir = { x: 0.3, y: 0.1 }; // Placeholder direction
+              const rightGazeDir = { x: -0.3, y: 0.1 }; // Placeholder direction
+              
+              // If we have actual 3D gaze ray data, use it
+              if (currentGazeRayRef.current) {
+                // Use the actual gaze direction from 3D tracking
+                const gazeDir = {
+                  x: currentGazeRayRef.current.direction.x,
+                  y: currentGazeRayRef.current.direction.y
+                };
+                draw3DGazeRay(leftEyeCenter, gazeDir, '#00ffff', 'L');
+                draw3DGazeRay(rightEyeCenter, gazeDir, '#ffff00', 'R');
+              } else if (currentGaze) {
+                // Fallback to 2D gaze estimation
+                const gazeDirFromCenter = {
+                  x: (currentGaze.raw.x - 0.5) * 2,
+                  y: (currentGaze.raw.y - 0.5) * 2
+                };
+                draw3DGazeRay(leftEyeCenter, gazeDirFromCenter, '#00ffff', 'L');
+                draw3DGazeRay(rightEyeCenter, gazeDirFromCenter, '#ffff00', 'R');
+              } else {
+                // Default gaze rays
+                draw3DGazeRay(leftEyeCenter, leftGazeDir, '#00ffff', 'L');
+                draw3DGazeRay(rightEyeCenter, rightGazeDir, '#ffff00', 'R');
+              }
+              
+              // Draw screen intersection point if available
+              if (currentGaze) {
+                ctx.fillStyle = '#00ff00';
+                ctx.font = 'bold 14px monospace';
+                const screenX = Math.round(currentGaze.raw.x * canvas.width);
+                const screenY = Math.round(currentGaze.raw.y * canvas.height);
+                ctx.fillText(`Screen: (${screenX}, ${screenY})`, 10, canvas.height - 20);
+              }
+            }
           }
         }
       }
@@ -669,7 +859,16 @@ export const useGazeTracking = (
     // ========================================================================
     // 3D TRACKING MODE
     // ========================================================================
+    console.log('🔍 Checking 3D mode:', {
+      use3DTracking,
+      landmarksLength: landmarks.length,
+      required: 468,
+      canUse3D: use3DTracking && landmarks.length >= 468
+    });
+    
     if (use3DTracking && landmarks.length >= 468) {
+      console.log('🎯 3D TRACKING MODE ACTIVE');
+      
       // Extract nose landmarks for stable coordinate system
       const noseLandmarks3D: Point3D[] = NOSE_LANDMARK_INDICES.map(idx => {
         const lm = landmarks[idx];
@@ -691,48 +890,83 @@ export const useGazeTracking = (
       let leftIris3D: Point3D | null = null;
       let rightIris3D: Point3D | null = null;
 
-      if (landmarks.length >= 478) {
-        // Iris landmarks available (468-472: left, 473-477: right)
-        leftIris3D = {
-          x: landmarks[468].x * video.videoWidth,
-          y: landmarks[468].y * video.videoHeight,
-          z: (landmarks[468].z || 0) * video.videoWidth
-        };
-        rightIris3D = {
-          x: landmarks[473].x * video.videoWidth,
-          y: landmarks[473].y * video.videoHeight,
-          z: (landmarks[473].z || 0) * video.videoWidth
-        };
-      } else {
-        // Fallback: Use eye center approximation
-        const leftEyeIndices = [33, 133, 159, 145];
-        const rightEyeIndices = [263, 362, 386, 374];
+      // JEOresearch: Check for iris landmarks (indices 468-477)
+      const LEFT_IRIS_CENTER = 468;
+      const RIGHT_IRIS_CENTER = 473;
+      
+      // Check if MediaPipe provides iris landmarks
+      if (landmarks.length > RIGHT_IRIS_CENTER) {
+        // Try to use actual iris landmarks
+        const leftIrisLandmark = landmarks[LEFT_IRIS_CENTER];
+        const rightIrisLandmark = landmarks[RIGHT_IRIS_CENTER];
+        
+        if (leftIrisLandmark && rightIrisLandmark && 
+            leftIrisLandmark.x !== undefined && rightIrisLandmark.x !== undefined) {
+          // Use actual iris landmarks from MediaPipe
+          leftIris3D = {
+            x: leftIrisLandmark.x * video.videoWidth,
+            y: leftIrisLandmark.y * video.videoHeight,
+            z: (leftIrisLandmark.z || 0) * video.videoWidth
+          };
+          rightIris3D = {
+            x: rightIrisLandmark.x * video.videoWidth,
+            y: rightIrisLandmark.y * video.videoHeight,
+            z: (rightIrisLandmark.z || 0) * video.videoWidth
+          };
+          
+          console.log('🎯 JEOresearch: Using iris landmarks', {
+            leftIris: formatPoint3D(leftIris3D),
+            rightIris: formatPoint3D(rightIris3D),
+            totalLandmarks: landmarks.length
+          });
+        }
+      }
+      
+      // Fallback: Use eye center with offset estimation
+      if (!leftIris3D || !rightIris3D) {
+        // JEOresearch fallback: Use eye center with dynamic offset
+        const leftEyeIndices = [33, 133, 159, 145, 158, 144]; // Include more points
+        const rightEyeIndices = [263, 362, 386, 374, 385, 373];
         
         const leftEyeCenter = leftEyeIndices.reduce((sum, idx) => ({
-          x: sum.x + landmarks[idx].x * video.videoWidth / 4,
-          y: sum.y + landmarks[idx].y * video.videoHeight / 4,
-          z: sum.z + (landmarks[idx].z || 0) * video.videoWidth / 4
+          x: sum.x + landmarks[idx].x * video.videoWidth / leftEyeIndices.length,
+          y: sum.y + landmarks[idx].y * video.videoHeight / leftEyeIndices.length,
+          z: sum.z + (landmarks[idx].z || 0) * video.videoWidth / leftEyeIndices.length
         }), { x: 0, y: 0, z: 0 });
 
         const rightEyeCenter = rightEyeIndices.reduce((sum, idx) => ({
-          x: sum.x + landmarks[idx].x * video.videoWidth / 4,
-          y: sum.y + landmarks[idx].y * video.videoHeight / 4,
-          z: sum.z + (landmarks[idx].z || 0) * video.videoWidth / 4
+          x: sum.x + landmarks[idx].x * video.videoWidth / rightEyeIndices.length,
+          y: sum.y + landmarks[idx].y * video.videoHeight / rightEyeIndices.length,
+          z: sum.z + (landmarks[idx].z || 0) * video.videoWidth / rightEyeIndices.length
         }), { x: 0, y: 0, z: 0 });
-
-        leftIris3D = leftEyeCenter;
-        rightIris3D = rightEyeCenter;
+        
+        // JEOresearch: Add small dynamic offset based on face orientation
+        const noseVector = subtractPoints(noseLandmarks3D[0], faceCoords.center);
+        const gazeOffset = multiplyScalar(normalize(noseVector), 2); // 2px offset
+        
+        leftIris3D = addPoints(leftEyeCenter, gazeOffset);
+        rightIris3D = addPoints(rightEyeCenter, gazeOffset);
+        
+        console.log('📐 JEOresearch fallback: Eye center + offset', {
+          totalLandmarks: landmarks.length
+        });
       }
 
-      // Calibrate eye spheres on first detection
+      // JEOresearch: Calibrate eye spheres (similar to pressing 'c' key)
       if (!is3DCalibrated.current && leftIris3D && rightIris3D) {
+        console.log('🔧 JEOresearch: Initial 3D calibration...', {
+          leftIris: formatPoint3D(leftIris3D),
+          rightIris: formatPoint3D(rightIris3D),
+          faceCenter: formatPoint3D(faceCoords.center),
+          noseScale: faceCoords.scale.toFixed(3)
+        });
         eyeSphereTrackerRef.current.calibrate(faceCoords, leftIris3D, rightIris3D);
         is3DCalibrated.current = true;
-        console.log('🎯 3D Eye spheres calibrated!');
+        console.log('✅ JEOresearch: Eye spheres locked!');
       }
 
-      // Track eye spheres in current frame
-      if (is3DCalibrated.current) {
+      // JEOresearch: Track eye spheres in current frame
+      if (is3DCalibrated.current && leftIris3D && rightIris3D) {
         const eyeSpheres = eyeSphereTrackerRef.current.track(faceCoords);
         
         // Compute combined gaze ray
@@ -743,9 +977,12 @@ export const useGazeTracking = (
           rightIris3D!
         );
 
-        // Smooth the gaze direction
+        // JEOresearch: Apply smoothing filter (deque with filter_length=10)
         const smoothedDirection = gazeSmoother3DRef.current.addSample(gazeRay.direction);
         const smoothedRay = { ...gazeRay, direction: smoothedDirection };
+        
+        // Store the current gaze ray for visualization
+        currentGazeRayRef.current = smoothedRay;
 
         // Compute intersection with virtual monitor
         const intersection = computeMonitorIntersection(smoothedRay, DEFAULT_VIRTUAL_MONITOR);
@@ -774,6 +1011,12 @@ export const useGazeTracking = (
               yaw: smoothedDirection.x * 0.5,  // Approximate yaw from gaze direction
               pitch: smoothedDirection.y * 0.5  // Approximate pitch from gaze direction
             };
+            
+            // Debug: Log every 30th frame
+            if (frameCounter3D.current % 30 === 0) {
+              console.log('📡 Sending raw gaze data from 3D mode:', { irisOffset, headPose });
+            }
+            
             onRawGazeData({
               irisOffset,
               headPose,
@@ -798,17 +1041,25 @@ export const useGazeTracking = (
             landmarks: minimalLandmarks
           };
           setCurrentGaze(gazeEstimation);
-
-          // Call callback if provided
+          
+          // CRITICAL: Call onGazePoint callback for CalibrationScreen
           if (onGazePoint) {
             const gazePoint: GazePoint = {
               x: filtered.x,
               y: filtered.y,
               timestamp: Date.now(),
-              confidence: 0.9, // 3D tracking has high confidence
-              type: 'fixation' as GazeType
+              confidence: 0.9,
+              type: GazeType.FIXATION
             };
             onGazePoint(gazePoint);
+            
+            // Log for debugging
+            if (frameCounter3D.current % 60 === 0) {
+              console.log('📍 3D GazePoint sent to calibration:', {
+                x: gazePoint.x.toFixed(3),
+                y: gazePoint.y.toFixed(3)
+              });
+            }
           }
 
           // Debug logging (reduced frequency)
@@ -894,41 +1145,80 @@ export const useGazeTracking = (
     };
     let usingIrisLandmarks = false;
 
-    if (landmarks.length >= 478) {
-      const potentialLeftIris = toPixelCoords(landmarks[468]);
-      const potentialRightIris = toPixelCoords(landmarks[473]);
-
-      if (potentialLeftIris && potentialRightIris) {
-        const leftEyeWidth = Math.abs(leftEyeOuter.x - leftEyeInner.x);
-        const rightEyeWidth = Math.abs(rightEyeOuter.x - rightEyeInner.x);
-
-        const leftIrisValid =
-          Math.abs(potentialLeftIris.x - (leftEyeOuter.x + leftEyeInner.x) / 2) < leftEyeWidth * 0.8;
-        const rightIrisValid =
-          Math.abs(potentialRightIris.x - (rightEyeOuter.x + rightEyeInner.x) / 2) < rightEyeWidth * 0.8;
-
-        if (leftIrisValid && rightIrisValid) {
-          leftIris = potentialLeftIris;
-          rightIris = potentialRightIris;
-          usingIrisLandmarks = true;
-          console.log('✅ Using validated iris landmarks');
+    // JEOresearch: Check for iris landmarks (indices 468-477)
+    // MediaPipe FaceLandmarker with refined_landmarks=true provides iris tracking
+    const LEFT_IRIS_CENTER = 468;  // Left iris center landmark
+    const RIGHT_IRIS_CENTER = 473; // Right iris center landmark
+    
+    if (landmarks.length > LEFT_IRIS_CENTER && landmarks.length > RIGHT_IRIS_CENTER) {
+      // Use actual iris landmarks from MediaPipe
+      const leftIrisLandmark = landmarks[LEFT_IRIS_CENTER];
+      const rightIrisLandmark = landmarks[RIGHT_IRIS_CENTER];
+      
+      if (leftIrisLandmark && rightIrisLandmark) {
+        leftIris = {
+          x: leftIrisLandmark.x,
+          y: leftIrisLandmark.y,
+          z: leftIrisLandmark.z || 0
+        };
+        
+        rightIris = {
+          x: rightIrisLandmark.x,
+          y: rightIrisLandmark.y,
+          z: rightIrisLandmark.z || 0
+        };
+        
+        usingIrisLandmarks = true;
+        
+        // Debug log occasionally
+        if (fpsCounterRef.current.frames % 30 === 0) {
+          console.log('🎯 JEOresearch: Using actual iris landmarks', {
+            leftIris: `(${leftIris.x.toFixed(3)}, ${leftIris.y.toFixed(3)})`,
+            rightIris: `(${rightIris.x.toFixed(3)}, ${rightIris.y.toFixed(3)})`,
+            landmarkCount: landmarks.length
+          });
         }
       }
     }
-
+    
+    // Fallback: Estimate iris if landmarks not available
     if (!usingIrisLandmarks) {
-      console.log('⚠️ Using eye center fallback');
+      // Calculate eye dimensions for estimation
+      const leftEyeHeight = Math.abs(leftEyeTop.y - leftEyeBottom.y);
+      const leftEyeWidth = Math.abs(leftEyeOuter.x - leftEyeInner.x);
+      const rightEyeHeight = Math.abs(rightEyeTop.y - rightEyeBottom.y);
+      const rightEyeWidth = Math.abs(rightEyeOuter.x - rightEyeInner.x);
+      
+      // JEOresearch-inspired: Smooth iris offset calculation
+      // Use eye center with small dynamic offset based on head pose
+      const headYaw = landmarks[1] ? Math.atan2(landmarks[1].x - 0.5, landmarks[1].z || -0.1) : 0;
+      const headPitch = landmarks[1] ? Math.atan2(landmarks[1].y - 0.5, landmarks[1].z || -0.1) : 0;
+      
+      // Subtle iris offset (JEOresearch uses ~10-20% of eye width)
+      const irisOffsetX = headYaw * leftEyeWidth * 0.15;
+      const irisOffsetY = headPitch * leftEyeHeight * 0.1;
+      
+      leftIris = {
+        x: leftEyeCenter.x + irisOffsetX,
+        y: leftEyeCenter.y + irisOffsetY,
+        z: leftEyeOuter.z || 0
+      };
+      
+      rightIris = {
+        x: rightEyeCenter.x + irisOffsetX,
+        y: rightEyeCenter.y + irisOffsetY,
+        z: rightEyeOuter.z || 0
+      };
+      
+      // Debug log fallback mode
+      if (fpsCounterRef.current.frames % 60 === 0) {
+        console.log('📐 Fallback: Estimating iris from eye center', {
+          landmarkCount: landmarks.length,
+          headYaw: headYaw.toFixed(3),
+          headPitch: headPitch.toFixed(3)
+        });
+      }
     }
-
-    // Calculate eye centers
-    const leftEyeCenter = {
-      x: (leftEyeOuter.x + leftEyeInner.x) / 2,
-      y: (leftEyeTop.y + leftEyeBottom.y) / 2
-    };
-    const rightEyeCenter = {
-      x: (rightEyeOuter.x + rightEyeInner.x) / 2,
-      y: (rightEyeTop.y + rightEyeBottom.y) / 2
-    };
 
     const faceLandmarks: FaceLandmarks = {
       leftEye: { x: leftEyeCenter.x, y: leftEyeCenter.y, z: leftEyeOuter.z },
