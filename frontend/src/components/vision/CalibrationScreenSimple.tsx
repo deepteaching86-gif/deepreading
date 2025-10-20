@@ -29,6 +29,12 @@ export const CalibrationScreenSimple: React.FC<CalibrationScreenSimpleProps> = (
   const [faceDetected, setFaceDetected] = useState(false);
   const [faceCentered, setFaceCentered] = useState(false);
   const [countdown, setCountdown] = useState(3);
+  
+  // 3D Mode toggle (stored in localStorage for persistence)
+  const [use3DMode, setUse3DMode] = useState(() => {
+    const stored = localStorage.getItem('gaze-tracking-3d-mode');
+    return stored === 'true';
+  });
 
   // Calibration state
   const [calibrationPoints] = useState(generate9PointGrid(0.1));
@@ -95,8 +101,17 @@ export const CalibrationScreenSimple: React.FC<CalibrationScreenSimpleProps> = (
     onFacePosition: handleFacePosition,
     onRawGazeData: handleRawGazeData,
     onGazePoint: handleGazePoint,
-    targetFPS: 30
+    targetFPS: 30,
+    use3DTracking: use3DMode // Enable 3D mode based on toggle
   });
+  
+  // Toggle 3D mode
+  const toggle3DMode = useCallback(() => {
+    const newMode = !use3DMode;
+    setUse3DMode(newMode);
+    localStorage.setItem('gaze-tracking-3d-mode', String(newMode));
+    console.log(newMode ? '🎯 3D Mode Enabled' : '📐 2D Mode Enabled');
+  }, [use3DMode]);
 
   // Update gaze from hook
   useEffect(() => {
@@ -270,6 +285,37 @@ export const CalibrationScreenSimple: React.FC<CalibrationScreenSimpleProps> = (
               <p className="text-sm">
                 9개 지점 보정과 다항 회귀 모델을 사용하여 화면 구석까지 정확한 시선 추적을 제공합니다.
                 보정은 약 30초 소요되며, 24시간 동안 유효합니다.
+              </p>
+            </div>
+
+            {/* 3D Mode Toggle */}
+            <div className="bg-blue-100 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-300 dark:border-blue-700">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-semibold text-foreground mb-1">
+                    🎯 3D 추적 모드 (실험적)
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    JEOresearch 기반 3D ray projection으로 더 정확한 수직 추적
+                  </p>
+                </div>
+                <button
+                  onClick={toggle3DMode}
+                  className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors ${
+                    use3DMode ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-600'
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${
+                      use3DMode ? 'translate-x-7' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+              </div>
+              <p className="text-xs mt-2 text-muted-foreground">
+                {use3DMode ? 
+                  "✅ 3D Mode: Nose-based coordinate system 사용 중" : 
+                  "📐 2D Mode: 기존 iris offset 방식 사용 중"}
               </p>
             </div>
           </div>

@@ -1,6 +1,5 @@
 // useGazeTracking Hook v2 - MediaPipe Tasks Vision
 // Real-time gaze tracking using @mediapipe/tasks-vision (official MediaPipe package)
-// Now with 3D tracking support based on JEOresearch approach
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { FaceLandmarker, FilesetResolver, FaceLandmarkerResult } from '@mediapipe/tasks-vision';
@@ -8,20 +7,6 @@ import { GazePoint, GazeType, GazeEstimation, FaceLandmarks } from '../types/vis
 import { ConcentrationRawData } from '../types/concentration.types';
 import { AdaptiveKalmanFilter } from '../utils/kalmanFilter';
 import { loadCalibration, applyCalibrationModel, PolynomialRegressionModel } from '../utils/gazeCalibration';
-import {
-  Point3D,
-  FaceCoordinateSystem,
-  EyeSphereTracker,
-  GazeSmoother,
-  NOSE_LANDMARK_INDICES,
-  DEFAULT_VIRTUAL_MONITOR,
-  computeFaceCoordinateSystem,
-  computeCombinedGaze,
-  computeMonitorIntersection,
-  intersectionToScreenCoords,
-  formatPoint3D,
-  formatVector3D
-} from '../utils/gazeTracking3D';
 
 interface UseGazeTrackingOptions {
   enabled: boolean;
@@ -35,7 +20,6 @@ interface UseGazeTrackingOptions {
     timestamp: number;
   }) => void; // Raw iris offset and head pose callback (for calibration)
   onConcentrationData?: (data: ConcentrationRawData) => void; // 집중력 분석용 원시 데이터 콜백
-  use3DTracking?: boolean; // Enable 3D tracking mode (default: false for backward compatibility)
 }
 
 interface UseGazeTrackingReturn {
@@ -53,7 +37,7 @@ interface UseGazeTrackingReturn {
 export const useGazeTracking = (
   options: UseGazeTrackingOptions
 ): UseGazeTrackingReturn => {
-  const { enabled, onGazePoint, calibrationMatrix, onFacePosition, onRawGazeData, onConcentrationData, use3DTracking = false } = options;
+  const { enabled, onGazePoint, calibrationMatrix, onFacePosition, onRawGazeData, onConcentrationData } = options;
 
   const [isInitialized, setIsInitialized] = useState(false);
   const [isTracking, setIsTracking] = useState(false);
@@ -78,21 +62,6 @@ export const useGazeTracking = (
 
   // Calibration model
   const calibrationModelRef = useRef<PolynomialRegressionModel | null>(null);
-
-  // 3D Tracking System References
-  const eyeSphereTrackerRef = useRef<EyeSphereTracker>(new EyeSphereTracker());
-  const gazeSmoother3DRef = useRef<GazeSmoother>(new GazeSmoother(5));
-  const previousFaceAxesRef = useRef<FaceCoordinateSystem | null>(null);
-  const is3DCalibrated = useRef(false);
-
-  // Log 3D mode status
-  useEffect(() => {
-    if (use3DTracking) {
-      console.log('🎯 3D Tracking Mode ENABLED - Using nose-based coordinate system');
-    } else {
-      console.log('📐 2D Tracking Mode - Using traditional iris offset method');
-    }
-  }, [use3DTracking]);
 
   // Initialize MediaPipe Tasks Vision
   const initialize = useCallback(async () => {
@@ -609,154 +578,6 @@ export const useGazeTracking = (
       y: landmark.y * video.videoHeight,
       z: landmark.z
     });
-
-    // ========================================================================
-    // 3D TRACKING MODE
-    // ========================================================================
-    if (use3DTracking && landmarks.length >= 468) {
-      // Extract nose landmarks for stable coordinate system
-      const noseLandmarks3D: Point3D[] = NOSE_LANDMARK_INDICES.map(idx => {
-        const lm = landmarks[idx];
-        return {
-          x: lm.x * video.videoWidth,
-          y: lm.y * video.videoHeight,
-          z: (lm.z || 0) * video.videoWidth // Scale Z to pixel space
-        };
-      });
-
-      // Compute face coordinate system from nose
-      const faceCoords = computeFaceCoordinateSystem(
-        noseLandmarks3D,
-        previousFaceAxesRef.current?.axes
-      );
-      previousFaceAxesRef.current = faceCoords;
-
-      // Get iris positions (MediaPipe provides these if available)
-      let leftIris3D: Point3D | null = null;
-      let rightIris3D: Point3D | null = null;
-
-      if (landmarks.length >= 478) {
-        // Iris landmarks available (468-472: left, 473-477: right)
-        leftIris3D = {
-          x: landmarks[468].x * video.videoWidth,
-          y: landmarks[468].y * video.videoHeight,
-          z: (landmarks[468].z || 0) * video.videoWidth
-        };
-        rightIris3D = {
-          x: landmarks[473].x * video.videoWidth,
-          y: landmarks[473].y * video.videoHeight,
-          z: (landmarks[473].z || 0) * video.videoWidth
-        };
-      } else {
-        // Fallback: Use eye center approximation
-        const leftEyeIndices = [33, 133, 159, 145];
-        const rightEyeIndices = [263, 362, 386, 374];
-        
-        const leftEyeCenter = leftEyeIndices.reduce((sum, idx) => ({
-          x: sum.x + landmarks[idx].x * video.videoWidth / 4,
-          y: sum.y + landmarks[idx].y * video.videoHeight / 4,
-          z: sum.z + (landmarks[idx].z || 0) * video.videoWidth / 4
-        }), { x: 0, y: 0, z: 0 });
-
-        const rightEyeCenter = rightEyeIndices.reduce((sum, idx) => ({
-          x: sum.x + landmarks[idx].x * video.videoWidth / 4,
-          y: sum.y + landmarks[idx].y * video.videoHeight / 4,
-          z: sum.z + (landmarks[idx].z || 0) * video.videoWidth / 4
-        }), { x: 0, y: 0, z: 0 });
-
-        leftIris3D = leftEyeCenter;
-        rightIris3D = rightEyeCenter;
-      }
-
-      // Calibrate eye spheres on first detection
-      if (!is3DCalibrated.current && leftIris3D && rightIris3D) {
-        eyeSphereTrackerRef.current.calibrate(faceCoords, leftIris3D, rightIris3D);
-        is3DCalibrated.current = true;
-        console.log('🎯 3D Eye spheres calibrated!');
-      }
-
-      // Track eye spheres in current frame
-      if (is3DCalibrated.current) {
-        const eyeSpheres = eyeSphereTrackerRef.current.track(faceCoords);
-        
-        // Compute combined gaze ray
-        const gazeRay = computeCombinedGaze(
-          eyeSpheres.left,
-          eyeSpheres.right,
-          leftIris3D!,
-          rightIris3D!
-        );
-
-        // Smooth the gaze direction
-        const smoothedDirection = gazeSmoother3DRef.current.addSample(gazeRay.direction);
-        const smoothedRay = { ...gazeRay, direction: smoothedDirection };
-
-        // Compute intersection with virtual monitor
-        const intersection = computeMonitorIntersection(smoothedRay, DEFAULT_VIRTUAL_MONITOR);
-        
-        if (intersection) {
-          // Convert to screen coordinates
-          const screenCoords = intersectionToScreenCoords(intersection, DEFAULT_VIRTUAL_MONITOR);
-          
-          // Clamp to valid range
-          const clampedGaze = {
-            x: Math.max(0, Math.min(1, screenCoords.x)),
-            y: Math.max(0, Math.min(1, screenCoords.y))
-          };
-
-          // Apply Kalman filter
-          const filtered = kalmanFilterRef.current.filter(clampedGaze.x, clampedGaze.y, Date.now());
-
-          // Update state with full GazeEstimation object
-          // For 3D mode, create minimal landmarks object
-          const minimalLandmarks: FaceLandmarks = {
-            leftEye: { x: 0, y: 0, z: 0 },
-            rightEye: { x: 0, y: 0, z: 0 },
-            leftIris: leftIris3D!,
-            rightIris: rightIris3D!,
-            noseTip: { x: faceCoords.center.x, y: faceCoords.center.y, z: faceCoords.center.z }
-          };
-          
-          const gazeEstimation: GazeEstimation = {
-            x: filtered.x,
-            y: filtered.y,
-            confidence: 0.9,
-            landmarks: minimalLandmarks
-          };
-          setCurrentGaze(gazeEstimation);
-
-          // Call callback if provided
-          if (onGazePoint) {
-            const gazePoint: GazePoint = {
-              x: filtered.x,
-              y: filtered.y,
-              timestamp: Date.now(),
-              confidence: 0.9, // 3D tracking has high confidence
-              type: 'fixation' as GazeType
-            };
-            onGazePoint(gazePoint);
-          }
-
-          // Debug logging (reduced frequency)
-          if (fpsCounterRef.current.frames % 30 === 0) {
-            console.log('🎯 3D Gaze:', {
-              ray: formatVector3D(smoothedDirection),
-              intersection: formatPoint3D(intersection),
-              screen: `(${clampedGaze.x.toFixed(3)}, ${clampedGaze.y.toFixed(3)})`,
-              faceScale: faceCoords.scale.toFixed(2)
-            });
-          }
-        }
-
-        // Schedule next frame
-        animationFrameRef.current = window.requestAnimationFrame(detectAndEstimateGaze);
-        return;
-      }
-    }
-
-    // ========================================================================
-    // 2D TRACKING MODE (ORIGINAL CODE)
-    // ========================================================================
 
     // Extract key landmarks (same indices as before)
     const leftEyeOuter = toPixelCoords(landmarks[33]);

@@ -1,5 +1,5 @@
 // Vision TEST Page - Main testing interface with real-time gaze tracking
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from '../../lib/axios';
 import { CalibrationScreenSimple } from '../../components/vision/CalibrationScreenSimple';
