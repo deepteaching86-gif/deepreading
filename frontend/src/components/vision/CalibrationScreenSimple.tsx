@@ -30,8 +30,8 @@ export const CalibrationScreenSimple: React.FC<CalibrationScreenSimpleProps> = (
   const [faceCentered, setFaceCentered] = useState(false);
   const [countdown, setCountdown] = useState(3);
   
-  // 3D Mode is always enabled
-  const use3DMode = true; // Always use 3D tracking
+  // 2D Mode is more stable for calibration
+  const use3DMode = false; // Use 2D tracking for better stability
 
   // Calibration state
   const [calibrationPoints] = useState(generate9PointGrid(0.1));
@@ -329,17 +329,17 @@ export const CalibrationScreenSimple: React.FC<CalibrationScreenSimpleProps> = (
               </p>
             </div>
 
-            {/* 3D Mode Information */}
-            <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+            {/* 2D Mode Information */}
+            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
               <div className="flex items-center gap-2">
-                <span className="text-2xl">🎯</span>
+                <span className="text-2xl">👁️</span>
                 <div>
-                  <h3 className="font-semibold text-purple-900">
-                    3D 추적 모드 활성화
+                  <h3 className="font-semibold text-blue-900">
+                    안정적인 2D 추적 모드
                   </h3>
-                  <p className="text-sm text-purple-700 mt-1">
-                    JEOresearch 기반 3D ray projection과 nose-based coordinate system을 사용하여
-                    정확한 시선 추적을 제공합니다.
+                  <p className="text-sm text-blue-700 mt-1">
+                    MediaPipe Face Mesh를 사용한 안정적인 2D 시선 추적으로
+                    정확한 캘리브레이션을 제공합니다.
                   </p>
                 </div>
               </div>

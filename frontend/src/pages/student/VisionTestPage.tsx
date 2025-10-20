@@ -89,11 +89,11 @@ export const VisionTestPage: React.FC = () => {
 
   const userId = getUserId();
 
-  // Get 3D mode setting from localStorage - default to true for 3D mode
+  // Get 3D mode setting from localStorage - default to false for 2D mode (more stable)
   const [use3DMode] = useState(() => {
     const stored = localStorage.getItem('gaze-tracking-3d-mode');
-    // Default to true if not set, or parse the stored value
-    return stored === null ? true : stored === 'true';
+    // Default to false for better stability with 2D mode
+    return stored === null ? false : stored === 'true';
   });
 
   // Stable callbacks for gaze tracking hook

@@ -1114,12 +1114,10 @@ export const useGazeTracking = (
     );
     const avgEAR = (leftEAR + rightEAR) / 2;
 
-    console.log('👁️ Eye Aspect Ratio (EAR):', {
-      left: leftEAR.toFixed(3),
-      right: rightEAR.toFixed(3),
-      average: avgEAR.toFixed(3),
-      status: avgEAR > 0.12 ? 'OPEN' : 'CLOSED'
-    });
+    // Log only when EAR is below threshold
+    if (avgEAR < 0.12) {
+      console.log('👁️ Eyes closed or occluded - EAR:', avgEAR.toFixed(3));
+    }
 
     // Lowered threshold from 0.18 to 0.12 to allow tracking when looking up
     // When eyes look up, upper eyelid covers more iris, reducing EAR
@@ -1304,10 +1302,13 @@ export const useGazeTracking = (
       timestamp
     );
 
-    console.log('🎯 Kalman filtered:', {
-      input: `${calibratedGaze.x.toFixed(3)}, ${calibratedGaze.y.toFixed(3)}`,
-      filtered: `${filteredGaze.x.toFixed(3)}, ${filteredGaze.y.toFixed(3)}`
-    });
+    // Log Kalman filtering only occasionally
+    if (fpsCounterRef.current.frames % 120 === 0) {
+      console.log('🎯 Kalman filtered:', {
+        input: `${calibratedGaze.x.toFixed(3)}, ${calibratedGaze.y.toFixed(3)}`,
+        filtered: `${filteredGaze.x.toFixed(3)}, ${filteredGaze.y.toFixed(3)}`
+      });
+    }
 
     // Use filtered values for final gaze
     let finalX = filteredGaze.x;
@@ -1328,11 +1329,14 @@ export const useGazeTracking = (
     };
 
     setCurrentGaze(gazeEstimation);
-    console.log('🎯 Gaze updated:', {
-      x: finalX.toFixed(2),
-      y: finalY.toFixed(2),
-      confidence: gaze.confidence
-    });
+    // Log gaze updates only occasionally
+    if (fpsCounterRef.current.frames % 60 === 0) {
+      console.log('🎯 Gaze updated:', {
+        x: finalX.toFixed(2),
+        y: finalY.toFixed(2),
+        confidence: gaze.confidence
+      });
+    }
 
     // Classify gaze type
     const gazeType = classifyGazeType(
@@ -1527,9 +1531,12 @@ function estimateGazeFromLandmarks(
   const aspectRatio = screenWidth / screenHeight;
   const aspectRatioFactorX = Math.max(1.0, aspectRatio / 1.6); // 16:10 as baseline
 
-  // Final adaptive multipliers
-  const adaptiveMultiplierX = screenSizeFactor * viewingDistanceFactor * aspectRatioFactorX;
-  const adaptiveMultiplierY = screenSizeFactor * viewingDistanceFactor;
+  // Final adaptive multipliers - disabled for now for stable 2D tracking
+  // const adaptiveMultiplierX = screenSizeFactor * viewingDistanceFactor * aspectRatioFactorX;
+  // const adaptiveMultiplierY = screenSizeFactor * viewingDistanceFactor;
+  // Use fixed multipliers for consistent behavior
+  const adaptiveMultiplierX = 1.0;
+  const adaptiveMultiplierY = 1.0;
 
   // Log adaptive parameters (every 60 frames to avoid spam)
   if (Math.random() < 0.016) { // ~1 in 60 frames at 60fps
@@ -1560,8 +1567,8 @@ function estimateGazeFromLandmarks(
 
   // Combine iris position with head rotation
   // BALANCED sensitivity for equal X/Y responsiveness
-  const baseSensitivityX = 35; // Reduced from 80 for more stable tracking
-  const headCompensatedX = (avgIrisRatioX * baseSensitivityX) - (headYaw * 8.0); // Reduced head influence
+  const baseSensitivityX = 10; // Reduced to 10 for much more stable 2D tracking
+  const headCompensatedX = (avgIrisRatioX * baseSensitivityX) - (headYaw * 2.0); // Minimal head influence for 2D
 
   // === VERTICAL (Y-axis) CALCULATION WITH 3D DEPTH ===
   // Calculate vertical iris distance from eye center
@@ -1609,8 +1616,8 @@ function estimateGazeFromLandmarks(
 
   // Apply depth-corrected pitch compensation to vertical iris ratio
   // This helps when iris is occluded by eyelid during upward gaze
-  // INCREASED pitchInfluence from 0.05 to 8.0 to better capture vertical head movement
-  const enhancedPitchInfluence = 8.0 * depthFactor; // Increased from 0.05
+  // For 2D mode, reduce pitch influence to 2.0 for stability
+  const enhancedPitchInfluence = 2.0 * depthFactor; // Reduced for 2D mode stability
   const depthCorrectedY = avgIrisRatioY + (headPitch * enhancedPitchInfluence);
 
   // DEBUG: Log vertical tracking components
@@ -1648,12 +1655,12 @@ function estimateGazeFromLandmarks(
   // Solution: depthCorrectedY (iris + head pitch 조합)를 사용하고 적절한 sensitivity 적용
   // depthCorrectedY = avgIrisRatioY + (headPitch * pitchInfluence)
   // pitchInfluence = 0.05는 너무 작아서 35로 증가 (iris + head 모두 반영)
-  const baseSensitivityY = 35; // X축과 동일하게 35로 설정 (balanced X/Y)
+  const baseSensitivityY = 10; // Matching X axis for balanced 2D tracking
   const headCompensatedY = (depthCorrectedY * baseSensitivityY);
 
   // === FINAL GAZE COORDINATES ===
   // Horizontal: Center at 0.5, FLIP for correct left-right mapping
-  const rawX = 0.5 + (headCompensatedX * 2.5);  // Increased to 2.5 for corner coverage
+  const rawX = 0.5 + (headCompensatedX * 1.0);  // Reduced multiplier for stable 2D tracking
   const x = 1.0 - rawX;  // FLIP: Mirror horizontally (left ↔ right)
 
   // Vertical: Use depth-corrected Y (iris + head pitch combined)
@@ -1665,20 +1672,14 @@ function estimateGazeFromLandmarks(
   const y = rawY; // No clamping here - let smoothing handle it
 
   // === DEBUG: X & Y CALCULATION CHAIN ===
-  console.log('🔍 X & Y Calculation:', {
-    // X-axis
-    avgIrisRatioX: avgIrisRatioX.toFixed(4),
-    headYaw: headYaw.toFixed(4),
-    headCompensatedX: headCompensatedX.toFixed(4),
-    rawX: rawX.toFixed(4),
-    finalX: x.toFixed(4),
-    // Y-axis
-    avgIrisRatioY: avgIrisRatioY.toFixed(4),
-    headPitch: headPitch.toFixed(4),
-    headCompensatedY: headCompensatedY.toFixed(4),
-    rawY: rawY.toFixed(4),
-    finalY: y.toFixed(4)
-  });
+  // Log only occasionally to reduce console spam
+  if (Math.random() < 0.01) { // 1% of frames
+    console.log('🔍 X & Y Calculation:', {
+      finalX: x.toFixed(3),
+      finalY: y.toFixed(3),
+      confidence: confidence.toFixed(2)
+    });
+  }
 
   // Calculate confidence
   const eyeSymmetryX = 1 - Math.abs(leftIrisRatioX - rightIrisRatioX) * 20;
