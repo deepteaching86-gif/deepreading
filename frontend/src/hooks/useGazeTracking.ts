@@ -174,102 +174,126 @@ export const useGazeTracking = (
     // Reset Kalman filter
     kalmanFilterRef.current.reset();
 
-    try {
-      console.log('📹 Requesting camera access...');
-
-      // Detect if running on iOS
-      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-
-      // iOS-optimized camera constraints
-      const constraints: MediaStreamConstraints = {
-        video: isIOS ? {
-          facingMode: 'user',
-          width: { ideal: 640 },
-          height: { ideal: 480 },
-          frameRate: { ideal: 30, max: 30 }
-        } : {
-          facingMode: 'user',
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
-        }
-      };
-
-      console.log('📹 Camera constraints:', constraints);
-
-      // Request camera access
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
-      console.log('✅ Camera stream obtained:', {
-        active: stream.active,
-        tracks: stream.getTracks().length,
-        videoTracks: stream.getVideoTracks().length
-      });
-
-      streamRef.current = stream;
-
-      if (videoRef.current) {
-        console.log('📹 Setting video srcObject...');
-        videoRef.current.srcObject = stream;
-
-        // iOS requires explicit play() call with user interaction
-        try {
-          // Set attributes for iOS compatibility
-          videoRef.current.setAttribute('playsinline', 'true');
-          videoRef.current.setAttribute('autoplay', 'true');
-          videoRef.current.muted = true; // Required for autoplay on iOS
-
-          await videoRef.current.play();
-          console.log('✅ Video playback started:', {
-            readyState: videoRef.current.readyState,
-            videoWidth: videoRef.current.videoWidth,
-            videoHeight: videoRef.current.videoHeight
-          });
-        } catch (playError) {
-          console.error('❌ Video play error:', playError);
-          // Sometimes iOS needs a moment before play() works
-          setTimeout(async () => {
-            try {
-              await videoRef.current?.play();
-              console.log('✅ Video playback started on retry');
-            } catch (retryError) {
-              console.error('❌ Video play retry failed:', retryError);
-            }
-          }, 100);
-        }
+    // Check if stream already exists and is active
+    if (streamRef.current && streamRef.current.active) {
+      console.log('♻️ Reusing existing camera stream');
+      if (videoRef.current && videoRef.current.srcObject !== streamRef.current) {
+        videoRef.current.srcObject = streamRef.current;
+        await videoRef.current.play();
       }
+    } else {
+      try {
+        console.log('📹 Requesting camera access...');
 
-      setIsTracking(true);
-      setError(null);
-      console.log('✅ Camera started successfully');
-    } catch (err) {
-      console.error('❌ Camera access error:', err);
-      console.error('❌ Error details:', {
-        name: err instanceof Error ? err.name : 'Unknown',
-        message: err instanceof Error ? err.message : String(err),
-        stack: err instanceof Error ? err.stack : undefined
-      });
-      setError('카메라 접근 권한이 필요합니다.');
-      setIsTracking(false);
+        // Detect if running on iOS
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+
+        // iOS-optimized camera constraints
+        const constraints: MediaStreamConstraints = {
+          video: isIOS ? {
+            facingMode: 'user',
+            width: { ideal: 640 },
+            height: { ideal: 480 },
+            frameRate: { ideal: 30, max: 30 }
+          } : {
+            facingMode: 'user',
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
+          }
+        };
+
+        console.log('📹 Camera constraints:', constraints);
+
+        // Request camera access
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        console.log('✅ Camera stream obtained:', {
+          active: stream.active,
+          tracks: stream.getTracks().length,
+          videoTracks: stream.getVideoTracks().length
+        });
+
+        streamRef.current = stream;
+
+        if (videoRef.current) {
+          console.log('📹 Setting video srcObject...');
+          videoRef.current.srcObject = stream;
+
+          // Wait for metadata to load before playing
+          await new Promise<void>((resolve) => {
+            if (videoRef.current!.readyState >= 2) {
+              resolve();
+            } else {
+              videoRef.current!.onloadedmetadata = () => {
+                console.log('✅ Video metadata loaded');
+                resolve();
+              };
+            }
+          });
+
+          // iOS requires explicit play() call with user interaction
+          try {
+            // Set attributes for iOS compatibility
+            videoRef.current.setAttribute('playsinline', 'true');
+            videoRef.current.setAttribute('autoplay', 'true');
+            videoRef.current.muted = true; // Required for autoplay on iOS
+
+            await videoRef.current.play();
+            console.log('✅ Video playback started:', {
+              readyState: videoRef.current.readyState,
+              videoWidth: videoRef.current.videoWidth,
+              videoHeight: videoRef.current.videoHeight
+            });
+          } catch (playError) {
+            console.error('❌ Video play error:', playError);
+            // Sometimes iOS needs a moment before play() works
+            setTimeout(async () => {
+              try {
+                await videoRef.current?.play();
+                console.log('✅ Video playback started on retry');
+              } catch (retryError) {
+                console.error('❌ Video play retry failed:', retryError);
+              }
+            }, 100);
+          }
+        }
+      } catch (err) {
+        console.error('❌ Camera access error:', err);
+        console.error('❌ Error details:', {
+          name: err instanceof Error ? err.name : 'Unknown',
+          message: err instanceof Error ? err.message : String(err),
+          stack: err instanceof Error ? err.stack : undefined
+        });
+        setError('카메라 접근 권한이 필요합니다.');
+        setIsTracking(false);
+      }
     }
+
+    setIsTracking(true);
+    setError(null);
+    console.log('✅ Camera started successfully');
   }, [initialize]);
 
   // Stop tracking
-  const stopTracking = useCallback(() => {
+  const stopTracking = useCallback((preserveStream: boolean = false) => {
     if (animationFrameRef.current) {
       cancelAnimationFrame(animationFrameRef.current);
       animationFrameRef.current = null;
     }
 
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
-      streamRef.current = null;
-    }
+    // Option to preserve stream for stage transitions
+    if (!preserveStream) {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current = null;
+      }
 
-    if (videoRef.current) {
-      videoRef.current.srcObject = null;
+      if (videoRef.current) {
+        videoRef.current.srcObject = null;
+      }
     }
 
     setIsTracking(false);
-    console.log('🛑 Tracking stopped');
+    console.log('🛑 Tracking stopped', preserveStream ? '(stream preserved)' : '(stream closed)');
   }, []);
 
   // Detect face landmarks and estimate gaze
@@ -285,16 +309,19 @@ export const useGazeTracking = (
 
     const video = videoRef.current;
 
-    // Wait for video to be ready
-    if (video.readyState < 2 || video.videoWidth === 0 || video.videoHeight === 0) {
-      console.log('⏳ Video not ready:', {
-        readyState: video.readyState,
-        width: video.videoWidth,
-        height: video.videoHeight
-      });
-      // Video not ready yet, try again next frame
-      animationFrameRef.current = window.requestAnimationFrame(detectAndEstimateGaze);
-      return;
+    // Wait for video to be ready - but be more lenient
+    if (video.readyState < 2) {
+      // Only wait if video is truly not ready (readyState 0 or 1)
+      if (video.videoWidth === 0 || video.videoHeight === 0) {
+        console.log('⏳ Video not ready:', {
+          readyState: video.readyState,
+          width: video.videoWidth,
+          height: video.videoHeight
+        });
+        // Video not ready yet, try again next frame
+        animationFrameRef.current = window.requestAnimationFrame(detectAndEstimateGaze);
+        return;
+      }
     }
 
     // Detect face landmarks
@@ -1065,7 +1092,8 @@ export const useGazeTracking = (
     }
 
     return () => {
-      stopTracking();
+      // Fully stop tracking on unmount
+      stopTracking(false);
     };
   }, [enabled, initialize, stopTracking]);
 

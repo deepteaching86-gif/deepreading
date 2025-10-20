@@ -90,6 +90,7 @@ export const CalibrationScreenSimple: React.FC<CalibrationScreenSimpleProps> = (
   }, []); // No dependencies - stable callback
 
   // Gaze tracking hook for face detection and calibration
+  // Keep enabled=true throughout calibration to maintain video stream
   const {
     isTracking,
     videoRef,
@@ -97,7 +98,7 @@ export const CalibrationScreenSimple: React.FC<CalibrationScreenSimpleProps> = (
     startTracking,
     currentGaze: hookGaze
   } = useGazeTracking({
-    enabled: stage === 'camera_check' || stage === 'calibration',
+    enabled: stage !== 'instructions' && stage !== 'completed', // Keep enabled except for first/last stage
     onFacePosition: handleFacePosition,
     onRawGazeData: handleRawGazeData,
     onGazePoint: handleGazePoint,
@@ -340,21 +341,29 @@ export const CalibrationScreenSimple: React.FC<CalibrationScreenSimpleProps> = (
   }
 
   // Render video and canvas in ALL stages to keep stream active
-  // CRITICAL: Keep style prop CONSTANT to prevent React from re-rendering and losing srcObject!
+  // CRITICAL: Keep elements mounted and only toggle visibility with opacity/pointer-events
   const renderVideoCanvas = () => (
     <>
       <video
         ref={videoRef}
-        className={stage === 'camera_check' ? "absolute inset-0 w-full h-full object-contain" : "hidden"}
-        style={{ transform: 'scaleX(-1)' }} // ALWAYS set style - prevents re-render
+        className="absolute inset-0 w-full h-full object-contain"
+        style={{ 
+          transform: 'scaleX(-1)',
+          opacity: stage === 'camera_check' ? 1 : 0,
+          pointerEvents: stage === 'camera_check' ? 'auto' : 'none'
+        }}
         autoPlay
         playsInline
         muted
       />
       <canvas
         ref={canvasRef}
-        className={stage === 'camera_check' ? "absolute inset-0 w-full h-full" : "hidden"}
-        style={{ transform: 'scaleX(-1)' }} // ALWAYS set style - prevents re-render
+        className="absolute inset-0 w-full h-full"
+        style={{ 
+          transform: 'scaleX(-1)',
+          opacity: stage === 'camera_check' ? 1 : 0,
+          pointerEvents: stage === 'camera_check' ? 'auto' : 'none'
+        }}
       />
     </>
   );
@@ -442,8 +451,10 @@ export const CalibrationScreenSimple: React.FC<CalibrationScreenSimpleProps> = (
 
     return (
       <div className="fixed inset-0 bg-gray-900 z-50">
-        {/* Video and canvas - shared with camera_check, hidden during calibration */}
-        {renderVideoCanvas()}
+        {/* Video and canvas - keep mounted but hidden for stream preservation */}
+        <div className="fixed inset-0 opacity-0 pointer-events-none">
+          {renderVideoCanvas()}
+        </div>
 
         {/* Progress bar */}
         <div className="absolute top-0 left-0 right-0 h-2 bg-gray-800 z-10">
