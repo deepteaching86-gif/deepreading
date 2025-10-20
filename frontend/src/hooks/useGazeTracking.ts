@@ -1521,15 +1521,15 @@ function estimateGazeFromLandmarks(
 
   // Screen size factor: larger screens = higher sensitivity
   // Base: 24" desktop monitor, scale proportionally
-  const screenSizeFactor = Math.max(0.5, Math.min(2.0, screenDiagonalInches / 24.0));
+  // const screenSizeFactor = Math.max(0.5, Math.min(2.0, screenDiagonalInches / 24.0));
 
   // Viewing distance factor: closer viewing = lower sensitivity
   // Normalize so 0.12 (50cm) = 1.0x
-  const viewingDistanceFactor = Math.max(0.5, Math.min(2.0, 0.12 / eyeDistanceRatio));
+  // const viewingDistanceFactor = Math.max(0.5, Math.min(2.0, 0.12 / eyeDistanceRatio));
 
   // Aspect ratio factor: wider screens need more horizontal sensitivity
-  const aspectRatio = screenWidth / screenHeight;
-  const aspectRatioFactorX = Math.max(1.0, aspectRatio / 1.6); // 16:10 as baseline
+  // const aspectRatio = screenWidth / screenHeight;
+  // const aspectRatioFactorX = Math.max(1.0, aspectRatio / 1.6); // 16:10 as baseline
 
   // Final adaptive multipliers - disabled for now for stable 2D tracking
   // const adaptiveMultiplierX = screenSizeFactor * viewingDistanceFactor * aspectRatioFactorX;
@@ -1671,6 +1671,11 @@ function estimateGazeFromLandmarks(
   const rawY = 0.5 - (headCompensatedY * yMultiplier); // SUBTRACT for correct direction mapping
   const y = rawY; // No clamping here - let smoothing handle it
 
+  // Calculate confidence
+  const eyeSymmetryX = 1 - Math.abs(leftIrisRatioX - rightIrisRatioX) * 20;
+  const frontalFactor = 1 - (Math.abs(headYaw) * 2 + Math.abs(headPitch));
+  const confidence = Math.max(0.3, Math.min(1.0, (eyeSymmetryX + frontalFactor) / 2));
+
   // === DEBUG: X & Y CALCULATION CHAIN ===
   // Log only occasionally to reduce console spam
   if (Math.random() < 0.01) { // 1% of frames
@@ -1680,11 +1685,6 @@ function estimateGazeFromLandmarks(
       confidence: confidence.toFixed(2)
     });
   }
-
-  // Calculate confidence
-  const eyeSymmetryX = 1 - Math.abs(leftIrisRatioX - rightIrisRatioX) * 20;
-  const frontalFactor = 1 - (Math.abs(headYaw) * 2 + Math.abs(headPitch));
-  const confidence = Math.max(0.3, Math.min(1.0, (eyeSymmetryX + frontalFactor) / 2));
 
   // === DEBUG LOGGING (development mode only) ===
   // Only log every 60 frames (~1 second at 60fps) to reduce console spam
