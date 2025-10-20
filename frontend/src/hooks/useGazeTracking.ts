@@ -861,6 +861,8 @@ export const useGazeTracking = (
   }, [isTracking, onGazePoint, calibrationMatrix, onFacePosition, onRawGazeData, onConcentrationData]);
 
   // Start detection loop when tracking starts
+  // CRITICAL FIX: Remove detectAndEstimateGaze from dependencies to prevent loop restarts during stage transitions!
+  // The loop is self-sustaining via requestAnimationFrame - no need to restart it
   useEffect(() => {
     if (isTracking && enabled) {
       console.log('🔄 Starting detection loop');
@@ -874,7 +876,8 @@ export const useGazeTracking = (
         cancelAnimationFrame(animationFrameRef.current);
       }
     };
-  }, [isTracking, enabled, detectAndEstimateGaze]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isTracking, enabled]); // Removed detectAndEstimateGaze - self-sustaining loop!
 
   // Initialize on mount
   useEffect(() => {
