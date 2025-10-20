@@ -763,6 +763,24 @@ export const useGazeTracking = (
           // Apply Kalman filter
           const filtered = kalmanFilterRef.current.filter(clampedGaze.x, clampedGaze.y, Date.now());
 
+          // Call raw gaze data callback for 3D mode calibration
+          if (onRawGazeData) {
+            // Calculate pseudo iris offset for 3D mode (based on gaze direction)
+            const irisOffset = {
+              x: (clampedGaze.x - 0.5) * 0.1, // Convert to normalized offset
+              y: (clampedGaze.y - 0.5) * 0.1
+            };
+            const headPose = {
+              yaw: smoothedDirection.x * 0.5,  // Approximate yaw from gaze direction
+              pitch: smoothedDirection.y * 0.5  // Approximate pitch from gaze direction
+            };
+            onRawGazeData({
+              irisOffset,
+              headPose,
+              timestamp: Date.now()
+            });
+          }
+
           // Update state with full GazeEstimation object
           // For 3D mode, create minimal landmarks object
           const minimalLandmarks: FaceLandmarks = {
@@ -794,12 +812,13 @@ export const useGazeTracking = (
           }
 
           // Debug logging (reduced frequency)
-          if (fpsCounterRef.current.frames % 30 === 0) {
+          if (fpsCounterRef.current.frames % 60 === 0) {
             console.log('🎯 3D Gaze:', {
               ray: formatVector3D(smoothedDirection),
               intersection: formatPoint3D(intersection),
               screen: `(${clampedGaze.x.toFixed(3)}, ${clampedGaze.y.toFixed(3)})`,
-              faceScale: faceCoords.scale.toFixed(2)
+              faceScale: faceCoords.scale.toFixed(2),
+              dataCallback: onRawGazeData ? 'active' : 'none'
             });
           }
         }

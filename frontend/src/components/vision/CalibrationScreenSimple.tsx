@@ -141,6 +141,10 @@ export const CalibrationScreenSimple: React.FC<CalibrationScreenSimpleProps> = (
             // Start calibration instead of completing
             setStage('calibration');
             setPointCountdown(3);  // Start first point countdown
+            // Make sure tracking continues when moving to calibration
+            if (!isTracking) {
+              startTracking();
+            }
             return 0;
           }
           return prev - 1;
@@ -151,17 +155,17 @@ export const CalibrationScreenSimple: React.FC<CalibrationScreenSimpleProps> = (
     } else {
       setCountdown(3);
     }
-  }, [stage, faceCentered, faceDetected]);
+  }, [stage, faceCentered, faceDetected, isTracking, startTracking]);
 
   // Calibration point fixation countdown
   useEffect(() => {
     if (stage === 'calibration' && pointCountdown > 0) {
       const timeout = setTimeout(() => {
+        setPointCountdown(prev => prev - 1);
         if (pointCountdown === 1) {
           // Countdown finished - collect calibration data
           handleCalibrationPointComplete();
         }
-        setPointCountdown(prev => prev - 1);
       }, 1000);
 
       return () => clearTimeout(timeout);
@@ -171,6 +175,9 @@ export const CalibrationScreenSimple: React.FC<CalibrationScreenSimpleProps> = (
   // Handle completion of a single calibration point
   const handleCalibrationPointComplete = useCallback(() => {
     const currentPoint = calibrationPoints[currentPointIndex];
+    
+    console.log(`🔵 Processing calibration point ${currentPointIndex + 1}/9 at position (${currentPoint.x.toFixed(2)}, ${currentPoint.y.toFixed(2)})`);
+    console.log(`📊 Collected ${rawGazeDataRef.current.length} gaze samples`);
 
     // Average collected raw gaze data
     if (rawGazeDataRef.current.length > 0) {
@@ -291,8 +298,8 @@ export const CalibrationScreenSimple: React.FC<CalibrationScreenSimpleProps> = (
               </p>
             </div>
 
-            {/* 3D Mode Toggle */}
-            <div className="bg-blue-100 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-300 dark:border-blue-700">
+            {/* 3D Mode Toggle - Improved Design */}
+            <div className="bg-card p-4 rounded-lg shadow-sm border border-border">
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="font-semibold text-foreground mb-1">
@@ -304,22 +311,31 @@ export const CalibrationScreenSimple: React.FC<CalibrationScreenSimpleProps> = (
                 </div>
                 <button
                   onClick={toggle3DMode}
-                  className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors ${
-                    use3DMode ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-600'
+                  className={`relative inline-flex h-8 w-14 items-center rounded-full transition-all duration-300 ${
+                    use3DMode 
+                      ? 'bg-primary shadow-lg shadow-primary/25' 
+                      : 'bg-muted hover:bg-muted/80'
                   }`}
+                  aria-label="Toggle 3D tracking mode"
                 >
                   <span
-                    className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${
-                      use3DMode ? 'translate-x-7' : 'translate-x-1'
+                    className={`inline-block h-6 w-6 transform rounded-full transition-all duration-300 ${
+                      use3DMode 
+                        ? 'translate-x-7 bg-primary-foreground' 
+                        : 'translate-x-1 bg-background'
                     }`}
                   />
                 </button>
               </div>
-              <p className="text-xs mt-2 text-muted-foreground">
-                {use3DMode ? 
-                  "✅ 3D Mode: Nose-based coordinate system 사용 중" : 
-                  "📐 2D Mode: 기존 iris offset 방식 사용 중"}
-              </p>
+              <div className="mt-3 px-3 py-2 bg-muted/50 rounded text-xs">
+                <span className={`font-medium ${
+                  use3DMode ? 'text-primary' : 'text-muted-foreground'
+                }`}>
+                  {use3DMode ? 
+                    "✅ 3D Mode: Nose-based coordinate system 사용 중" : 
+                    "📐 2D Mode: 기존 iris offset 방식 사용 중"}
+                </span>
+              </div>
             </div>
           </div>
 
@@ -345,8 +361,8 @@ export const CalibrationScreenSimple: React.FC<CalibrationScreenSimpleProps> = (
   // Render video and canvas in ALL stages to keep stream active
   // CRITICAL: Keep elements mounted and only toggle visibility with opacity/pointer-events
   const renderVideoCanvas = () => {
-    // Show video/canvas in camera_check stage, or in calibration stage with 3D mode
-    const isVisible = stage === 'camera_check' || (stage === 'calibration' && use3DMode);
+    // Always show video/canvas when 3D mode is enabled, or in camera_check stage
+    const isVisible = use3DMode || stage === 'camera_check';
     
     return (
       <>
@@ -461,7 +477,7 @@ export const CalibrationScreenSimple: React.FC<CalibrationScreenSimpleProps> = (
     return (
       <div className="fixed inset-0 bg-gray-900 z-50">
         {/* Video and canvas - keep mounted, visible in 3D mode */}
-        <div className={`fixed inset-0 ${use3DMode ? '' : 'opacity-0 pointer-events-none'}`}>
+        <div className={`fixed inset-0 ${use3DMode ? 'z-20' : 'opacity-0 pointer-events-none z-0'}`}>
           {renderVideoCanvas()}
         </div>
 
