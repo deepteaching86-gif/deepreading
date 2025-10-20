@@ -40,6 +40,49 @@ export const CalibrationScreenSimple: React.FC<CalibrationScreenSimpleProps> = (
   // Track current gaze position for real-time marker
   const [currentGaze, setCurrentGaze] = useState<{ x: number; y: number } | null>(null);
 
+  // Use refs to prevent callback recreation on stage/pointCountdown changes
+  const stageRef = useRef(stage);
+  const pointCountdownRef = useRef(pointCountdown);
+  
+  // Update refs when state changes
+  useEffect(() => {
+    stageRef.current = stage;
+  }, [stage]);
+  
+  useEffect(() => {
+    pointCountdownRef.current = pointCountdown;
+  }, [pointCountdown]);
+
+  // Stable callbacks that use refs instead of state directly
+  const handleFacePosition = useCallback((position: { x: number; y: number; width: number; height: number }) => {
+    setFaceDetected(true);
+
+    // Check if face is centered (within 15% of center)
+    const centered = Math.abs(position.x - 0.5) < 0.15 && Math.abs(position.y - 0.5) < 0.15;
+    setFaceCentered(centered);
+  }, []); // No dependencies - stable callback
+
+  const handleRawGazeData = useCallback((data: {
+    irisOffset: { x: number; y: number };
+    headPose: { yaw: number; pitch: number };
+    timestamp: number;
+  }) => {
+    // Use refs to access current values without recreating callback
+    if (stageRef.current === 'calibration' && pointCountdownRef.current > 0) {
+      rawGazeDataRef.current.push({
+        irisOffset: data.irisOffset,
+        headPose: data.headPose
+      });
+    }
+  }, []); // No dependencies - stable callback
+
+  const handleGazePoint = useCallback((point: { x: number; y: number }) => {
+    // Use ref to access current stage without recreating callback
+    if (stageRef.current === 'calibration') {
+      setCurrentGaze(point);
+    }
+  }, []); // No dependencies - stable callback
+
   // Gaze tracking hook for face detection and calibration
   const {
     isTracking,
@@ -49,32 +92,9 @@ export const CalibrationScreenSimple: React.FC<CalibrationScreenSimpleProps> = (
     currentGaze: hookGaze
   } = useGazeTracking({
     enabled: stage === 'camera_check' || stage === 'calibration',
-    onFacePosition: useCallback((position: { x: number; y: number; width: number; height: number }) => {
-      setFaceDetected(true);
-
-      // Check if face is centered (within 15% of center)
-      const centered = Math.abs(position.x - 0.5) < 0.15 && Math.abs(position.y - 0.5) < 0.15;
-      setFaceCentered(centered);
-    }, []),
-    onRawGazeData: useCallback((data: {
-      irisOffset: { x: number; y: number };
-      headPose: { yaw: number; pitch: number };
-      timestamp: number;
-    }) => {
-      // Collect raw gaze data during calibration point fixation
-      if (stage === 'calibration' && pointCountdown > 0) {
-        rawGazeDataRef.current.push({
-          irisOffset: data.irisOffset,
-          headPose: data.headPose
-        });
-      }
-    }, [stage, pointCountdown]),
-    onGazePoint: useCallback((point: { x: number; y: number }) => {
-      // Update real-time gaze position during calibration
-      if (stage === 'calibration') {
-        setCurrentGaze(point);
-      }
-    }, [stage]),
+    onFacePosition: handleFacePosition,
+    onRawGazeData: handleRawGazeData,
+    onGazePoint: handleGazePoint,
     targetFPS: 30
   });
 

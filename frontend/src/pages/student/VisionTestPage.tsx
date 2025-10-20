@@ -67,6 +67,12 @@ export const VisionTestPage: React.FC = () => {
   const CHUNK_INTERVAL = 5000; // 5 seconds
   const MAX_CHUNK_SIZE = 1000; // 1000 points
 
+  // Use ref to track concentration alerts length without causing callback recreation
+  const concentrationAlertsRef = useRef<ConcentrationAlert[]>([]);
+  useEffect(() => {
+    concentrationAlertsRef.current = concentrationAlerts;
+  }, [concentrationAlerts]);
+
   // Get user ID from auth store
   const getUserId = (): string => {
     try {
@@ -83,6 +89,45 @@ export const VisionTestPage: React.FC = () => {
 
   const userId = getUserId();
 
+  // Stable callbacks for gaze tracking hook
+  const handleRawGazeData = useCallback((data: {
+    irisOffset: { x: number; y: number };
+    headPose: { yaw: number; pitch: number };
+    timestamp: number;
+  }) => {
+    setCurrentRawGaze({
+      irisOffset: data.irisOffset,
+      headPose: data.headPose
+    });
+  }, []); // No dependencies - stable callback
+
+  const handleConcentrationData = useCallback((rawData: ConcentrationRawData) => {
+    // 실시간으로 집중력 분석기에 데이터 전달
+    const score = concentrationAnalyzer.analyze(rawData);
+
+    // 1초마다 집중력 점수 업데이트
+    const now = Date.now();
+    if (now - lastConcentrationUpdateRef.current >= CONCENTRATION_UPDATE_INTERVAL) {
+      setCurrentConcentrationScore(score);
+      lastConcentrationUpdateRef.current = now;
+
+      // 세션 매니저에 점수 추가
+      concentrationSessionManager.addScore(score);
+
+      // 새 알림 확인 - use ref instead of state
+      const currentSession = concentrationSessionManager.getCurrentSession();
+      if (currentSession && currentSession.alerts.length > concentrationAlertsRef.current.length) {
+        const newAlerts = currentSession.alerts.slice(concentrationAlertsRef.current.length);
+        setConcentrationAlerts(currentSession.alerts);
+
+        // 첫 번째 새 알림 자동 표시
+        if (newAlerts.length > 0) {
+          setSelectedAlert(newAlerts[0]);
+        }
+      }
+    }
+  }, []); // No dependencies - stable callback
+
   // Gaze tracking hook
   const {
     isTracking,
@@ -95,42 +140,8 @@ export const VisionTestPage: React.FC = () => {
   } = useGazeTracking({
     enabled: state.stage === 'testing',
     onGazePoint: handleGazePoint,
-    onRawGazeData: useCallback((data: {
-      irisOffset: { x: number; y: number };
-      headPose: { yaw: number; pitch: number };
-      timestamp: number;
-    }) => {
-      setCurrentRawGaze({
-        irisOffset: data.irisOffset,
-        headPose: data.headPose
-      });
-    }, []),
-    onConcentrationData: useCallback((rawData: ConcentrationRawData) => {
-      // 실시간으로 집중력 분석기에 데이터 전달
-      const score = concentrationAnalyzer.analyze(rawData);
-
-      // 1초마다 집중력 점수 업데이트
-      const now = Date.now();
-      if (now - lastConcentrationUpdateRef.current >= CONCENTRATION_UPDATE_INTERVAL) {
-        setCurrentConcentrationScore(score);
-        lastConcentrationUpdateRef.current = now;
-
-        // 세션 매니저에 점수 추가
-        concentrationSessionManager.addScore(score);
-
-        // 새 알림 확인
-        const currentSession = concentrationSessionManager.getCurrentSession();
-        if (currentSession && currentSession.alerts.length > concentrationAlerts.length) {
-          const newAlerts = currentSession.alerts.slice(concentrationAlerts.length);
-          setConcentrationAlerts(currentSession.alerts);
-
-          // 첫 번째 새 알림 자동 표시
-          if (newAlerts.length > 0) {
-            setSelectedAlert(newAlerts[0]);
-          }
-        }
-      }
-    }, [concentrationAlerts.length]),
+    onRawGazeData: handleRawGazeData,
+    onConcentrationData: handleConcentrationData,
     calibrationMatrix: calibrationResult?.transformMatrix,
     targetFPS: 30
   });
