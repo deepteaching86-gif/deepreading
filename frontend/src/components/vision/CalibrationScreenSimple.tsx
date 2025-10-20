@@ -274,12 +274,13 @@ export const CalibrationScreenSimple: React.FC<CalibrationScreenSimpleProps> = (
   }
 
   // Render video and canvas in ALL stages to keep stream active
+  // CRITICAL: Keep style prop CONSTANT to prevent React from re-rendering and losing srcObject!
   const renderVideoCanvas = () => (
     <>
       <video
         ref={videoRef}
         className={stage === 'camera_check' ? "absolute inset-0 w-full h-full object-contain" : "hidden"}
-        style={stage === 'camera_check' ? { transform: 'scaleX(-1)' } : undefined}
+        style={{ transform: 'scaleX(-1)' }} // ALWAYS set style - prevents re-render
         autoPlay
         playsInline
         muted
@@ -287,7 +288,7 @@ export const CalibrationScreenSimple: React.FC<CalibrationScreenSimpleProps> = (
       <canvas
         ref={canvasRef}
         className={stage === 'camera_check' ? "absolute inset-0 w-full h-full" : "hidden"}
-        style={stage === 'camera_check' ? { transform: 'scaleX(-1)' } : undefined}
+        style={{ transform: 'scaleX(-1)' }} // ALWAYS set style - prevents re-render
       />
     </>
   );
