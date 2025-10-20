@@ -90,7 +90,8 @@ export const CalibrationScreenSimple: React.FC<CalibrationScreenSimpleProps> = (
   }, []); // No dependencies - stable callback
 
   // Gaze tracking hook for face detection and calibration
-  // Keep enabled=true throughout calibration to maintain video stream
+  // CRITICAL: Always keep enabled=true after initial start to maintain video stream
+  const [trackingStarted, setTrackingStarted] = useState(false);
   const {
     isTracking,
     videoRef,
@@ -98,7 +99,7 @@ export const CalibrationScreenSimple: React.FC<CalibrationScreenSimpleProps> = (
     startTracking,
     currentGaze: hookGaze
   } = useGazeTracking({
-    enabled: stage !== 'instructions' && stage !== 'completed', // Keep enabled except for first/last stage
+    enabled: trackingStarted, // Once started, never disable to keep stream alive
     onFacePosition: handleFacePosition,
     onRawGazeData: handleRawGazeData,
     onGazePoint: handleGazePoint,
@@ -124,6 +125,7 @@ export const CalibrationScreenSimple: React.FC<CalibrationScreenSimpleProps> = (
   // Start camera check
   const handleStartCheck = useCallback(async () => {
     setStage('camera_check');
+    setTrackingStarted(true); // Enable tracking hook
     await startTracking();
   }, [startTracking]);
 
@@ -342,31 +344,38 @@ export const CalibrationScreenSimple: React.FC<CalibrationScreenSimpleProps> = (
 
   // Render video and canvas in ALL stages to keep stream active
   // CRITICAL: Keep elements mounted and only toggle visibility with opacity/pointer-events
-  const renderVideoCanvas = () => (
-    <>
-      <video
-        ref={videoRef}
-        className="absolute inset-0 w-full h-full object-contain"
-        style={{ 
-          transform: 'scaleX(-1)',
-          opacity: stage === 'camera_check' ? 1 : 0,
-          pointerEvents: stage === 'camera_check' ? 'auto' : 'none'
-        }}
-        autoPlay
-        playsInline
-        muted
-      />
-      <canvas
-        ref={canvasRef}
-        className="absolute inset-0 w-full h-full"
-        style={{ 
-          transform: 'scaleX(-1)',
-          opacity: stage === 'camera_check' ? 1 : 0,
-          pointerEvents: stage === 'camera_check' ? 'auto' : 'none'
-        }}
-      />
-    </>
-  );
+  const renderVideoCanvas = () => {
+    // Show video/canvas in camera_check stage, or in calibration stage with 3D mode
+    const isVisible = stage === 'camera_check' || (stage === 'calibration' && use3DMode);
+    
+    return (
+      <>
+        <video
+          ref={videoRef}
+          className="absolute inset-0 w-full h-full object-contain"
+          style={{ 
+            transform: 'scaleX(-1)',
+            opacity: isVisible ? 1 : 0,
+            pointerEvents: isVisible ? 'auto' : 'none',
+            zIndex: isVisible ? 10 : -1 // Ensure visibility when needed
+          }}
+          autoPlay
+          playsInline
+          muted
+        />
+        <canvas
+          ref={canvasRef}
+          className="absolute inset-0 w-full h-full"
+          style={{ 
+            transform: 'scaleX(-1)',
+            opacity: isVisible ? 1 : 0,
+            pointerEvents: isVisible ? 'auto' : 'none',
+            zIndex: isVisible ? 11 : -1 // Canvas on top of video
+          }}
+        />
+      </>
+    );
+  };
 
   // Camera check
   if (stage === 'camera_check') {
@@ -386,7 +395,7 @@ export const CalibrationScreenSimple: React.FC<CalibrationScreenSimpleProps> = (
         <div className="relative">
           {/* Video container - maintain aspect ratio with object-contain */}
           <div className="relative w-[640px] h-[480px] rounded-2xl overflow-hidden bg-black">
-            {/* Live camera feed and canvas - shared across stages */}
+            {/* Live camera feed and canvas - always rendered */}
             {renderVideoCanvas()}
 
             {/* Face guide overlay - centered oval */}
@@ -451,8 +460,8 @@ export const CalibrationScreenSimple: React.FC<CalibrationScreenSimpleProps> = (
 
     return (
       <div className="fixed inset-0 bg-gray-900 z-50">
-        {/* Video and canvas - keep mounted but hidden for stream preservation */}
-        <div className="fixed inset-0 opacity-0 pointer-events-none">
+        {/* Video and canvas - keep mounted, visible in 3D mode */}
+        <div className={`fixed inset-0 ${use3DMode ? '' : 'opacity-0 pointer-events-none'}`}>
           {renderVideoCanvas()}
         </div>
 

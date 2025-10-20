@@ -147,6 +147,12 @@ export const useGazeTracking = (
 
   // Start camera and tracking
   const startTracking = useCallback(async () => {
+    // If already tracking, just return
+    if (isTracking && streamRef.current?.active && videoRef.current?.srcObject) {
+      console.log('✅ Already tracking with active stream');
+      return;
+    }
+
     if (!faceLandmarkerRef.current) {
       console.log('🔧 Face Landmarker not initialized, initializing...');
       await initialize();
@@ -171,16 +177,31 @@ export const useGazeTracking = (
       console.log('ℹ️ No calibration model found - using raw gaze estimates');
     }
 
-    // Reset Kalman filter
+    // Reset Kalman filter and 3D tracking
     kalmanFilterRef.current.reset();
+    eyeSphereTrackerRef.current.reset();
+    is3DCalibrated.current = false;
+    previousFaceAxesRef.current = null;
 
     // Check if stream already exists and is active
-    if (streamRef.current && streamRef.current.active) {
+    if (streamRef.current && streamRef.current.active && videoRef.current) {
       console.log('♻️ Reusing existing camera stream');
-      if (videoRef.current && videoRef.current.srcObject !== streamRef.current) {
+      // Make sure video is connected to stream
+      if (videoRef.current.srcObject !== streamRef.current) {
         videoRef.current.srcObject = streamRef.current;
-        await videoRef.current.play();
       }
+      // Ensure video is playing
+      if (videoRef.current.paused) {
+        try {
+          await videoRef.current.play();
+          console.log('✅ Video playback resumed');
+        } catch (playError) {
+          console.error('❌ Failed to resume video playback:', playError);
+        }
+      }
+      setIsTracking(true);
+      setError(null);
+      return;
     } else {
       try {
         console.log('📹 Requesting camera access...');
@@ -241,7 +262,9 @@ export const useGazeTracking = (
             console.log('✅ Video playback started:', {
               readyState: videoRef.current.readyState,
               videoWidth: videoRef.current.videoWidth,
-              videoHeight: videoRef.current.videoHeight
+              videoHeight: videoRef.current.videoHeight,
+              paused: videoRef.current.paused,
+              currentTime: videoRef.current.currentTime
             });
           } catch (playError) {
             console.error('❌ Video play error:', playError);
@@ -271,7 +294,7 @@ export const useGazeTracking = (
     setIsTracking(true);
     setError(null);
     console.log('✅ Camera started successfully');
-  }, [initialize]);
+  }, [initialize, isTracking]);
 
   // Stop tracking
   const stopTracking = useCallback((preserveStream: boolean = false) => {
@@ -304,24 +327,27 @@ export const useGazeTracking = (
         hasVideo: !!videoRef.current,
         isTracking
       });
+      // Keep trying if tracking is enabled
+      if (isTracking) {
+        animationFrameRef.current = window.requestAnimationFrame(detectAndEstimateGaze);
+      }
       return;
     }
 
     const video = videoRef.current;
 
-    // Wait for video to be ready - but be more lenient
-    if (video.readyState < 2) {
-      // Only wait if video is truly not ready (readyState 0 or 1)
-      if (video.videoWidth === 0 || video.videoHeight === 0) {
-        console.log('⏳ Video not ready:', {
-          readyState: video.readyState,
-          width: video.videoWidth,
-          height: video.videoHeight
-        });
-        // Video not ready yet, try again next frame
-        animationFrameRef.current = window.requestAnimationFrame(detectAndEstimateGaze);
-        return;
-      }
+    // Check if video has valid dimensions (more reliable than readyState)
+    if (video.videoWidth === 0 || video.videoHeight === 0) {
+      console.log('⏳ Video not ready:', {
+        readyState: video.readyState,
+        width: video.videoWidth,
+        height: video.videoHeight,
+        srcObject: !!video.srcObject,
+        currentTime: video.currentTime
+      });
+      // Video not ready yet, try again next frame
+      animationFrameRef.current = window.requestAnimationFrame(detectAndEstimateGaze);
+      return;
     }
 
     // Detect face landmarks
@@ -591,8 +617,8 @@ export const useGazeTracking = (
         }
       }
 
-      // Log every 60 frames
-      if (fpsCounterRef.current.frames % 60 === 0) {
+      // Log every 120 frames (2 seconds)
+      if (fpsCounterRef.current.frames % 120 === 0) {
         console.log('👤 No face detected');
         console.log('💡 Lighting:', analysisText, `(${Math.round(brightness)}/255)`);
       }
@@ -602,7 +628,10 @@ export const useGazeTracking = (
       return;
     }
 
-    console.log('✅ Face detected with', result.faceLandmarks[0].length, 'landmarks');
+    // Log face detection success less frequently
+    if (fpsCounterRef.current.frames % 30 === 0) {
+      console.log('✅ Face detected with', result.faceLandmarks[0].length, 'landmarks');
+    }
 
     const landmarks = result.faceLandmarks[0];
 
@@ -1067,35 +1096,40 @@ export const useGazeTracking = (
   }, [isTracking, onGazePoint, calibrationMatrix, onFacePosition, onRawGazeData, onConcentrationData]);
 
   // Start detection loop when tracking starts
-  // CRITICAL FIX: Remove detectAndEstimateGaze from dependencies to prevent loop restarts during stage transitions!
-  // The loop is self-sustaining via requestAnimationFrame - no need to restart it
+  // CRITICAL: Start loop once and let it self-sustain via requestAnimationFrame
   useEffect(() => {
-    if (isTracking && enabled) {
+    if (isTracking && enabled && !animationFrameRef.current) {
       console.log('🔄 Starting detection loop');
       detectAndEstimateGaze();
-    } else {
-      console.log('⏸️ Detection loop not started:', { isTracking, enabled });
+    } else if (!enabled && animationFrameRef.current) {
+      console.log('⏸️ Stopping detection loop');
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
     }
 
     return () => {
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
+        animationFrameRef.current = null;
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isTracking, enabled]); // Removed detectAndEstimateGaze - self-sustaining loop!
 
-  // Initialize on mount
+  // Initialize MediaPipe on mount
   useEffect(() => {
-    if (enabled) {
+    if (enabled && !isInitialized) {
       initialize();
     }
 
     return () => {
-      // Fully stop tracking on unmount
-      stopTracking(false);
+      // Cancel animation frame on unmount
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+        animationFrameRef.current = null;
+      }
     };
-  }, [enabled, initialize, stopTracking]);
+  }, [enabled, isInitialized, initialize]);
 
   return {
     isInitialized,
