@@ -96,6 +96,13 @@ export const VisionTestPage: React.FC = () => {
     return stored === null ? false : stored === 'true';
   });
 
+  // Sensitivity control state
+  const [sensitivity, setSensitivity] = useState(() => {
+    const stored = localStorage.getItem('gaze-sensitivity');
+    return stored ? parseFloat(stored) : 20; // Default 20
+  });
+  const [showSensitivityControl, setShowSensitivityControl] = useState(false);
+
   // Stable callbacks for gaze tracking hook
   const handleRawGazeData = useCallback((data: {
     irisOffset: { x: number; y: number };
@@ -541,6 +548,15 @@ export const VisionTestPage: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-3">
+              {/* 감도 조절 버튼 */}
+              <button
+                onClick={() => setShowSensitivityControl(!showSensitivityControl)}
+                className="px-3 py-1 rounded-full text-xs font-medium bg-blue-500/20 text-blue-500 hover:bg-blue-500/30"
+                title="시선 추적 감도 조절"
+              >
+                ⚙️ 감도: {sensitivity}
+              </button>
+
               {/* 시선 추적 오버레이 토글 버튼 */}
               <button
                 onClick={() => setShowGazeOverlay(!showGazeOverlay)}
@@ -679,6 +695,56 @@ export const VisionTestPage: React.FC = () => {
             )}
           </div>
         </div>
+
+        {/* Sensitivity Control Popup */}
+        {showSensitivityControl && (
+          <div className="fixed top-20 right-4 bg-card border border-border rounded-lg shadow-xl p-4 z-50">
+            <h3 className="text-sm font-semibold mb-3">시선 추적 감도 조절</h3>
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <input
+                  type="range"
+                  min="5"
+                  max="50"
+                  step="5"
+                  value={sensitivity}
+                  onChange={(e) => {
+                    const newValue = parseFloat(e.target.value);
+                    setSensitivity(newValue);
+                    localStorage.setItem('gaze-sensitivity', newValue.toString());
+                    // Force re-render of gaze tracking
+                    if (isTracking) {
+                      stopTracking();
+                      setTimeout(() => startTracking(), 100);
+                    }
+                  }}
+                  className="w-32"
+                />
+                <span className="text-sm font-mono">{sensitivity}</span>
+              </div>
+              <div className="text-xs text-muted-foreground">
+                낮음(5) ← → 높음(50)
+              </div>
+              <div className="text-xs text-muted-foreground">
+                • 시선이 잘 따라오지 않으면 높이세요
+                • 시선이 너무 떨리면 낮추세요
+              </div>
+              <button
+                onClick={() => {
+                  setSensitivity(20);
+                  localStorage.setItem('gaze-sensitivity', '20');
+                  if (isTracking) {
+                    stopTracking();
+                    setTimeout(() => startTracking(), 100);
+                  }
+                }}
+                className="text-xs px-2 py-1 bg-secondary rounded hover:bg-secondary/80"
+              >
+                기본값으로 재설정
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Real-time Gaze Tracking Overlay (User-Controlled) */}
         {currentGaze && showGazeOverlay && (

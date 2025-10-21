@@ -1578,7 +1578,9 @@ function estimateGazeFromLandmarks(
 
   // Combine iris position with head rotation
   // BALANCED sensitivity for equal X/Y responsiveness
-  const baseSensitivityX = 10; // Reduced to 10 for much more stable 2D tracking
+  // Get sensitivity from localStorage or use default
+  const storedSensitivity = localStorage.getItem('gaze-sensitivity');
+  const baseSensitivityX = storedSensitivity ? parseFloat(storedSensitivity) : 20; // Default 20 for better responsiveness
   const headCompensatedX = (avgIrisRatioX * baseSensitivityX) - (headYaw * 2.0); // Minimal head influence for 2D
 
   // === VERTICAL (Y-axis) CALCULATION WITH 3D DEPTH ===
@@ -1666,7 +1668,7 @@ function estimateGazeFromLandmarks(
   // Solution: depthCorrectedY (iris + head pitch 조합)를 사용하고 적절한 sensitivity 적용
   // depthCorrectedY = avgIrisRatioY + (headPitch * pitchInfluence)
   // pitchInfluence = 0.05는 너무 작아서 35로 증가 (iris + head 모두 반영)
-  const baseSensitivityY = 10; // Matching X axis for balanced 2D tracking
+  const baseSensitivityY = storedSensitivity ? parseFloat(storedSensitivity) : 20; // Matching X axis for balanced 2D tracking
   const headCompensatedY = (depthCorrectedY * baseSensitivityY);
 
   // === FINAL GAZE COORDINATES ===
