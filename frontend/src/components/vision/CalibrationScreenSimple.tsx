@@ -29,9 +29,9 @@ export const CalibrationScreenSimple: React.FC<CalibrationScreenSimpleProps> = (
   const [faceDetected, setFaceDetected] = useState(false);
   const [faceCentered, setFaceCentered] = useState(false);
   const [countdown, setCountdown] = useState(3);
-  
-  // 2D Mode is more stable for calibration
-  const use3DMode = false; // Use 2D tracking for better stability
+
+  // 3D Mode is more stable and accurate for calibration
+  const use3DMode = true; // Use 3D tracking with JEOresearch nose-based coordinate system
 
   // Calibration state
   const [calibrationPoints] = useState(generate9PointGrid(0.1));
@@ -329,17 +329,17 @@ export const CalibrationScreenSimple: React.FC<CalibrationScreenSimpleProps> = (
               </p>
             </div>
 
-            {/* 2D Mode Information */}
+            {/* 3D Mode Information */}
             <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
               <div className="flex items-center gap-2">
-                <span className="text-2xl">👁️</span>
+                <span className="text-2xl">🎯</span>
                 <div>
                   <h3 className="font-semibold text-blue-900">
-                    안정적인 2D 추적 모드
+                    향상된 3D 시선 추적
                   </h3>
                   <p className="text-sm text-blue-700 mt-1">
-                    MediaPipe Face Mesh를 사용한 안정적인 2D 시선 추적으로
-                    정확한 캘리브레이션을 제공합니다.
+                    JEOresearch 기반 3D 좌표계와 양안 융합을 사용하여
+                    헤드 포즈 보상과 정확한 캘리브레이션을 제공합니다.
                   </p>
                 </div>
               </div>

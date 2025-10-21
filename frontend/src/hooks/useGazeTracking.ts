@@ -953,6 +953,7 @@ export const useGazeTracking = (
       }
 
       // JEOresearch: Calibrate eye spheres (similar to pressing 'c' key)
+      // Always calibrate on first frame with valid iris data
       if (!is3DCalibrated.current && leftIris3D && rightIris3D) {
         console.log('🔧 JEOresearch: Initial 3D calibration...', {
           leftIris: formatPoint3D(leftIris3D),
@@ -966,7 +967,8 @@ export const useGazeTracking = (
       }
 
       // JEOresearch: Track eye spheres in current frame
-      if (is3DCalibrated.current && leftIris3D && rightIris3D) {
+      // IMPROVED: Start tracking immediately, even before calibration (with lower confidence)
+      if (leftIris3D && rightIris3D) {
         const eyeSpheres = eyeSphereTrackerRef.current.track(faceCoords);
         
         // Compute combined gaze ray
@@ -1014,7 +1016,12 @@ export const useGazeTracking = (
             
             // Debug: Log every 30th frame
             if (frameCounter3D.current % 30 === 0) {
-              console.log('📡 Sending raw gaze data from 3D mode:', { irisOffset, headPose });
+              console.log('📡 Sending raw gaze data from 3D mode:', {
+                irisOffset,
+                headPose,
+                calibrated: is3DCalibrated.current,
+                gazePoint: { x: clampedGaze.x.toFixed(3), y: clampedGaze.y.toFixed(3) }
+              });
             }
             
             onRawGazeData({
@@ -1037,7 +1044,7 @@ export const useGazeTracking = (
           const gazeEstimation: GazeEstimation = {
             x: filtered.x,
             y: filtered.y,
-            confidence: 0.9,
+            confidence: is3DCalibrated.current ? 0.9 : 0.5, // Lower confidence before calibration
             landmarks: minimalLandmarks
           };
           setCurrentGaze(gazeEstimation);
@@ -1048,7 +1055,7 @@ export const useGazeTracking = (
               x: filtered.x,
               y: filtered.y,
               timestamp: Date.now(),
-              confidence: 0.9,
+              confidence: is3DCalibrated.current ? 0.9 : 0.5, // Lower confidence before calibration
               type: GazeType.FIXATION
             };
             onGazePoint(gazePoint);
@@ -1069,10 +1076,14 @@ export const useGazeTracking = (
               intersection: formatPoint3D(intersection),
               screen: `(${clampedGaze.x.toFixed(3)}, ${clampedGaze.y.toFixed(3)})`,
               faceScale: faceCoords.scale.toFixed(2),
+              calibrated: is3DCalibrated.current,
               dataCallback: onRawGazeData ? 'active' : 'none'
             });
           }
         }
+
+        // Increment frame counter for 3D mode debugging
+        frameCounter3D.current++;
 
         // Schedule next frame
         animationFrameRef.current = window.requestAnimationFrame(detectAndEstimateGaze);
