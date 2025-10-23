@@ -31,6 +31,9 @@ import { VisionTestReport } from './pages/student/VisionTestReport';
 import { VisionSessions } from './pages/admin/VisionSessions';
 import { VisionSessionDetail } from './pages/admin/VisionSessionDetail';
 
+// English Adaptive Test
+import EnglishTestPage from './pages/test/EnglishTestPage';
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -106,6 +109,16 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['student', 'admin', 'parent', 'teacher']}>
                 <VisionTestReport />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* English Adaptive Test Routes */}
+          <Route
+            path="/test/english"
+            element={
+              <ProtectedRoute allowedRoles={['student']}>
+                <EnglishTestPage />
               </ProtectedRoute>
             }
           />

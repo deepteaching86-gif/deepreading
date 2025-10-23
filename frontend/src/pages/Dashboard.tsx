@@ -287,10 +287,58 @@ export default function Dashboard() {
           </section>
         )}
 
+        {/* English Adaptive Test Section */}
+        <section className="mb-12">
+          <h2 className="text-2xl font-bold mb-6 text-foreground">영어 레벨 테스트</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg shadow-md hover:shadow-lg transition-shadow p-6 border-2 border-blue-200">
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <h3 className="text-lg font-semibold text-blue-900">
+                    영어 적응형 레벨 테스트
+                  </h3>
+                  <p className="text-sm text-blue-700 mt-1">
+                    IRT 3PL 기반 적응형 평가
+                  </p>
+                </div>
+                <span className="px-3 py-1 bg-blue-600 text-white rounded-full text-xs font-medium">
+                  NEW
+                </span>
+              </div>
+
+              <div className="space-y-2 mb-4 text-sm text-blue-800">
+                <div className="flex items-center gap-2">
+                  <span>📚</span>
+                  <span>문법, 어휘, 독해 통합 평가</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span>🎯</span>
+                  <span>MST 1→3→3 적응형 구조</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span>⏱️</span>
+                  <span>40문항 (난이도 자동 조정)</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span>📊</span>
+                  <span>Lexile, AR, VST 점수 제공</span>
+                </div>
+              </div>
+
+              <button
+                onClick={() => navigate('/test/english')}
+                className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+              >
+                시작하기
+              </button>
+            </div>
+          </div>
+        </section>
+
         {/* Test Selection */}
         <section className="mb-12">
           <h2 className="text-2xl font-bold mb-6 text-foreground">
-            내 학년 테스트 ({profile && getGradeName(profile.grade)})
+            내 학년 문해력 테스트 ({profile && getGradeName(profile.grade)})
           </h2>
           {templates.length === 0 ? (
             <div className="bg-card rounded-lg shadow-sm p-8 text-center border border-border">
