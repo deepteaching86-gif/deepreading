@@ -87,14 +87,14 @@ Network connectivity issues prevent automated database insertion from this local
    - Create a new query
 
 3. **Insert Passages First**:
-   - Open `insert_passages.sql` in a text editor
+   - Open `insert_passages_fixed.sql` in a text editor (NOT the old insert_passages.sql)
    - Copy the entire contents
    - Paste into SQL Editor
    - Click "Run" (or press Ctrl+Enter)
    - ✅ Should insert 100 passages
 
 4. **Insert Items Second**:
-   - Open `insert_600_items.sql` in a text editor
+   - Open `insert_600_items_fixed.sql` in a text editor (NOT the old insert_600_items.sql)
    - Copy the entire contents
    - Paste into SQL Editor
    - Click "Run" (or press Ctrl+Enter)
@@ -162,8 +162,10 @@ This script will:
 - `generated_400_items.json` - Intermediate (569 items before gap filling)
 
 ### SQL Files
-- `insert_passages.sql` - INSERT statement for 100 passages (~50 KB)
-- `insert_600_items.sql` - INSERT statement for 600 items (~350 KB)
+- **`insert_passages_fixed.sql`** - INSERT statement for 100 passages (~50 KB) **← USE THIS**
+- **`insert_600_items_fixed.sql`** - INSERT statement for 600 items (~350 KB) **← USE THIS**
+- ~~`insert_passages.sql`~~ - Old version (wrong schema, do not use)
+- ~~`insert_600_items.sql`~~ - Old version (wrong schema, do not use)
 
 ### Python Scripts
 - `generate_600_items.py` - Main generator with pattern-based templates
