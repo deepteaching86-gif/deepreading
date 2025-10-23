@@ -1,0 +1,152 @@
+/**
+ * English Adaptive Test - Introduction Screen
+ * ===========================================
+ *
+ * Displays test overview and starts the test session.
+ * Based on PRD Section 4: UI/UX Specification
+ */
+
+import React from 'react';
+import { motion } from 'framer-motion';
+
+interface EnglishTestIntroProps {
+  onStart: () => void;
+  isLoading?: boolean;
+}
+
+export const EnglishTestIntro: React.FC<EnglishTestIntroProps> = ({
+  onStart,
+  isLoading = false
+}) => {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-6">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-white rounded-2xl shadow-2xl p-8 max-w-2xl w-full"
+      >
+        {/* Header */}
+        <div className="text-center mb-8">
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.2, type: 'spring' }}
+            className="w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full mx-auto mb-4 flex items-center justify-center"
+          >
+            <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            </svg>
+          </motion.div>
+          <h1 className="text-3xl font-bold text-gray-800 mb-2">
+            English Adaptive Test
+          </h1>
+          <p className="text-gray-600">
+            무학년제 영어 능력 진단 평가
+          </p>
+        </div>
+
+        {/* Test Information */}
+        <div className="space-y-4 mb-8">
+          <InfoCard
+            icon="📝"
+            title="총 문항 수"
+            description="40문항 (난이도 적응형)"
+          />
+          <InfoCard
+            icon="⏱️"
+            title="소요 시간"
+            description="약 30-40분"
+          />
+          <InfoCard
+            icon="🎯"
+            title="평가 영역"
+            description="문법, 어휘, 독해"
+          />
+          <InfoCard
+            icon="📊"
+            title="결과 제공"
+            description="10단계 숙련도 + Lexile/AR 점수"
+          />
+        </div>
+
+        {/* Instructions */}
+        <div className="bg-blue-50 rounded-lg p-6 mb-8">
+          <h3 className="font-semibold text-gray-800 mb-3 flex items-center">
+            <span className="text-blue-500 mr-2">ℹ️</span>
+            시험 안내
+          </h3>
+          <ul className="space-y-2 text-sm text-gray-700">
+            <li className="flex items-start">
+              <span className="text-blue-500 mr-2">•</span>
+              <span>문제의 난이도는 답변에 따라 자동으로 조정됩니다</span>
+            </li>
+            <li className="flex items-start">
+              <span className="text-blue-500 mr-2">•</span>
+              <span>각 문항은 시간 제한이 없으니 신중히 답변하세요</span>
+            </li>
+            <li className="flex items-start">
+              <span className="text-blue-500 mr-2">•</span>
+              <span>한 번 제출한 답은 수정할 수 없습니다</span>
+            </li>
+            <li className="flex items-start">
+              <span className="text-blue-500 mr-2">•</span>
+              <span>모든 문항을 완료해야 정확한 결과를 받을 수 있습니다</span>
+            </li>
+          </ul>
+        </div>
+
+        {/* Start Button */}
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={onStart}
+          disabled={isLoading}
+          className={`
+            w-full py-4 rounded-xl font-semibold text-lg
+            ${isLoading
+              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              : 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:shadow-lg'
+            }
+            transition-all duration-200
+          `}
+        >
+          {isLoading ? (
+            <span className="flex items-center justify-center">
+              <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              시험 준비 중...
+            </span>
+          ) : (
+            '시험 시작하기'
+          )}
+        </motion.button>
+
+        {/* Privacy Notice */}
+        <p className="text-xs text-gray-500 text-center mt-4">
+          시험 결과는 개인정보 보호 정책에 따라 안전하게 저장됩니다
+        </p>
+      </motion.div>
+    </div>
+  );
+};
+
+// Info Card Component
+interface InfoCardProps {
+  icon: string;
+  title: string;
+  description: string;
+}
+
+const InfoCard: React.FC<InfoCardProps> = ({ icon, title, description }) => (
+  <div className="flex items-center p-4 bg-gray-50 rounded-lg">
+    <span className="text-3xl mr-4">{icon}</span>
+    <div>
+      <h4 className="font-semibold text-gray-800">{title}</h4>
+      <p className="text-sm text-gray-600">{description}</p>
+    </div>
+  </div>
+);
+
+export default EnglishTestIntro;

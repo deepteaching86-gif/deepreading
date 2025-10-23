@@ -87,7 +87,19 @@
       "Bash(do echo \"⏳ 대기 중... $i0초\")",
       "Bash(do echo \"⏳ Netlify 배포 대기 중... $i0초\")",
       "Bash(pip install SuperClaude)",
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "Bash(DATABASE_URL=\"postgresql://postgres.sxnjeqqvqbhueqbwsnpj:DeepReading2025!@#$SecureDB@db.sxnjeqqvqbhueqbwsnpj.supabase.co:5432/postgres\" npx prisma db push:*)",
+      "Bash(pip install:*)",
+      "Bash(do echo \"⏳ 대기 중... $i초\")",
+      "Bash(do echo \"⏳ 서버 시작 대기 중... $i초\")",
+      "Bash(for i in {1..3})",
+      "Bash(do echo \"⏳ 리로드 대기 중... $i초\")",
+      "Bash(start http://localhost:8000/docs)",
+      "Bash(do echo \"⏳ 서버 리로드 대기 중... $i초\")",
+      "Bash(if exist app__pycache__ rd /s /q app__pycache__)",
+      "Bash(if exist appenglish_test__pycache__ rd /s /q appenglish_test__pycache__)",
+      "Bash(do echo \"⏳ 프론트엔드 시작 대기 중... $i초\")",
+      "Bash(start http://localhost:5173)"
     ],
     "deny": [],
     "ask": []

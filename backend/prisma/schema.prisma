@@ -463,3 +463,288 @@ model VisionCalibrationAdjustment {
   @@index([adminId])
   @@map("vision_calibration_adjustments")
 }
+
+// ===== English Adaptive Test Models =====
+
+// Reading comprehension passages
+model Passage {
+  id              Int       @id @default(autoincrement())
+  title           String    @db.VarChar(255)
+  content         String    @db.Text
+
+  // Text complexity metrics
+  lexileScore     Int?      @map("lexile_score")
+  arLevel         Float?    @map("ar_level") @db.DoublePrecision
+  fleschKincaid   Float?    @map("flesch_kincaid") @db.DoublePrecision
+  wordCount       Int       @map("word_count")
+
+  // Categorization
+  genre           String?   @db.VarChar(50)
+  topic           String?   @db.VarChar(100)
+
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  items           Item[]
+  calibrationData LexileCalibrationData[]
+
+  @@map("passages")
+}
+
+enum MSTStage {
+  routing @map("1")
+  stage2  @map("2")
+  stage3  @map("3")
+}
+
+enum MSTPanel {
+  routing
+  low
+  medium
+  high
+  L1
+  L2
+  L3
+  M1
+  M2
+  M3
+  H1
+  H2
+  H3
+}
+
+enum ItemDomain {
+  grammar       // 문법 (32.5% = 13문항)
+  vocabulary    // 어휘 (35.0% = 14문항)
+  reading       // 독해 (32.5% = 13문항)
+}
+
+enum TextType {
+  expository     // 설명문
+  argumentative  // 논증문
+  narrative      // 서사문
+  practical      // 실용문
+}
+
+enum ItemStatus {
+  active
+  flagged       // 부적합 문항
+  inactive
+}
+
+// Test items with IRT 3PL parameters
+model Item {
+  id               Int       @id @default(autoincrement())
+  passageId        Int?      @map("passage_id")
+
+  // Question content
+  stem             String    @db.Text
+  options          Json      @db.JsonB // {"A": "...", "B": "...", "C": "...", "D": "..."}
+  correctAnswer    String    @map("correct_answer") @db.Char(1)
+
+  // Domain classification (FR-002)
+  domain           ItemDomain
+  textType         TextType?  @map("text_type") // For reading items only
+
+  // IRT 3PL Parameters
+  discrimination   Float?     @db.DoublePrecision // a parameter (nullable until calibrated)
+  difficulty       Float?     @db.DoublePrecision // b parameter (nullable until calibrated)
+  guessing         Float      @default(0.25) @db.DoublePrecision // c parameter
+
+  // MST Configuration
+  stage            Int
+  panel            MSTPanel
+  formId           Int       @map("form_id")
+
+  // Metadata
+  skillTag         String?   @map("skill_tag") @db.VarChar(100)
+  exposureCount    Int       @default(0) @map("exposure_count")
+  exposureRate     Float?    @map("exposure_rate") @db.DoublePrecision // Calculated percentage
+
+  // Quality metrics (FR-009)
+  pointBiserial    Float?    @map("point_biserial") @db.DoublePrecision // Discrimination index
+  correctRate      Float?    @map("correct_rate") @db.DoublePrecision // Overall difficulty
+  status           ItemStatus @default(active)
+
+  // Timestamps
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+  calibratedAt     DateTime? @map("calibrated_at") // When IRT params were estimated
+
+  // Relations
+  passage          Passage?  @relation(fields: [passageId], references: [id], onDelete: Cascade)
+  responses        EnglishItemResponse[]
+
+  @@index([stage, panel])
+  @@index([difficulty])
+  @@index([skillTag])
+  @@index([domain])
+  @@index([status])
+  @@index([exposureRate])
+  @@map("items")
+}
+
+// Vocabulary items for VST
+model VocabularyItem {
+  id               Int       @id @default(autoincrement())
+  word             String    @unique @db.VarChar(100)
+
+  // Frequency band
+  frequencyBand    String    @map("frequency_band") @db.VarChar(10)
+  frequencyRank    Int?      @map("frequency_rank")
+
+  // VST structure
+  targetWord       String    @map("target_word") @db.VarChar(100)
+  options          Json      @db.JsonB
+  correctAnswer    String    @map("correct_answer") @db.Char(1)
+
+  // Pseudo-word flag
+  isPseudo         Boolean   @default(false) @map("is_pseudo")
+
+  // IRT Parameters
+  discrimination   Float?    @db.DoublePrecision
+  difficulty       Float?    @db.DoublePrecision
+  guessing         Float     @default(0.25) @db.DoublePrecision
+
+  formId           Int       @map("form_id")
+  exposureCount    Int       @default(0) @map("exposure_count")
+
+  createdAt        DateTime  @default(now()) @map("created_at")
+
+  // Relations
+  responses        VocabularyResponse[]
+
+  @@index([frequencyBand])
+  @@map("vocabulary_items")
+}
+
+enum EnglishTestStatus {
+  in_progress
+  completed
+  abandoned
+}
+
+// English test sessions
+model EnglishTestSession {
+  id                 Int       @id @default(autoincrement())
+  userId             String    @map("user_id") @db.Uuid
+
+  // Session metadata
+  startedAt          DateTime  @default(now()) @map("started_at")
+  completedAt        DateTime? @map("completed_at")
+
+  // MST routing results
+  stage1Theta        Float?    @map("stage1_theta") @db.DoublePrecision
+  stage2Panel        MSTPanel? @map("stage2_panel")
+  stage3Panel        MSTPanel? @map("stage3_panel")
+
+  // Final results
+  finalTheta         Float?    @map("final_theta") @db.DoublePrecision
+  standardError      Float?    @map("standard_error") @db.DoublePrecision
+  proficiencyLevel   Int?      @map("proficiency_level")
+
+  // Lexile/AR scores
+  lexileScore        Int?      @map("lexile_score")
+  arLevel            Float?    @map("ar_level") @db.DoublePrecision
+
+  // Vocabulary results
+  vocabularySize     Int?      @map("vocabulary_size")
+  vocabularyBands    Json?     @map("vocabulary_bands") @db.JsonB
+
+  // Performance metadata
+  totalItems         Int       @default(40) @map("total_items")
+  correctCount       Int?      @map("correct_count")
+  responseTimeAvg    Float?    @map("response_time_avg") @db.DoublePrecision
+
+  // Status
+  status             EnglishTestStatus @default(in_progress)
+
+  // Relations
+  itemResponses      EnglishItemResponse[]
+  vocabularyResponses VocabularyResponse[]
+
+  @@index([userId])
+  @@index([completedAt])
+  @@map("english_test_sessions")
+}
+
+// Item responses
+model EnglishItemResponse {
+  id               Int       @id @default(autoincrement())
+  sessionId        Int       @map("session_id")
+  itemId           Int       @map("item_id")
+
+  // Response data
+  stage            Int
+  itemOrder        Int       @map("item_order")
+  selectedAnswer   String?   @map("selected_answer") @db.Char(1)
+  isCorrect        Boolean   @map("is_correct")
+
+  // Timing
+  responseTime     Int?      @map("response_time") // milliseconds
+
+  // IRT estimation at time of response
+  thetaEstimate    Float?    @map("theta_estimate") @db.DoublePrecision
+  seEstimate       Float?    @map("se_estimate") @db.DoublePrecision
+
+  answeredAt       DateTime  @default(now()) @map("answered_at")
+
+  // Relations
+  session          EnglishTestSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  item             Item @relation(fields: [itemId], references: [id])
+
+  @@index([sessionId])
+  @@map("english_item_responses")
+}
+
+// Vocabulary responses
+model VocabularyResponse {
+  id               Int       @id @default(autoincrement())
+  sessionId        Int       @map("session_id")
+  vocabItemId      Int       @map("vocab_item_id")
+
+  selectedAnswer   String?   @map("selected_answer") @db.Char(1)
+  isCorrect        Boolean   @map("is_correct")
+  responseTime     Int?      @map("response_time")
+
+  answeredAt       DateTime  @default(now()) @map("answered_at")
+
+  // Relations
+  session          EnglishTestSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  vocabItem        VocabularyItem @relation(fields: [vocabItemId], references: [id])
+
+  @@index([sessionId])
+  @@map("vocabulary_responses")
+}
+
+// Lexile calibration data for ML model training
+model LexileCalibrationData {
+  id                     Int       @id @default(autoincrement())
+  passageId              Int       @map("passage_id")
+
+  // Text features (12 features)
+  meanSentenceLength     Float     @map("mean_sentence_length") @db.DoublePrecision
+  meanZipfFrequency      Float     @map("mean_zipf_frequency") @db.DoublePrecision
+  fleschKincaidGrade     Float     @map("flesch_kincaid_grade") @db.DoublePrecision
+  gunningFog             Float     @map("gunning_fog") @db.DoublePrecision
+  smogIndex              Float     @map("smog_index") @db.DoublePrecision
+  colemanLiau            Float     @map("coleman_liau") @db.DoublePrecision
+  ariIndex               Float     @map("ari_index") @db.DoublePrecision
+  uniqueWordRatio        Float     @map("unique_word_ratio") @db.DoublePrecision
+  academicWordRatio      Float     @map("academic_word_ratio") @db.DoublePrecision
+  complexWordRatio       Float     @map("complex_word_ratio") @db.DoublePrecision
+  syllablePerWord        Float     @map("syllable_per_word") @db.DoublePrecision
+  dependencyDepth        Float     @map("dependency_depth") @db.DoublePrecision
+
+  // Target variables
+  lexileScore            Int       @map("lexile_score")
+  arLevel                Float?    @map("ar_level") @db.DoublePrecision
+
+  createdAt              DateTime  @default(now()) @map("created_at")
+
+  // Relations
+  passage                Passage   @relation(fields: [passageId], references: [id], onDelete: Cascade)
+
+  @@map("lexile_calibration_data")
+}
