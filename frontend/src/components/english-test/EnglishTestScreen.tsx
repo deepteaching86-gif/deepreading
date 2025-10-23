@@ -33,7 +33,6 @@ interface EnglishTestScreenProps {
 }
 
 export const EnglishTestScreen: React.FC<EnglishTestScreenProps> = ({
-  sessionId,
   currentItem,
   itemsCompleted,
   totalItems,

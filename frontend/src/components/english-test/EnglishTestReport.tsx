@@ -9,7 +9,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 
-interface TestResults {
+export interface TestResults {
   sessionId: number;
   finalTheta: number;
   standardError: number;

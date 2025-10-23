@@ -15,6 +15,7 @@ import {
   SubmitResponseResponse,
   FinalResults,
 } from '@/api/englishTestApi';
+import { TestResults } from '@/components/english-test/EnglishTestReport';
 
 export type TestStage = 'intro' | 'testing' | 'loading' | 'completed' | 'error';
 
@@ -28,7 +29,7 @@ interface TestState {
   mstPanel: string;
   currentTheta: number | null;
   standardError: number | null;
-  finalResults: FinalResults | null;
+  finalResults: TestResults | null;
   error: string | null;
   isSubmitting: boolean;
 }
@@ -98,7 +99,23 @@ export const useEnglishTest = (userId: string) => {
           // Finalize test
           setState((prev) => ({ ...prev, stage: 'loading' }));
 
-          const finalResults = await finalizeTest(state.sessionId!);
+          const apiResults: FinalResults = await finalizeTest(state.sessionId!);
+
+          // Transform snake_case API response to camelCase for React
+          const finalResults: TestResults = {
+            sessionId: apiResults.session_id,
+            finalTheta: apiResults.final_theta,
+            standardError: apiResults.standard_error,
+            proficiencyLevel: apiResults.proficiency_level,
+            lexileScore: apiResults.lexile_score ?? undefined,
+            arLevel: apiResults.ar_level ?? undefined,
+            vocabularySize: apiResults.vocabulary_size ?? undefined,
+            vocabularyBands: apiResults.vocabulary_bands ?? undefined,
+            totalItems: apiResults.total_items,
+            correctCount: apiResults.correct_count,
+            accuracyPercentage: apiResults.accuracy_percentage,
+            completedAt: apiResults.completed_at,
+          };
 
           setState((prev) => ({
             ...prev,
