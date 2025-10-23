@@ -1,0 +1,5906 @@
+[
+  {
+    "stem": "He usually _____ study on Sundays.",
+    "options": {
+      "A": "play",
+      "B": "plays",
+      "C": "playing",
+      "D": "played"
+    },
+    "correct_answer": "B",
+    "domain": "grammar",
+    "skill_tag": "present_simple",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.74,
+    "difficulty": -2.0
+  },
+  {
+    "stem": "We _____ eat at school.",
+    "options": {
+      "A": "study",
+      "B": "studies",
+      "C": "studying",
+      "D": "studied"
+    },
+    "correct_answer": "A",
+    "domain": "grammar",
+    "skill_tag": "present_simple",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.75,
+    "difficulty": -1.92
+  },
+  {
+    "stem": "We _____ read at school.",
+    "options": {
+      "A": "study",
+      "B": "studies",
+      "C": "studying",
+      "D": "studied"
+    },
+    "correct_answer": "A",
+    "domain": "grammar",
+    "skill_tag": "present_simple",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.38,
+    "difficulty": -1.84
+  },
+  {
+    "stem": "They _____ speak morning.",
+    "options": {
+      "A": "is",
+      "B": "am",
+      "C": "are",
+      "D": "be"
+    },
+    "correct_answer": "C",
+    "domain": "grammar",
+    "skill_tag": "present_simple",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.14,
+    "difficulty": -1.76
+  },
+  {
+    "stem": "She _____ work today.",
+    "options": {
+      "A": "is working",
+      "B": "works",
+      "C": "worked",
+      "D": "work"
+    },
+    "correct_answer": "A",
+    "domain": "grammar",
+    "skill_tag": "present_continuous",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.27,
+    "difficulty": -1.68
+  },
+  {
+    "stem": "We _____ play right now.",
+    "options": {
+      "A": "was",
+      "B": "were",
+      "C": "is",
+      "D": "are"
+    },
+    "correct_answer": "A",
+    "domain": "grammar",
+    "skill_tag": "present_continuous",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.01,
+    "difficulty": -1.6
+  },
+  {
+    "stem": "They are _____ study at the moment.",
+    "options": {
+      "A": "play",
+      "B": "plays",
+      "C": "playing",
+      "D": "played"
+    },
+    "correct_answer": "C",
+    "domain": "grammar",
+    "skill_tag": "present_continuous",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.57,
+    "difficulty": -1.52
+  },
+  {
+    "stem": "They are _____ write at the moment.",
+    "options": {
+      "A": "do",
+      "B": "does",
+      "C": "doing",
+      "D": "did"
+    },
+    "correct_answer": "C",
+    "domain": "grammar",
+    "skill_tag": "present_continuous",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.41,
+    "difficulty": -1.44
+  },
+  {
+    "stem": "She _____ computer evening.",
+    "options": {
+      "A": "find",
+      "B": "found",
+      "C": "founded",
+      "D": "finding"
+    },
+    "correct_answer": "B",
+    "domain": "grammar",
+    "skill_tag": "past_simple",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.54,
+    "difficulty": -1.36
+  },
+  {
+    "stem": "She _____ computer month.",
+    "options": {
+      "A": "find",
+      "B": "found",
+      "C": "founded",
+      "D": "finding"
+    },
+    "correct_answer": "B",
+    "domain": "grammar",
+    "skill_tag": "past_simple",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.14,
+    "difficulty": -1.28
+  },
+  {
+    "stem": "They _____ the key yesterday.",
+    "options": {
+      "A": "wash",
+      "B": "washed",
+      "C": "washing",
+      "D": "washes"
+    },
+    "correct_answer": "B",
+    "domain": "grammar",
+    "skill_tag": "past_simple",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.77,
+    "difficulty": -1.2
+  },
+  {
+    "stem": "{Time}, I _____ speak.",
+    "options": {
+      "A": "go",
+      "B": "went",
+      "C": "gone",
+      "D": "going"
+    },
+    "correct_answer": "B",
+    "domain": "grammar",
+    "skill_tag": "past_simple",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.38,
+    "difficulty": -1.12
+  },
+  {
+    "stem": "She _____ probably eat.",
+    "options": {
+      "A": "would",
+      "B": "will",
+      "C": "is",
+      "D": "was"
+    },
+    "correct_answer": "A",
+    "domain": "grammar",
+    "skill_tag": "future_forms",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.72,
+    "difficulty": -1.04
+  },
+  {
+    "stem": "They _____ work next evening.",
+    "options": {
+      "A": "are going to",
+      "B": "were going to",
+      "C": "will",
+      "D": "would"
+    },
+    "correct_answer": "D",
+    "domain": "grammar",
+    "skill_tag": "future_forms",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.47,
+    "difficulty": -0.96
+  },
+  {
+    "stem": "They _____ read next Tuesday.",
+    "options": {
+      "A": "will",
+      "B": "would",
+      "C": "are",
+      "D": "were"
+    },
+    "correct_answer": "C",
+    "domain": "grammar",
+    "skill_tag": "future_forms",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.01,
+    "difficulty": -0.88
+  },
+  {
+    "stem": "{Time}, I _____ speak.",
+    "options": {
+      "A": "will",
+      "B": "would",
+      "C": "am",
+      "D": "was"
+    },
+    "correct_answer": "A",
+    "domain": "grammar",
+    "skill_tag": "future_forms",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.03,
+    "difficulty": -0.8
+  },
+  {
+    "stem": "It _____ eat later.",
+    "options": {
+      "A": "must",
+      "B": "should",
+      "C": "might",
+      "D": "will"
+    },
+    "correct_answer": "C",
+    "domain": "grammar",
+    "skill_tag": "modal_verbs",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.67,
+    "difficulty": -0.72
+  },
+  {
+    "stem": "You _____ write phone.",
+    "options": {
+      "A": "can",
+      "B": "must",
+      "C": "may",
+      "D": "might"
+    },
+    "correct_answer": "D",
+    "domain": "grammar",
+    "skill_tag": "modal_verbs",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.78,
+    "difficulty": -0.64
+  },
+  {
+    "stem": "Students _____ swim in the library.",
+    "options": {
+      "A": "could",
+      "B": "might",
+      "C": "would",
+      "D": "will"
+    },
+    "correct_answer": "D",
+    "domain": "grammar",
+    "skill_tag": "modal_verbs",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.34,
+    "difficulty": -0.56
+  },
+  {
+    "stem": "You _____ write phone.",
+    "options": {
+      "A": "should",
+      "B": "could",
+      "C": "would",
+      "D": "will"
+    },
+    "correct_answer": "C",
+    "domain": "grammar",
+    "skill_tag": "modal_verbs",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.44,
+    "difficulty": -0.48
+  },
+  {
+    "stem": "If it speak, we _____ stay home.",
+    "options": {
+      "A": "would",
+      "B": "will",
+      "C": "could",
+      "D": "can"
+    },
+    "correct_answer": "A",
+    "domain": "grammar",
+    "skill_tag": "conditionals",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.08,
+    "difficulty": -0.4
+  },
+  {
+    "stem": "Unless you run, you _____ succeed.",
+    "options": {
+      "A": "will",
+      "B": "would",
+      "C": "can",
+      "D": "might"
+    },
+    "correct_answer": "A",
+    "domain": "grammar",
+    "skill_tag": "conditionals",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.63,
+    "difficulty": -0.32
+  },
+  {
+    "stem": "If I _____ rich, I sleep.",
+    "options": {
+      "A": "am",
+      "B": "was",
+      "C": "were",
+      "D": "be"
+    },
+    "correct_answer": "C",
+    "domain": "grammar",
+    "skill_tag": "conditionals",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.57,
+    "difficulty": -0.24
+  },
+  {
+    "stem": "Unless you play, you _____ succeed.",
+    "options": {
+      "A": "won't",
+      "B": "wouldn't",
+      "C": "can't",
+      "D": "might not"
+    },
+    "correct_answer": "A",
+    "domain": "grammar",
+    "skill_tag": "conditionals",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.29,
+    "difficulty": -0.16
+  },
+  {
+    "stem": "The house _____ in 1950.",
+    "options": {
+      "A": "built",
+      "B": "was built",
+      "C": "is built",
+      "D": "building"
+    },
+    "correct_answer": "B",
+    "domain": "grammar",
+    "skill_tag": "passive_voice",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.44,
+    "difficulty": -0.08
+  },
+  {
+    "stem": "The house _____ in 1980.",
+    "options": {
+      "A": "built",
+      "B": "was built",
+      "C": "is built",
+      "D": "building"
+    },
+    "correct_answer": "B",
+    "domain": "grammar",
+    "skill_tag": "passive_voice",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.33,
+    "difficulty": 0.0
+  },
+  {
+    "stem": "The project _____ completed year.",
+    "options": {
+      "A": "has",
+      "B": "has been",
+      "C": "is",
+      "D": "was"
+    },
+    "correct_answer": "B",
+    "domain": "grammar",
+    "skill_tag": "passive_voice",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.29,
+    "difficulty": 0.08
+  },
+  {
+    "stem": "The pen _____ by millions.",
+    "options": {
+      "A": "read",
+      "B": "reads",
+      "C": "is read",
+      "D": "reading"
+    },
+    "correct_answer": "C",
+    "domain": "grammar",
+    "skill_tag": "passive_voice",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.14,
+    "difficulty": 0.16
+  },
+  {
+    "stem": "This is the house _____ I eat.",
+    "options": {
+      "A": "that",
+      "B": "which",
+      "C": "who",
+      "D": "where"
+    },
+    "correct_answer": "C",
+    "domain": "grammar",
+    "skill_tag": "relative_clauses",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.36,
+    "difficulty": 0.24
+  },
+  {
+    "stem": "This is the pen _____ I write.",
+    "options": {
+      "A": "that",
+      "B": "which",
+      "C": "who",
+      "D": "where"
+    },
+    "correct_answer": "C",
+    "domain": "grammar",
+    "skill_tag": "relative_clauses",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.09,
+    "difficulty": 0.32
+  },
+  {
+    "stem": "The woman _____ computer was stolen called police.",
+    "options": {
+      "A": "who",
+      "B": "whose",
+      "C": "which",
+      "D": "that"
+    },
+    "correct_answer": "B",
+    "domain": "grammar",
+    "skill_tag": "relative_clauses",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.71,
+    "difficulty": 0.4
+  },
+  {
+    "stem": "The doctor _____ eat is my friend.",
+    "options": {
+      "A": "that",
+      "B": "which",
+      "C": "who",
+      "D": "whom"
+    },
+    "correct_answer": "B",
+    "domain": "grammar",
+    "skill_tag": "relative_clauses",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.54,
+    "difficulty": 0.48
+  },
+  {
+    "stem": "He told me that he _____ finished.",
+    "options": {
+      "A": "was",
+      "B": "is",
+      "C": "had",
+      "D": "has"
+    },
+    "correct_answer": "C",
+    "domain": "grammar",
+    "skill_tag": "reported_speech",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.06,
+    "difficulty": 0.56
+  },
+  {
+    "stem": "They said they _____ us tomorrow.",
+    "options": {
+      "A": "will call",
+      "B": "would call",
+      "C": "called",
+      "D": "calling"
+    },
+    "correct_answer": "B",
+    "domain": "grammar",
+    "skill_tag": "reported_speech",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.71,
+    "difficulty": 0.64
+  },
+  {
+    "stem": "He told me that he _____ finished.",
+    "options": {
+      "A": "has",
+      "B": "have",
+      "C": "had",
+      "D": "having"
+    },
+    "correct_answer": "C",
+    "domain": "grammar",
+    "skill_tag": "reported_speech",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.24,
+    "difficulty": 0.72
+  },
+  {
+    "stem": "They said they _____ us tomorrow.",
+    "options": {
+      "A": "call",
+      "B": "called",
+      "C": "will call",
+      "D": "would call"
+    },
+    "correct_answer": "B",
+    "domain": "grammar",
+    "skill_tag": "reported_speech",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.24,
+    "difficulty": 0.8
+  },
+  {
+    "stem": "She was tired because she _____ all day.",
+    "options": {
+      "A": "work",
+      "B": "worked",
+      "C": "had worked",
+      "D": "working"
+    },
+    "correct_answer": "C",
+    "domain": "grammar",
+    "skill_tag": "past_perfect",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.55,
+    "difficulty": 0.88
+  },
+  {
+    "stem": "When I arrived, they _____ left.",
+    "options": {
+      "A": "have",
+      "B": "has",
+      "C": "had",
+      "D": "having"
+    },
+    "correct_answer": "C",
+    "domain": "grammar",
+    "skill_tag": "past_perfect",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.76,
+    "difficulty": 0.96
+  },
+  {
+    "stem": "By the time we got there, the movie _____.",
+    "options": {
+      "A": "started",
+      "B": "had started",
+      "C": "has started",
+      "D": "starting"
+    },
+    "correct_answer": "B",
+    "domain": "grammar",
+    "skill_tag": "past_perfect",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.56,
+    "difficulty": 1.04
+  },
+  {
+    "stem": "By the time we got there, the movie _____.",
+    "options": {
+      "A": "started",
+      "B": "had started",
+      "C": "has started",
+      "D": "starting"
+    },
+    "correct_answer": "B",
+    "domain": "grammar",
+    "skill_tag": "past_perfect",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.33,
+    "difficulty": 1.12
+  },
+  {
+    "stem": "The meeting starts _____ day.",
+    "options": {
+      "A": "to",
+      "B": "at",
+      "C": "in",
+      "D": "on"
+    },
+    "correct_answer": "A",
+    "domain": "grammar",
+    "skill_tag": "articles_prepositions",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.1,
+    "difficulty": 1.2
+  },
+  {
+    "stem": "I go to _____ office every morning.",
+    "options": {
+      "A": "a",
+      "B": "an",
+      "C": "the",
+      "D": "-"
+    },
+    "correct_answer": "C",
+    "domain": "grammar",
+    "skill_tag": "articles_prepositions",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.74,
+    "difficulty": 1.28
+  },
+  {
+    "stem": "She lives _____ Beijing.",
+    "options": {
+      "A": "at",
+      "B": "in",
+      "C": "on",
+      "D": "by"
+    },
+    "correct_answer": "B",
+    "domain": "grammar",
+    "skill_tag": "articles_prepositions",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.28,
+    "difficulty": 1.36
+  },
+  {
+    "stem": "The meeting starts _____ week.",
+    "options": {
+      "A": "to",
+      "B": "at",
+      "C": "in",
+      "D": "on"
+    },
+    "correct_answer": "A",
+    "domain": "grammar",
+    "skill_tag": "articles_prepositions",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.12,
+    "difficulty": 1.44
+  },
+  {
+    "stem": "He usually _____ swim on Tuesday.",
+    "options": {
+      "A": "work",
+      "B": "works",
+      "C": "working",
+      "D": "worked"
+    },
+    "correct_answer": "B",
+    "domain": "grammar",
+    "skill_tag": "present_simple",
+    "stage": 2,
+    "panel": "low",
+    "discrimination": 1.63,
+    "difficulty": -0.98
+  },
+  {
+    "stem": "We _____ read at school.",
+    "options": {
+      "A": "study",
+      "B": "studies",
+      "C": "studying",
+      "D": "studied"
+    },
+    "correct_answer": "A",
+    "domain": "grammar",
+    "skill_tag": "present_simple",
+    "stage": 2,
+    "panel": "low",
+    "discrimination": 1.62,
+    "difficulty": -2.42
+  },
+  {
+    "stem": "She _____ sleep today.",
+    "options": {
+      "A": "is working",
+      "B": "works",
+      "C": "worked",
+      "D": "work"
+    },
+    "correct_answer": "A",
+    "domain": "grammar",
+    "skill_tag": "present_continuous",
+    "stage": 2,
+    "panel": "low",
+    "discrimination": 1.42,
+    "difficulty": -1.63
+  },
+  {
+    "stem": "They are _____ sleep at the moment.",
+    "options": {
+      "A": "do",
+      "B": "does",
+      "C": "doing",
+      "D": "did"
+    },
+    "correct_answer": "C",
+    "domain": "grammar",
+    "skill_tag": "present_continuous",
+    "stage": 2,
+    "panel": "low",
+    "discrimination": 1.67,
+    "difficulty": -1.78
+  },
+  {
+    "stem": "{Time}, I _____ sleep.",
+    "options": {
+      "A": "see",
+      "B": "saw",
+      "C": "seen",
+      "D": "seeing"
+    },
+    "correct_answer": "B",
+    "domain": "grammar",
+    "skill_tag": "past_simple",
+    "stage": 2,
+    "panel": "low",
+    "discrimination": 1.61,
+    "difficulty": -2.23
+  },
+  {
+    "stem": "She _____ house day.",
+    "options": {
+      "A": "buy",
+      "B": "bought",
+      "C": "buyed",
+      "D": "buying"
+    },
+    "correct_answer": "B",
+    "domain": "grammar",
+    "skill_tag": "past_simple",
+    "stage": 2,
+    "panel": "low",
+    "discrimination": 1.75,
+    "difficulty": -2.37
+  },
+  {
+    "stem": "She _____ probably write.",
+    "options": {
+      "A": "will",
+      "B": "is",
+      "C": "was",
+      "D": "were"
+    },
+    "correct_answer": "A",
+    "domain": "grammar",
+    "skill_tag": "future_forms",
+    "stage": 2,
+    "panel": "low",
+    "discrimination": 1.46,
+    "difficulty": -1.77
+  },
+  {
+    "stem": "{Time}, I _____ write.",
+    "options": {
+      "A": "am going to",
+      "B": "was going to",
+      "C": "will",
+      "D": "would"
+    },
+    "correct_answer": "A",
+    "domain": "grammar",
+    "skill_tag": "future_forms",
+    "stage": 2,
+    "panel": "low",
+    "discrimination": 1.36,
+    "difficulty": -1.05
+  },
+  {
+    "stem": "You _____ write key.",
+    "options": {
+      "A": "can",
+      "B": "must",
+      "C": "may",
+      "D": "might"
+    },
+    "correct_answer": "B",
+    "domain": "grammar",
+    "skill_tag": "modal_verbs",
+    "stage": 2,
+    "panel": "low",
+    "discrimination": 1.57,
+    "difficulty": -0.57
+  },
+  {
+    "stem": "Students _____ write in the library.",
+    "options": {
+      "A": "could",
+      "B": "might",
+      "C": "would",
+      "D": "will"
+    },
+    "correct_answer": "A",
+    "domain": "grammar",
+    "skill_tag": "modal_verbs",
+    "stage": 2,
+    "panel": "low",
+    "discrimination": 1.35,
+    "difficulty": -0.51
+  },
+  {
+    "stem": "If it eat, we _____ stay home.",
+    "options": {
+      "A": "will",
+      "B": "would",
+      "C": "can",
+      "D": "must"
+    },
+    "correct_answer": "A",
+    "domain": "grammar",
+    "skill_tag": "conditionals",
+    "stage": 2,
+    "panel": "low",
+    "discrimination": 1.7,
+    "difficulty": -1.63
+  },
+  {
+    "stem": "If it speak, we _____ stay home.",
+    "options": {
+      "A": "will",
+      "B": "would",
+      "C": "can",
+      "D": "must"
+    },
+    "correct_answer": "A",
+    "domain": "grammar",
+    "skill_tag": "conditionals",
+    "stage": 2,
+    "panel": "low",
+    "discrimination": 1.53,
+    "difficulty": -1.9
+  },
+  {
+    "stem": "The project _____ completed Monday.",
+    "options": {
+      "A": "has",
+      "B": "has been",
+      "C": "is",
+      "D": "was"
+    },
+    "correct_answer": "B",
+    "domain": "grammar",
+    "skill_tag": "passive_voice",
+    "stage": 2,
+    "panel": "low",
+    "discrimination": 1.27,
+    "difficulty": -0.65
+  },
+  {
+    "stem": "The house _____ in 2010.",
+    "options": {
+      "A": "built",
+      "B": "was built",
+      "C": "is built",
+      "D": "building"
+    },
+    "correct_answer": "B",
+    "domain": "grammar",
+    "skill_tag": "passive_voice",
+    "stage": 2,
+    "panel": "low",
+    "discrimination": 1.29,
+    "difficulty": -0.78
+  },
+  {
+    "stem": "This is the phone _____ I study.",
+    "options": {
+      "A": "who",
+      "B": "whose",
+      "C": "which",
+      "D": "whom"
+    },
+    "correct_answer": "C",
+    "domain": "grammar",
+    "skill_tag": "relative_clauses",
+    "stage": 2,
+    "panel": "low",
+    "discrimination": 1.27,
+    "difficulty": -2.05
+  },
+  {
+    "stem": "The woman _____ key was stolen called police.",
+    "options": {
+      "A": "whom",
+      "B": "who",
+      "C": "which",
+      "D": "that"
+    },
+    "correct_answer": "B",
+    "domain": "grammar",
+    "skill_tag": "relative_clauses",
+    "stage": 2,
+    "panel": "low",
+    "discrimination": 1.66,
+    "difficulty": -2.16
+  },
+  {
+    "stem": "He told me that he _____ finished.",
+    "options": {
+      "A": "was",
+      "B": "is",
+      "C": "had",
+      "D": "has"
+    },
+    "correct_answer": "C",
+    "domain": "grammar",
+    "skill_tag": "reported_speech",
+    "stage": 2,
+    "panel": "low",
+    "discrimination": 1.6,
+    "difficulty": -2.29
+  },
+  {
+    "stem": "She said that she _____ tired.",
+    "options": {
+      "A": "is",
+      "B": "was",
+      "C": "be",
+      "D": "been"
+    },
+    "correct_answer": "B",
+    "domain": "grammar",
+    "skill_tag": "reported_speech",
+    "stage": 2,
+    "panel": "low",
+    "discrimination": 1.59,
+    "difficulty": -1.37
+  },
+  {
+    "stem": "By the time we got there, the movie _____.",
+    "options": {
+      "A": "started",
+      "B": "had started",
+      "C": "has started",
+      "D": "starting"
+    },
+    "correct_answer": "B",
+    "domain": "grammar",
+    "skill_tag": "past_perfect",
+    "stage": 2,
+    "panel": "low",
+    "discrimination": 1.6,
+    "difficulty": -0.7
+  },
+  {
+    "stem": "By the time we got there, the movie _____.",
+    "options": {
+      "A": "finished",
+      "B": "had finished",
+      "C": "has finished",
+      "D": "finishing"
+    },
+    "correct_answer": "B",
+    "domain": "grammar",
+    "skill_tag": "past_perfect",
+    "stage": 2,
+    "panel": "low",
+    "discrimination": 1.52,
+    "difficulty": -2.36
+  },
+  {
+    "stem": "The meeting starts _____ day.",
+    "options": {
+      "A": "at",
+      "B": "in",
+      "C": "on",
+      "D": "by"
+    },
+    "correct_answer": "A",
+    "domain": "grammar",
+    "skill_tag": "articles_prepositions",
+    "stage": 2,
+    "panel": "low",
+    "discrimination": 1.49,
+    "difficulty": -0.74
+  },
+  {
+    "stem": "The meeting starts _____ year.",
+    "options": {
+      "A": "to",
+      "B": "at",
+      "C": "in",
+      "D": "on"
+    },
+    "correct_answer": "A",
+    "domain": "grammar",
+    "skill_tag": "articles_prepositions",
+    "stage": 2,
+    "panel": "low",
+    "discrimination": 1.66,
+    "difficulty": -2.21
+  },
+  {
+    "stem": "I always _____ sleep in the morning.",
+    "options": {
+      "A": "eat",
+      "B": "eats",
+      "C": "eating",
+      "D": "eaten"
+    },
+    "correct_answer": "A",
+    "domain": "grammar",
+    "skill_tag": "present_simple",
+    "stage": 2,
+    "panel": "medium",
+    "discrimination": 1.63,
+    "difficulty": -0.36
+  },
+  {
+    "stem": "He usually _____ sleep on Tuesday.",
+    "options": {
+      "A": "play",
+      "B": "plays",
+      "C": "playing",
+      "D": "played"
+    },
+    "correct_answer": "B",
+    "domain": "grammar",
+    "skill_tag": "present_simple",
+    "stage": 2,
+    "panel": "medium",
+    "discrimination": 1.78,
+    "difficulty": -0.39
+  },
+  {
+    "stem": "They are _____ read at the moment.",
+    "options": {
+      "A": "do",
+      "B": "does",
+      "C": "doing",
+      "D": "did"
+    },
+    "correct_answer": "C",
+    "domain": "grammar",
+    "skill_tag": "present_continuous",
+    "stage": 2,
+    "panel": "medium",
+    "discrimination": 1.9,
+    "difficulty": -0.21
+  },
+  {
+    "stem": "She _____ work today.",
+    "options": {
+      "A": "is working",
+      "B": "works",
+      "C": "worked",
+      "D": "work"
+    },
+    "correct_answer": "A",
+    "domain": "grammar",
+    "skill_tag": "present_continuous",
+    "stage": 2,
+    "panel": "medium",
+    "discrimination": 1.72,
+    "difficulty": 0.74
+  },
+  {
+    "stem": "They _____ the phone yesterday.",
+    "options": {
+      "A": "wash",
+      "B": "washed",
+      "C": "washing",
+      "D": "washes"
+    },
+    "correct_answer": "B",
+    "domain": "grammar",
+    "skill_tag": "past_simple",
+    "stage": 2,
+    "panel": "medium",
+    "discrimination": 1.39,
+    "difficulty": 0.43
+  },
+  {
+    "stem": "She _____ key month.",
+    "options": {
+      "A": "buy",
+      "B": "bought",
+      "C": "buyed",
+      "D": "buying"
+    },
+    "correct_answer": "B",
+    "domain": "grammar",
+    "skill_tag": "past_simple",
+    "stage": 2,
+    "panel": "medium",
+    "discrimination": 1.48,
+    "difficulty": 0.32
+  },
+  {
+    "stem": "They _____ eat next year.",
+    "options": {
+      "A": "will",
+      "B": "would",
+      "C": "are",
+      "D": "were"
+    },
+    "correct_answer": "B",
+    "domain": "grammar",
+    "skill_tag": "future_forms",
+    "stage": 2,
+    "panel": "medium",
+    "discrimination": 1.35,
+    "difficulty": 0.64
+  },
+  {
+    "stem": "She _____ probably swim.",
+    "options": {
+      "A": "will",
+      "B": "is",
+      "C": "was",
+      "D": "were"
+    },
+    "correct_answer": "A",
+    "domain": "grammar",
+    "skill_tag": "future_forms",
+    "stage": 2,
+    "panel": "medium",
+    "discrimination": 1.83,
+    "difficulty": -0.46
+  },
+  {
+    "stem": "You _____ read computer.",
+    "options": {
+      "A": "can",
+      "B": "must",
+      "C": "may",
+      "D": "might"
+    },
+    "correct_answer": "C",
+    "domain": "grammar",
+    "skill_tag": "modal_verbs",
+    "stage": 2,
+    "panel": "medium",
+    "discrimination": 1.4,
+    "difficulty": 0.38
+  },
+  {
+    "stem": "Students _____ play in the library.",
+    "options": {
+      "A": "could",
+      "B": "might",
+      "C": "would",
+      "D": "will"
+    },
+    "correct_answer": "A",
+    "domain": "grammar",
+    "skill_tag": "modal_verbs",
+    "stage": 2,
+    "panel": "medium",
+    "discrimination": 1.58,
+    "difficulty": 0.29
+  },
+  {
+    "stem": "If I _____ rich, I speak.",
+    "options": {
+      "A": "have",
+      "B": "had",
+      "C": "has",
+      "D": "having"
+    },
+    "correct_answer": "C",
+    "domain": "grammar",
+    "skill_tag": "conditionals",
+    "stage": 2,
+    "panel": "medium",
+    "discrimination": 1.56,
+    "difficulty": 0.37
+  },
+  {
+    "stem": "Unless you work, you _____ succeed.",
+    "options": {
+      "A": "won't",
+      "B": "wouldn't",
+      "C": "can't",
+      "D": "might not"
+    },
+    "correct_answer": "C",
+    "domain": "grammar",
+    "skill_tag": "conditionals",
+    "stage": 2,
+    "panel": "medium",
+    "discrimination": 1.36,
+    "difficulty": 0.44
+  },
+  {
+    "stem": "The key _____ by everyone.",
+    "options": {
+      "A": "read",
+      "B": "reads",
+      "C": "is read",
+      "D": "reading"
+    },
+    "correct_answer": "C",
+    "domain": "grammar",
+    "skill_tag": "passive_voice",
+    "stage": 2,
+    "panel": "medium",
+    "discrimination": 1.87,
+    "difficulty": -0.09
+  },
+  {
+    "stem": "The project _____ completed year.",
+    "options": {
+      "A": "will",
+      "B": "will be",
+      "C": "is",
+      "D": "was"
+    },
+    "correct_answer": "B",
+    "domain": "grammar",
+    "skill_tag": "passive_voice",
+    "stage": 2,
+    "panel": "medium",
+    "discrimination": 1.77,
+    "difficulty": -0.05
+  },
+  {
+    "stem": "The woman _____ phone was stolen called police.",
+    "options": {
+      "A": "who",
+      "B": "whose",
+      "C": "which",
+      "D": "that"
+    },
+    "correct_answer": "B",
+    "domain": "grammar",
+    "skill_tag": "relative_clauses",
+    "stage": 2,
+    "panel": "medium",
+    "discrimination": 1.5,
+    "difficulty": 0.55
+  },
+  {
+    "stem": "The person _____ swim is my friend.",
+    "options": {
+      "A": "which",
+      "B": "who",
+      "C": "whose",
+      "D": "whom"
+    },
+    "correct_answer": "B",
+    "domain": "grammar",
+    "skill_tag": "relative_clauses",
+    "stage": 2,
+    "panel": "medium",
+    "discrimination": 1.34,
+    "difficulty": 0.56
+  },
+  {
+    "stem": "He told me that he _____ finished.",
+    "options": {
+      "A": "was",
+      "B": "is",
+      "C": "had",
+      "D": "has"
+    },
+    "correct_answer": "C",
+    "domain": "grammar",
+    "skill_tag": "reported_speech",
+    "stage": 2,
+    "panel": "medium",
+    "discrimination": 1.45,
+    "difficulty": 0.71
+  },
+  {
+    "stem": "He told me that he _____ finished.",
+    "options": {
+      "A": "has",
+      "B": "have",
+      "C": "had",
+      "D": "having"
+    },
+    "correct_answer": "C",
+    "domain": "grammar",
+    "skill_tag": "reported_speech",
+    "stage": 2,
+    "panel": "medium",
+    "discrimination": 1.34,
+    "difficulty": 0.06
+  },
+  {
+    "stem": "By the time we got there, the movie _____.",
+    "options": {
+      "A": "started",
+      "B": "had started",
+      "C": "has started",
+      "D": "starting"
+    },
+    "correct_answer": "B",
+    "domain": "grammar",
+    "skill_tag": "past_perfect",
+    "stage": 2,
+    "panel": "medium",
+    "discrimination": 1.36,
+    "difficulty": 0.7
+  },
+  {
+    "stem": "She was tired because she _____ all day.",
+    "options": {
+      "A": "work",
+      "B": "worked",
+      "C": "had worked",
+      "D": "working"
+    },
+    "correct_answer": "C",
+    "domain": "grammar",
+    "skill_tag": "past_perfect",
+    "stage": 2,
+    "panel": "medium",
+    "discrimination": 1.64,
+    "difficulty": 0.77
+  },
+  {
+    "stem": "The meeting starts _____ Monday.",
+    "options": {
+      "A": "to",
+      "B": "at",
+      "C": "in",
+      "D": "on"
+    },
+    "correct_answer": "A",
+    "domain": "grammar",
+    "skill_tag": "articles_prepositions",
+    "stage": 2,
+    "panel": "medium",
+    "discrimination": 1.61,
+    "difficulty": 0.97
+  },
+  {
+    "stem": "She lives _____ New York.",
+    "options": {
+      "A": "at",
+      "B": "in",
+      "C": "on",
+      "D": "by"
+    },
+    "correct_answer": "B",
+    "domain": "grammar",
+    "skill_tag": "articles_prepositions",
+    "stage": 2,
+    "panel": "medium",
+    "discrimination": 1.66,
+    "difficulty": -0.36
+  },
+  {
+    "stem": "They _____ play Tuesday.",
+    "options": {
+      "A": "was",
+      "B": "were",
+      "C": "are",
+      "D": "is"
+    },
+    "correct_answer": "C",
+    "domain": "grammar",
+    "skill_tag": "present_simple",
+    "stage": 2,
+    "panel": "high",
+    "discrimination": 1.99,
+    "difficulty": 2.41
+  },
+  {
+    "stem": "I always _____ write in the morning.",
+    "options": {
+      "A": "go",
+      "B": "goes",
+      "C": "going",
+      "D": "gone"
+    },
+    "correct_answer": "A",
+    "domain": "grammar",
+    "skill_tag": "present_simple",
+    "stage": 2,
+    "panel": "high",
+    "discrimination": 1.88,
+    "difficulty": 0.61
+  },
+  {
+    "stem": "She _____ study today.",
+    "options": {
+      "A": "is working",
+      "B": "works",
+      "C": "worked",
+      "D": "work"
+    },
+    "correct_answer": "A",
+    "domain": "grammar",
+    "skill_tag": "present_continuous",
+    "stage": 2,
+    "panel": "high",
+    "discrimination": 1.41,
+    "difficulty": 0.52
+  },
+  {
+    "stem": "They are _____ run at the moment.",
+    "options": {
+      "A": "play",
+      "B": "plays",
+      "C": "playing",
+      "D": "played"
+    },
+    "correct_answer": "C",
+    "domain": "grammar",
+    "skill_tag": "present_continuous",
+    "stage": 2,
+    "panel": "high",
+    "discrimination": 1.56,
+    "difficulty": 1.38
+  },
+  {
+    "stem": "{Time}, I _____ write.",
+    "options": {
+      "A": "go",
+      "B": "went",
+      "C": "gone",
+      "D": "going"
+    },
+    "correct_answer": "B",
+    "domain": "grammar",
+    "skill_tag": "past_simple",
+    "stage": 2,
+    "panel": "high",
+    "discrimination": 1.76,
+    "difficulty": 1.91
+  },
+  {
+    "stem": "{Time}, I _____ run.",
+    "options": {
+      "A": "see",
+      "B": "saw",
+      "C": "seen",
+      "D": "seeing"
+    },
+    "correct_answer": "B",
+    "domain": "grammar",
+    "skill_tag": "past_simple",
+    "stage": 2,
+    "panel": "high",
+    "discrimination": 1.67,
+    "difficulty": 1.17
+  },
+  {
+    "stem": "She _____ probably speak.",
+    "options": {
+      "A": "would",
+      "B": "will",
+      "C": "is",
+      "D": "was"
+    },
+    "correct_answer": "A",
+    "domain": "grammar",
+    "skill_tag": "future_forms",
+    "stage": 2,
+    "panel": "high",
+    "discrimination": 1.57,
+    "difficulty": 1.05
+  },
+  {
+    "stem": "She _____ probably play.",
+    "options": {
+      "A": "would",
+      "B": "will",
+      "C": "is",
+      "D": "was"
+    },
+    "correct_answer": "A",
+    "domain": "grammar",
+    "skill_tag": "future_forms",
+    "stage": 2,
+    "panel": "high",
+    "discrimination": 1.53,
+    "difficulty": 2.24
+  },
+  {
+    "stem": "You _____ write phone.",
+    "options": {
+      "A": "should",
+      "B": "could",
+      "C": "would",
+      "D": "will"
+    },
+    "correct_answer": "C",
+    "domain": "grammar",
+    "skill_tag": "modal_verbs",
+    "stage": 2,
+    "panel": "high",
+    "discrimination": 1.65,
+    "difficulty": 1.16
+  },
+  {
+    "stem": "Students _____ read in the library.",
+    "options": {
+      "A": "could",
+      "B": "might",
+      "C": "would",
+      "D": "will"
+    },
+    "correct_answer": "A",
+    "domain": "grammar",
+    "skill_tag": "modal_verbs",
+    "stage": 2,
+    "panel": "high",
+    "discrimination": 1.82,
+    "difficulty": 1.17
+  },
+  {
+    "stem": "If it eat, we _____ stay home.",
+    "options": {
+      "A": "would",
+      "B": "will",
+      "C": "could",
+      "D": "can"
+    },
+    "correct_answer": "A",
+    "domain": "grammar",
+    "skill_tag": "conditionals",
+    "stage": 2,
+    "panel": "high",
+    "discrimination": 1.49,
+    "difficulty": 1.37
+  },
+  {
+    "stem": "If it play, we _____ stay home.",
+    "options": {
+      "A": "would",
+      "B": "will",
+      "C": "could",
+      "D": "can"
+    },
+    "correct_answer": "A",
+    "domain": "grammar",
+    "skill_tag": "conditionals",
+    "stage": 2,
+    "panel": "high",
+    "discrimination": 1.6,
+    "difficulty": 1.71
+  },
+  {
+    "stem": "The house _____ in 1950.",
+    "options": {
+      "A": "built",
+      "B": "was built",
+      "C": "is built",
+      "D": "building"
+    },
+    "correct_answer": "B",
+    "domain": "grammar",
+    "skill_tag": "passive_voice",
+    "stage": 2,
+    "panel": "high",
+    "discrimination": 1.77,
+    "difficulty": 0.54
+  },
+  {
+    "stem": "The bag _____ by students.",
+    "options": {
+      "A": "read",
+      "B": "reads",
+      "C": "is read",
+      "D": "reading"
+    },
+    "correct_answer": "C",
+    "domain": "grammar",
+    "skill_tag": "passive_voice",
+    "stage": 2,
+    "panel": "high",
+    "discrimination": 1.51,
+    "difficulty": 2.41
+  },
+  {
+    "stem": "The woman _____ swim is my friend.",
+    "options": {
+      "A": "which",
+      "B": "who",
+      "C": "whose",
+      "D": "whom"
+    },
+    "correct_answer": "B",
+    "domain": "grammar",
+    "skill_tag": "relative_clauses",
+    "stage": 2,
+    "panel": "high",
+    "discrimination": 1.85,
+    "difficulty": 2.18
+  },
+  {
+    "stem": "This is the phone _____ I run.",
+    "options": {
+      "A": "that",
+      "B": "which",
+      "C": "who",
+      "D": "where"
+    },
+    "correct_answer": "C",
+    "domain": "grammar",
+    "skill_tag": "relative_clauses",
+    "stage": 2,
+    "panel": "high",
+    "discrimination": 1.69,
+    "difficulty": 2.0
+  },
+  {
+    "stem": "He told me that he _____ finished.",
+    "options": {
+      "A": "was",
+      "B": "is",
+      "C": "had",
+      "D": "has"
+    },
+    "correct_answer": "C",
+    "domain": "grammar",
+    "skill_tag": "reported_speech",
+    "stage": 2,
+    "panel": "high",
+    "discrimination": 1.5,
+    "difficulty": 1.68
+  },
+  {
+    "stem": "She said that she _____ tired.",
+    "options": {
+      "A": "am",
+      "B": "was",
+      "C": "were",
+      "D": "be"
+    },
+    "correct_answer": "B",
+    "domain": "grammar",
+    "skill_tag": "reported_speech",
+    "stage": 2,
+    "panel": "high",
+    "discrimination": 1.68,
+    "difficulty": 2.34
+  },
+  {
+    "stem": "When I arrived, they _____ left.",
+    "options": {
+      "A": "were",
+      "B": "was",
+      "C": "had",
+      "D": "have"
+    },
+    "correct_answer": "C",
+    "domain": "grammar",
+    "skill_tag": "past_perfect",
+    "stage": 2,
+    "panel": "high",
+    "discrimination": 1.8,
+    "difficulty": 2.23
+  },
+  {
+    "stem": "By the time we got there, the movie _____.",
+    "options": {
+      "A": "started",
+      "B": "had started",
+      "C": "has started",
+      "D": "starting"
+    },
+    "correct_answer": "B",
+    "domain": "grammar",
+    "skill_tag": "past_perfect",
+    "stage": 2,
+    "panel": "high",
+    "discrimination": 1.9,
+    "difficulty": 2.27
+  },
+  {
+    "stem": "I go to _____ hospital every morning.",
+    "options": {
+      "A": "a",
+      "B": "an",
+      "C": "the",
+      "D": "no article"
+    },
+    "correct_answer": "C",
+    "domain": "grammar",
+    "skill_tag": "articles_prepositions",
+    "stage": 2,
+    "panel": "high",
+    "discrimination": 1.73,
+    "difficulty": 0.84
+  },
+  {
+    "stem": "I go to _____ office every morning.",
+    "options": {
+      "A": "a",
+      "B": "an",
+      "C": "the",
+      "D": "no article"
+    },
+    "correct_answer": "C",
+    "domain": "grammar",
+    "skill_tag": "articles_prepositions",
+    "stage": 2,
+    "panel": "high",
+    "discrimination": 1.9,
+    "difficulty": 2.15
+  },
+  {
+    "stem": "They _____ sleep day.",
+    "options": {
+      "A": "do",
+      "B": "does",
+      "C": "did",
+      "D": "done"
+    },
+    "correct_answer": "C",
+    "domain": "grammar",
+    "skill_tag": "present_simple",
+    "stage": 3,
+    "panel": "low-low",
+    "discrimination": 1.82,
+    "difficulty": -2.09
+  },
+  {
+    "stem": "She _____ sleep today.",
+    "options": {
+      "A": "is studying",
+      "B": "studies",
+      "C": "studied",
+      "D": "study"
+    },
+    "correct_answer": "A",
+    "domain": "grammar",
+    "skill_tag": "present_continuous",
+    "stage": 3,
+    "panel": "low-low",
+    "discrimination": 1.6,
+    "difficulty": -2.26
+  },
+  {
+    "stem": "They _____ the house yesterday.",
+    "options": {
+      "A": "clean",
+      "B": "cleaned",
+      "C": "cleaning",
+      "D": "cleans"
+    },
+    "correct_answer": "B",
+    "domain": "grammar",
+    "skill_tag": "past_simple",
+    "stage": 3,
+    "panel": "low-low",
+    "discrimination": 1.57,
+    "difficulty": -1.68
+  },
+  {
+    "stem": "{Time}, I _____ study.",
+    "options": {
+      "A": "will",
+      "B": "would",
+      "C": "am",
+      "D": "was"
+    },
+    "correct_answer": "A",
+    "domain": "grammar",
+    "skill_tag": "future_forms",
+    "stage": 3,
+    "panel": "low-low",
+    "discrimination": 1.86,
+    "difficulty": -1.99
+  },
+  {
+    "stem": "It _____ speak later.",
+    "options": {
+      "A": "can",
+      "B": "may",
+      "C": "could",
+      "D": "would"
+    },
+    "correct_answer": "C",
+    "domain": "grammar",
+    "skill_tag": "modal_verbs",
+    "stage": 3,
+    "panel": "low-low",
+    "discrimination": 1.62,
+    "difficulty": -2.14
+  },
+  {
+    "stem": "If it eat, we _____ stay home.",
+    "options": {
+      "A": "will",
+      "B": "would",
+      "C": "can",
+      "D": "must"
+    },
+    "correct_answer": "A",
+    "domain": "grammar",
+    "skill_tag": "conditionals",
+    "stage": 3,
+    "panel": "low-low",
+    "discrimination": 1.68,
+    "difficulty": -2.24
+  },
+  {
+    "stem": "The project _____ completed month.",
+    "options": {
+      "A": "will",
+      "B": "will be",
+      "C": "is",
+      "D": "was"
+    },
+    "correct_answer": "B",
+    "domain": "grammar",
+    "skill_tag": "passive_voice",
+    "stage": 3,
+    "panel": "low-low",
+    "discrimination": 1.81,
+    "difficulty": -1.87
+  },
+  {
+    "stem": "The woman _____ bag was stolen called police.",
+    "options": {
+      "A": "whom",
+      "B": "who",
+      "C": "which",
+      "D": "that"
+    },
+    "correct_answer": "B",
+    "domain": "grammar",
+    "skill_tag": "relative_clauses",
+    "stage": 3,
+    "panel": "low-low",
+    "discrimination": 1.63,
+    "difficulty": -2.36
+  },
+  {
+    "stem": "He told me that he _____ finished.",
+    "options": {
+      "A": "has",
+      "B": "have",
+      "C": "had",
+      "D": "having"
+    },
+    "correct_answer": "C",
+    "domain": "grammar",
+    "skill_tag": "reported_speech",
+    "stage": 3,
+    "panel": "low-low",
+    "discrimination": 1.59,
+    "difficulty": -1.92
+  },
+  {
+    "stem": "By the time we got there, the movie _____.",
+    "options": {
+      "A": "finished",
+      "B": "had finished",
+      "C": "has finished",
+      "D": "finishing"
+    },
+    "correct_answer": "B",
+    "domain": "grammar",
+    "skill_tag": "past_perfect",
+    "stage": 3,
+    "panel": "low-low",
+    "discrimination": 1.69,
+    "difficulty": -2.22
+  },
+  {
+    "stem": "I go to _____ library every morning.",
+    "options": {
+      "A": "a",
+      "B": "an",
+      "C": "the",
+      "D": "no article"
+    },
+    "correct_answer": "C",
+    "domain": "grammar",
+    "skill_tag": "articles_prepositions",
+    "stage": 3,
+    "panel": "low-low",
+    "discrimination": 1.88,
+    "difficulty": -1.76
+  },
+  {
+    "stem": "They _____ write Monday.",
+    "options": {
+      "A": "is",
+      "B": "am",
+      "C": "are",
+      "D": "be"
+    },
+    "correct_answer": "C",
+    "domain": "grammar",
+    "skill_tag": "present_simple",
+    "stage": 3,
+    "panel": "low-high",
+    "discrimination": 1.62,
+    "difficulty": -0.71
+  },
+  {
+    "stem": "She _____ swim today.",
+    "options": {
+      "A": "is working",
+      "B": "works",
+      "C": "worked",
+      "D": "work"
+    },
+    "correct_answer": "A",
+    "domain": "grammar",
+    "skill_tag": "present_continuous",
+    "stage": 3,
+    "panel": "low-high",
+    "discrimination": 1.93,
+    "difficulty": -0.68
+  },
+  {
+    "stem": "She _____ house month.",
+    "options": {
+      "A": "find",
+      "B": "found",
+      "C": "founded",
+      "D": "finding"
+    },
+    "correct_answer": "B",
+    "domain": "grammar",
+    "skill_tag": "past_simple",
+    "stage": 3,
+    "panel": "low-high",
+    "discrimination": 1.59,
+    "difficulty": -0.7
+  },
+  {
+    "stem": "She _____ probably speak.",
+    "options": {
+      "A": "would",
+      "B": "will",
+      "C": "is",
+      "D": "was"
+    },
+    "correct_answer": "A",
+    "domain": "grammar",
+    "skill_tag": "future_forms",
+    "stage": 3,
+    "panel": "low-high",
+    "discrimination": 1.99,
+    "difficulty": -1.2
+  },
+  {
+    "stem": "It _____ eat later.",
+    "options": {
+      "A": "can",
+      "B": "may",
+      "C": "could",
+      "D": "would"
+    },
+    "correct_answer": "C",
+    "domain": "grammar",
+    "skill_tag": "modal_verbs",
+    "stage": 3,
+    "panel": "low-high",
+    "discrimination": 1.92,
+    "difficulty": -0.75
+  },
+  {
+    "stem": "Unless you study, you _____ succeed.",
+    "options": {
+      "A": "will",
+      "B": "would",
+      "C": "can",
+      "D": "might"
+    },
+    "correct_answer": "D",
+    "domain": "grammar",
+    "skill_tag": "conditionals",
+    "stage": 3,
+    "panel": "low-high",
+    "discrimination": 1.68,
+    "difficulty": -0.53
+  },
+  {
+    "stem": "The project _____ completed month.",
+    "options": {
+      "A": "will",
+      "B": "will be",
+      "C": "is",
+      "D": "was"
+    },
+    "correct_answer": "B",
+    "domain": "grammar",
+    "skill_tag": "passive_voice",
+    "stage": 3,
+    "panel": "low-high",
+    "discrimination": 1.98,
+    "difficulty": -0.86
+  },
+  {
+    "stem": "This is the house _____ I read.",
+    "options": {
+      "A": "who",
+      "B": "whose",
+      "C": "which",
+      "D": "whom"
+    },
+    "correct_answer": "C",
+    "domain": "grammar",
+    "skill_tag": "relative_clauses",
+    "stage": 3,
+    "panel": "low-high",
+    "discrimination": 1.88,
+    "difficulty": -0.71
+  },
+  {
+    "stem": "She said that she _____ tired.",
+    "options": {
+      "A": "am",
+      "B": "was",
+      "C": "were",
+      "D": "be"
+    },
+    "correct_answer": "B",
+    "domain": "grammar",
+    "skill_tag": "reported_speech",
+    "stage": 3,
+    "panel": "low-high",
+    "discrimination": 1.76,
+    "difficulty": -0.52
+  },
+  {
+    "stem": "When I arrived, they _____ left.",
+    "options": {
+      "A": "were",
+      "B": "was",
+      "C": "had",
+      "D": "have"
+    },
+    "correct_answer": "C",
+    "domain": "grammar",
+    "skill_tag": "past_perfect",
+    "stage": 3,
+    "panel": "low-high",
+    "discrimination": 1.57,
+    "difficulty": -1.39
+  },
+  {
+    "stem": "I go to _____ office every morning.",
+    "options": {
+      "A": "a",
+      "B": "an",
+      "C": "the",
+      "D": "-"
+    },
+    "correct_answer": "C",
+    "domain": "grammar",
+    "skill_tag": "articles_prepositions",
+    "stage": 3,
+    "panel": "low-high",
+    "discrimination": 1.71,
+    "difficulty": -1.1
+  },
+  {
+    "stem": "She _____ swim every Tuesday.",
+    "options": {
+      "A": "do",
+      "B": "does",
+      "C": "did",
+      "D": "done"
+    },
+    "correct_answer": "B",
+    "domain": "grammar",
+    "skill_tag": "present_simple",
+    "stage": 3,
+    "panel": "med-low",
+    "discrimination": 1.6,
+    "difficulty": -0.32
+  },
+  {
+    "stem": "They are _____ study at the moment.",
+    "options": {
+      "A": "do",
+      "B": "does",
+      "C": "doing",
+      "D": "did"
+    },
+    "correct_answer": "C",
+    "domain": "grammar",
+    "skill_tag": "present_continuous",
+    "stage": 3,
+    "panel": "med-low",
+    "discrimination": 1.55,
+    "difficulty": -0.43
+  },
+  {
+    "stem": "{Time}, I _____ read.",
+    "options": {
+      "A": "see",
+      "B": "saw",
+      "C": "seen",
+      "D": "seeing"
+    },
+    "correct_answer": "B",
+    "domain": "grammar",
+    "skill_tag": "past_simple",
+    "stage": 3,
+    "panel": "med-low",
+    "discrimination": 1.89,
+    "difficulty": -0.23
+  },
+  {
+    "stem": "She _____ probably run.",
+    "options": {
+      "A": "would",
+      "B": "will",
+      "C": "is",
+      "D": "was"
+    },
+    "correct_answer": "A",
+    "domain": "grammar",
+    "skill_tag": "future_forms",
+    "stage": 3,
+    "panel": "med-low",
+    "discrimination": 1.53,
+    "difficulty": -0.42
+  },
+  {
+    "stem": "You _____ study bag.",
+    "options": {
+      "A": "should",
+      "B": "could",
+      "C": "would",
+      "D": "will"
+    },
+    "correct_answer": "A",
+    "domain": "grammar",
+    "skill_tag": "modal_verbs",
+    "stage": 3,
+    "panel": "med-low",
+    "discrimination": 1.84,
+    "difficulty": -0.5
+  },
+  {
+    "stem": "If it run, we _____ stay home.",
+    "options": {
+      "A": "would",
+      "B": "will",
+      "C": "could",
+      "D": "can"
+    },
+    "correct_answer": "A",
+    "domain": "grammar",
+    "skill_tag": "conditionals",
+    "stage": 3,
+    "panel": "med-low",
+    "discrimination": 1.73,
+    "difficulty": -0.5
+  },
+  {
+    "stem": "The pen _____ by people.",
+    "options": {
+      "A": "make",
+      "B": "makes",
+      "C": "is made",
+      "D": "making"
+    },
+    "correct_answer": "C",
+    "domain": "grammar",
+    "skill_tag": "passive_voice",
+    "stage": 3,
+    "panel": "med-low",
+    "discrimination": 1.92,
+    "difficulty": -0.27
+  },
+  {
+    "stem": "The woman _____ key was stolen called police.",
+    "options": {
+      "A": "whom",
+      "B": "who",
+      "C": "which",
+      "D": "that"
+    },
+    "correct_answer": "B",
+    "domain": "grammar",
+    "skill_tag": "relative_clauses",
+    "stage": 3,
+    "panel": "med-low",
+    "discrimination": 1.63,
+    "difficulty": -0.47
+  },
+  {
+    "stem": "They said they _____ us tomorrow.",
+    "options": {
+      "A": "will call",
+      "B": "would call",
+      "C": "called",
+      "D": "calling"
+    },
+    "correct_answer": "B",
+    "domain": "grammar",
+    "skill_tag": "reported_speech",
+    "stage": 3,
+    "panel": "med-low",
+    "discrimination": 1.57,
+    "difficulty": -0.21
+  },
+  {
+    "stem": "She was tired because she _____ all day.",
+    "options": {
+      "A": "study",
+      "B": "studied",
+      "C": "had studied",
+      "D": "studying"
+    },
+    "correct_answer": "C",
+    "domain": "grammar",
+    "skill_tag": "past_perfect",
+    "stage": 3,
+    "panel": "med-low",
+    "discrimination": 1.64,
+    "difficulty": -0.21
+  },
+  {
+    "stem": "She lives _____ London.",
+    "options": {
+      "A": "to",
+      "B": "at",
+      "C": "in",
+      "D": "on"
+    },
+    "correct_answer": "B",
+    "domain": "grammar",
+    "skill_tag": "articles_prepositions",
+    "stage": 3,
+    "panel": "med-low",
+    "discrimination": 1.74,
+    "difficulty": -0.43
+  },
+  {
+    "stem": "They _____ eat Tuesday.",
+    "options": {
+      "A": "is",
+      "B": "am",
+      "C": "are",
+      "D": "be"
+    },
+    "correct_answer": "C",
+    "domain": "grammar",
+    "skill_tag": "present_simple",
+    "stage": 3,
+    "panel": "med-high",
+    "discrimination": 1.73,
+    "difficulty": 0.02
+  },
+  {
+    "stem": "She _____ play today.",
+    "options": {
+      "A": "is studying",
+      "B": "studies",
+      "C": "studied",
+      "D": "study"
+    },
+    "correct_answer": "A",
+    "domain": "grammar",
+    "skill_tag": "present_continuous",
+    "stage": 3,
+    "panel": "med-high",
+    "discrimination": 1.56,
+    "difficulty": 0.69
+  },
+  {
+    "stem": "They _____ the car yesterday.",
+    "options": {
+      "A": "wash",
+      "B": "washed",
+      "C": "washing",
+      "D": "washes"
+    },
+    "correct_answer": "B",
+    "domain": "grammar",
+    "skill_tag": "past_simple",
+    "stage": 3,
+    "panel": "med-high",
+    "discrimination": 1.85,
+    "difficulty": 0.22
+  },
+  {
+    "stem": "{Time}, I _____ study.",
+    "options": {
+      "A": "will",
+      "B": "would",
+      "C": "am",
+      "D": "was"
+    },
+    "correct_answer": "A",
+    "domain": "grammar",
+    "skill_tag": "future_forms",
+    "stage": 3,
+    "panel": "med-high",
+    "discrimination": 1.51,
+    "difficulty": 0.52
+  },
+  {
+    "stem": "You _____ read book.",
+    "options": {
+      "A": "should",
+      "B": "could",
+      "C": "would",
+      "D": "will"
+    },
+    "correct_answer": "A",
+    "domain": "grammar",
+    "skill_tag": "modal_verbs",
+    "stage": 3,
+    "panel": "med-high",
+    "discrimination": 1.61,
+    "difficulty": 0.53
+  },
+  {
+    "stem": "If it sleep, we _____ stay home.",
+    "options": {
+      "A": "would",
+      "B": "will",
+      "C": "could",
+      "D": "can"
+    },
+    "correct_answer": "A",
+    "domain": "grammar",
+    "skill_tag": "conditionals",
+    "stage": 3,
+    "panel": "med-high",
+    "discrimination": 1.63,
+    "difficulty": 0.36
+  },
+  {
+    "stem": "The project _____ completed year.",
+    "options": {
+      "A": "will",
+      "B": "will be",
+      "C": "is",
+      "D": "was"
+    },
+    "correct_answer": "B",
+    "domain": "grammar",
+    "skill_tag": "passive_voice",
+    "stage": 3,
+    "panel": "med-high",
+    "discrimination": 1.69,
+    "difficulty": 0.07
+  },
+  {
+    "stem": "This is the phone _____ I speak.",
+    "options": {
+      "A": "who",
+      "B": "whose",
+      "C": "which",
+      "D": "whom"
+    },
+    "correct_answer": "C",
+    "domain": "grammar",
+    "skill_tag": "relative_clauses",
+    "stage": 3,
+    "panel": "med-high",
+    "discrimination": 1.87,
+    "difficulty": 0.8
+  },
+  {
+    "stem": "He told me that he _____ finished.",
+    "options": {
+      "A": "was",
+      "B": "is",
+      "C": "had",
+      "D": "has"
+    },
+    "correct_answer": "C",
+    "domain": "grammar",
+    "skill_tag": "reported_speech",
+    "stage": 3,
+    "panel": "med-high",
+    "discrimination": 1.71,
+    "difficulty": 0.11
+  },
+  {
+    "stem": "She was tired because she _____ all day.",
+    "options": {
+      "A": "work",
+      "B": "worked",
+      "C": "had worked",
+      "D": "working"
+    },
+    "correct_answer": "C",
+    "domain": "grammar",
+    "skill_tag": "past_perfect",
+    "stage": 3,
+    "panel": "med-high",
+    "discrimination": 1.69,
+    "difficulty": 0.62
+  },
+  {
+    "stem": "I go to _____ school every morning.",
+    "options": {
+      "A": "a",
+      "B": "an",
+      "C": "the",
+      "D": "-"
+    },
+    "correct_answer": "C",
+    "domain": "grammar",
+    "skill_tag": "articles_prepositions",
+    "stage": 3,
+    "panel": "med-high",
+    "discrimination": 1.66,
+    "difficulty": 0.8
+  },
+  {
+    "stem": "We _____ sleep at school.",
+    "options": {
+      "A": "study",
+      "B": "studies",
+      "C": "studying",
+      "D": "studied"
+    },
+    "correct_answer": "A",
+    "domain": "grammar",
+    "skill_tag": "present_simple",
+    "stage": 3,
+    "panel": "high-med",
+    "discrimination": 1.71,
+    "difficulty": 0.84
+  },
+  {
+    "stem": "They _____ run right now.",
+    "options": {
+      "A": "is",
+      "B": "am",
+      "C": "are",
+      "D": "be"
+    },
+    "correct_answer": "D",
+    "domain": "grammar",
+    "skill_tag": "present_continuous",
+    "stage": 3,
+    "panel": "high-med",
+    "discrimination": 1.64,
+    "difficulty": 1.39
+  },
+  {
+    "stem": "{Time}, I _____ write.",
+    "options": {
+      "A": "see",
+      "B": "saw",
+      "C": "seen",
+      "D": "seeing"
+    },
+    "correct_answer": "B",
+    "domain": "grammar",
+    "skill_tag": "past_simple",
+    "stage": 3,
+    "panel": "high-med",
+    "discrimination": 1.56,
+    "difficulty": 0.84
+  },
+  {
+    "stem": "{Time}, I _____ play.",
+    "options": {
+      "A": "am going to",
+      "B": "was going to",
+      "C": "will",
+      "D": "would"
+    },
+    "correct_answer": "A",
+    "domain": "grammar",
+    "skill_tag": "future_forms",
+    "stage": 3,
+    "panel": "high-med",
+    "discrimination": 1.87,
+    "difficulty": 0.96
+  },
+  {
+    "stem": "You _____ eat pen.",
+    "options": {
+      "A": "should",
+      "B": "could",
+      "C": "would",
+      "D": "will"
+    },
+    "correct_answer": "D",
+    "domain": "grammar",
+    "skill_tag": "modal_verbs",
+    "stage": 3,
+    "panel": "high-med",
+    "discrimination": 1.85,
+    "difficulty": 0.63
+  },
+  {
+    "stem": "If it sleep, we _____ stay home.",
+    "options": {
+      "A": "would",
+      "B": "will",
+      "C": "could",
+      "D": "can"
+    },
+    "correct_answer": "A",
+    "domain": "grammar",
+    "skill_tag": "conditionals",
+    "stage": 3,
+    "panel": "high-med",
+    "discrimination": 1.56,
+    "difficulty": 1.47
+  },
+  {
+    "stem": "The project _____ completed morning.",
+    "options": {
+      "A": "has",
+      "B": "has been",
+      "C": "is",
+      "D": "was"
+    },
+    "correct_answer": "B",
+    "domain": "grammar",
+    "skill_tag": "passive_voice",
+    "stage": 3,
+    "panel": "high-med",
+    "discrimination": 1.89,
+    "difficulty": 1.11
+  },
+  {
+    "stem": "The woman _____ phone was stolen called police.",
+    "options": {
+      "A": "who",
+      "B": "whose",
+      "C": "which",
+      "D": "that"
+    },
+    "correct_answer": "B",
+    "domain": "grammar",
+    "skill_tag": "relative_clauses",
+    "stage": 3,
+    "panel": "high-med",
+    "discrimination": 1.61,
+    "difficulty": 0.98
+  },
+  {
+    "stem": "She said that she _____ tired.",
+    "options": {
+      "A": "is",
+      "B": "was",
+      "C": "be",
+      "D": "been"
+    },
+    "correct_answer": "B",
+    "domain": "grammar",
+    "skill_tag": "reported_speech",
+    "stage": 3,
+    "panel": "high-med",
+    "discrimination": 1.68,
+    "difficulty": 1.35
+  },
+  {
+    "stem": "By the time we got there, the movie _____.",
+    "options": {
+      "A": "finished",
+      "B": "had finished",
+      "C": "has finished",
+      "D": "finishing"
+    },
+    "correct_answer": "B",
+    "domain": "grammar",
+    "skill_tag": "past_perfect",
+    "stage": 3,
+    "panel": "high-med",
+    "discrimination": 1.76,
+    "difficulty": 1.27
+  },
+  {
+    "stem": "She lives _____ Tokyo.",
+    "options": {
+      "A": "at",
+      "B": "in",
+      "C": "on",
+      "D": "by"
+    },
+    "correct_answer": "B",
+    "domain": "grammar",
+    "skill_tag": "articles_prepositions",
+    "stage": 3,
+    "panel": "high-med",
+    "discrimination": 1.51,
+    "difficulty": 1.47
+  },
+  {
+    "stem": "They _____ read year.",
+    "options": {
+      "A": "was",
+      "B": "were",
+      "C": "are",
+      "D": "is"
+    },
+    "correct_answer": "C",
+    "domain": "grammar",
+    "skill_tag": "present_simple",
+    "stage": 3,
+    "panel": "high-high",
+    "discrimination": 1.69,
+    "difficulty": 2.13
+  },
+  {
+    "stem": "She _____ speak right now.",
+    "options": {
+      "A": "was",
+      "B": "were",
+      "C": "is",
+      "D": "are"
+    },
+    "correct_answer": "B",
+    "domain": "grammar",
+    "skill_tag": "present_continuous",
+    "stage": 3,
+    "panel": "high-high",
+    "discrimination": 1.75,
+    "difficulty": 2.04
+  },
+  {
+    "stem": "{Time}, I _____ speak.",
+    "options": {
+      "A": "go",
+      "B": "went",
+      "C": "gone",
+      "D": "going"
+    },
+    "correct_answer": "B",
+    "domain": "grammar",
+    "skill_tag": "past_simple",
+    "stage": 3,
+    "panel": "high-high",
+    "discrimination": 1.53,
+    "difficulty": 2.16
+  },
+  {
+    "stem": "{Time}, I _____ run.",
+    "options": {
+      "A": "am going to",
+      "B": "was going to",
+      "C": "will",
+      "D": "would"
+    },
+    "correct_answer": "A",
+    "domain": "grammar",
+    "skill_tag": "future_forms",
+    "stage": 3,
+    "panel": "high-high",
+    "discrimination": 1.54,
+    "difficulty": 1.78
+  },
+  {
+    "stem": "Students _____ speak in the library.",
+    "options": {
+      "A": "could",
+      "B": "might",
+      "C": "would",
+      "D": "will"
+    },
+    "correct_answer": "C",
+    "domain": "grammar",
+    "skill_tag": "modal_verbs",
+    "stage": 3,
+    "panel": "high-high",
+    "discrimination": 1.72,
+    "difficulty": 2.48
+  },
+  {
+    "stem": "If I _____ rich, I play.",
+    "options": {
+      "A": "have",
+      "B": "had",
+      "C": "has",
+      "D": "having"
+    },
+    "correct_answer": "C",
+    "domain": "grammar",
+    "skill_tag": "conditionals",
+    "stage": 3,
+    "panel": "high-high",
+    "discrimination": 1.58,
+    "difficulty": 1.56
+  },
+  {
+    "stem": "The project _____ completed Monday.",
+    "options": {
+      "A": "will",
+      "B": "will be",
+      "C": "is",
+      "D": "was"
+    },
+    "correct_answer": "B",
+    "domain": "grammar",
+    "skill_tag": "passive_voice",
+    "stage": 3,
+    "panel": "high-high",
+    "discrimination": 1.89,
+    "difficulty": 2.43
+  },
+  {
+    "stem": "The woman _____ computer was stolen called police.",
+    "options": {
+      "A": "who",
+      "B": "whose",
+      "C": "which",
+      "D": "that"
+    },
+    "correct_answer": "B",
+    "domain": "grammar",
+    "skill_tag": "relative_clauses",
+    "stage": 3,
+    "panel": "high-high",
+    "discrimination": 1.67,
+    "difficulty": 2.41
+  },
+  {
+    "stem": "They said they _____ us tomorrow.",
+    "options": {
+      "A": "will call",
+      "B": "would call",
+      "C": "called",
+      "D": "calling"
+    },
+    "correct_answer": "B",
+    "domain": "grammar",
+    "skill_tag": "reported_speech",
+    "stage": 3,
+    "panel": "high-high",
+    "discrimination": 1.92,
+    "difficulty": 1.8
+  },
+  {
+    "stem": "She was tired because she _____ all day.",
+    "options": {
+      "A": "study",
+      "B": "studied",
+      "C": "had studied",
+      "D": "studying"
+    },
+    "correct_answer": "C",
+    "domain": "grammar",
+    "skill_tag": "past_perfect",
+    "stage": 3,
+    "panel": "high-high",
+    "discrimination": 1.95,
+    "difficulty": 2.06
+  },
+  {
+    "stem": "She lives _____ Tokyo.",
+    "options": {
+      "A": "at",
+      "B": "in",
+      "C": "on",
+      "D": "by"
+    },
+    "correct_answer": "B",
+    "domain": "grammar",
+    "skill_tag": "articles_prepositions",
+    "stage": 3,
+    "panel": "high-high",
+    "discrimination": 1.82,
+    "difficulty": 1.93
+  },
+  {
+    "stem": "What is the meaning of 'book'?",
+    "options": {
+      "A": "disapproved",
+      "B": "a thing you read",
+      "C": "to ease",
+      "D": "to accomplish"
+    },
+    "correct_answer": "B",
+    "domain": "vocabulary",
+    "skill_tag": "vst_1k",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.85,
+    "difficulty": -2.16
+  },
+  {
+    "stem": "What is the meaning of 'cat'?",
+    "options": {
+      "A": "logical",
+      "B": "an animal",
+      "C": "unclear",
+      "D": "complicated"
+    },
+    "correct_answer": "B",
+    "domain": "vocabulary",
+    "skill_tag": "vst_1k",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.43,
+    "difficulty": -2.16
+  },
+  {
+    "stem": "What is the meaning of 'run'?",
+    "options": {
+      "A": "something unusual",
+      "B": "large in size",
+      "C": "honest",
+      "D": "to move fast"
+    },
+    "correct_answer": "D",
+    "domain": "vocabulary",
+    "skill_tag": "vst_1k",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.24,
+    "difficulty": -2.21
+  },
+  {
+    "stem": "What is the meaning of 'eat'?",
+    "options": {
+      "A": "to have food",
+      "B": "sudden",
+      "C": "an idea",
+      "D": "to contain"
+    },
+    "correct_answer": "A",
+    "domain": "vocabulary",
+    "skill_tag": "vst_1k",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.5,
+    "difficulty": -1.79
+  },
+  {
+    "stem": "What is the meaning of 'big'?",
+    "options": {
+      "A": "a manipulator",
+      "B": "disapproved",
+      "C": "large in size",
+      "D": "to ease"
+    },
+    "correct_answer": "C",
+    "domain": "vocabulary",
+    "skill_tag": "vst_1k",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.55,
+    "difficulty": -2.37
+  },
+  {
+    "stem": "What is the meaning of 'red'?",
+    "options": {
+      "A": "an idea",
+      "B": "clever",
+      "C": "complicated",
+      "D": "a thing you read"
+    },
+    "correct_answer": "D",
+    "domain": "vocabulary",
+    "skill_tag": "vst_1k",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.46,
+    "difficulty": -1.85
+  },
+  {
+    "stem": "What is the meaning of 'begin'?",
+    "options": {
+      "A": "large in size",
+      "B": "to gather",
+      "C": "to start",
+      "D": "to have food"
+    },
+    "correct_answer": "C",
+    "domain": "vocabulary",
+    "skill_tag": "vst_2k",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.78,
+    "difficulty": -0.88
+  },
+  {
+    "stem": "What is the meaning of 'answer'?",
+    "options": {
+      "A": "an animal",
+      "B": "random",
+      "C": "to grow",
+      "D": "a reply"
+    },
+    "correct_answer": "D",
+    "domain": "vocabulary",
+    "skill_tag": "vst_2k",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.61,
+    "difficulty": -0.58
+  },
+  {
+    "stem": "What is the meaning of 'develop'?",
+    "options": {
+      "A": "scholarly",
+      "B": "to grow",
+      "C": "to force",
+      "D": "to support"
+    },
+    "correct_answer": "B",
+    "domain": "vocabulary",
+    "skill_tag": "vst_2k",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.27,
+    "difficulty": -0.99
+  },
+  {
+    "stem": "What is the meaning of 'include'?",
+    "options": {
+      "A": "a discussion",
+      "B": "to support",
+      "C": "sufficient",
+      "D": "to contain"
+    },
+    "correct_answer": "D",
+    "domain": "vocabulary",
+    "skill_tag": "vst_2k",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.96,
+    "difficulty": -1.39
+  },
+  {
+    "stem": "What is the meaning of 'provide'?",
+    "options": {
+      "A": "clever",
+      "B": "harmless",
+      "C": "unclear",
+      "D": "to give"
+    },
+    "correct_answer": "D",
+    "domain": "vocabulary",
+    "skill_tag": "vst_2k",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.46,
+    "difficulty": -1.34
+  },
+  {
+    "stem": "What is the meaning of 'business'?",
+    "options": {
+      "A": "to ease",
+      "B": "clever",
+      "C": "to start",
+      "D": "temporary"
+    },
+    "correct_answer": "C",
+    "domain": "vocabulary",
+    "skill_tag": "vst_2k",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.34,
+    "difficulty": -1.23
+  },
+  {
+    "stem": "What is the meaning of 'achieve'?",
+    "options": {
+      "A": "to accomplish",
+      "B": "a manipulator",
+      "C": "to start",
+      "D": "disapproved"
+    },
+    "correct_answer": "A",
+    "domain": "vocabulary",
+    "skill_tag": "vst_3k",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.05,
+    "difficulty": -0.48
+  },
+  {
+    "stem": "What is the meaning of 'approach'?",
+    "options": {
+      "A": "complicated",
+      "B": "to come near",
+      "C": "to move fast",
+      "D": "to give"
+    },
+    "correct_answer": "B",
+    "domain": "vocabulary",
+    "skill_tag": "vst_3k",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.59,
+    "difficulty": -0.03
+  },
+  {
+    "stem": "What is the meaning of 'concept'?",
+    "options": {
+      "A": "unclear",
+      "B": "a manipulator",
+      "C": "an idea",
+      "D": "to come near"
+    },
+    "correct_answer": "C",
+    "domain": "vocabulary",
+    "skill_tag": "vst_3k",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.68,
+    "difficulty": -0.4
+  },
+  {
+    "stem": "What is the meaning of 'debate'?",
+    "options": {
+      "A": "a manipulator",
+      "B": "a discussion",
+      "C": "sudden",
+      "D": "an animal"
+    },
+    "correct_answer": "B",
+    "domain": "vocabulary",
+    "skill_tag": "vst_3k",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.38,
+    "difficulty": -0.21
+  },
+  {
+    "stem": "What is the meaning of 'expand'?",
+    "options": {
+      "A": "unclear",
+      "B": "to contain",
+      "C": "clever",
+      "D": "to grow larger"
+    },
+    "correct_answer": "D",
+    "domain": "vocabulary",
+    "skill_tag": "vst_3k",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.62,
+    "difficulty": -0.23
+  },
+  {
+    "stem": "What is the meaning of 'framework'?",
+    "options": {
+      "A": "an animal",
+      "B": "logical",
+      "C": "to accomplish",
+      "D": "scholarly"
+    },
+    "correct_answer": "C",
+    "domain": "vocabulary",
+    "skill_tag": "vst_3k",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.08,
+    "difficulty": -0.31
+  },
+  {
+    "stem": "What is the meaning of 'abandon'?",
+    "options": {
+      "A": "difficult to understand",
+      "B": "to have food",
+      "C": "to leave behind",
+      "D": "random"
+    },
+    "correct_answer": "C",
+    "domain": "vocabulary",
+    "skill_tag": "vst_4k",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.07,
+    "difficulty": 0.23
+  },
+  {
+    "stem": "What is the meaning of 'accumulate'?",
+    "options": {
+      "A": "to accomplish",
+      "B": "to start",
+      "C": "to gather",
+      "D": "complicated"
+    },
+    "correct_answer": "C",
+    "domain": "vocabulary",
+    "skill_tag": "vst_4k",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.11,
+    "difficulty": 0.47
+  },
+  {
+    "stem": "What is the meaning of 'adequate'?",
+    "options": {
+      "A": "an idea",
+      "B": "sufficient",
+      "C": "a discussion",
+      "D": "to leave behind"
+    },
+    "correct_answer": "B",
+    "domain": "vocabulary",
+    "skill_tag": "vst_4k",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.88,
+    "difficulty": 0.45
+  },
+  {
+    "stem": "What is the meaning of 'advocate'?",
+    "options": {
+      "A": "honest",
+      "B": "next to",
+      "C": "clever",
+      "D": "to support"
+    },
+    "correct_answer": "D",
+    "domain": "vocabulary",
+    "skill_tag": "vst_4k",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.64,
+    "difficulty": 0.11
+  },
+  {
+    "stem": "What is the meaning of 'clarify'?",
+    "options": {
+      "A": "harmless",
+      "B": "to contain",
+      "C": "disapproved",
+      "D": "to make clear"
+    },
+    "correct_answer": "D",
+    "domain": "vocabulary",
+    "skill_tag": "vst_4k",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.81,
+    "difficulty": 0.05
+  },
+  {
+    "stem": "What is the meaning of 'compatible'?",
+    "options": {
+      "A": "to have food",
+      "B": "to leave behind",
+      "C": "to contain",
+      "D": "scholarly"
+    },
+    "correct_answer": "B",
+    "domain": "vocabulary",
+    "skill_tag": "vst_4k",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.94,
+    "difficulty": 0.07
+  },
+  {
+    "stem": "What is the meaning of 'adjacent'?",
+    "options": {
+      "A": "next to",
+      "B": "harmless",
+      "C": "sudden",
+      "D": "to start"
+    },
+    "correct_answer": "A",
+    "domain": "vocabulary",
+    "skill_tag": "vst_6k",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.38,
+    "difficulty": 0.66
+  },
+  {
+    "stem": "What is the meaning of 'arbitrary'?",
+    "options": {
+      "A": "temporary",
+      "B": "random",
+      "C": "to accomplish",
+      "D": "scholarly"
+    },
+    "correct_answer": "B",
+    "domain": "vocabulary",
+    "skill_tag": "vst_6k",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.27,
+    "difficulty": 0.53
+  },
+  {
+    "stem": "What is the meaning of 'coherent'?",
+    "options": {
+      "A": "to start",
+      "B": "an idea",
+      "C": "a manipulator",
+      "D": "logical"
+    },
+    "correct_answer": "D",
+    "domain": "vocabulary",
+    "skill_tag": "vst_6k",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.27,
+    "difficulty": 0.85
+  },
+  {
+    "stem": "What is the meaning of 'consecutive'?",
+    "options": {
+      "A": "something unusual",
+      "B": "clever",
+      "C": "following",
+      "D": "a reply"
+    },
+    "correct_answer": "C",
+    "domain": "vocabulary",
+    "skill_tag": "vst_6k",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.17,
+    "difficulty": 0.69
+  },
+  {
+    "stem": "What is the meaning of 'ambiguous'?",
+    "options": {
+      "A": "unclear",
+      "B": "clever",
+      "C": "large in size",
+      "D": "out of time"
+    },
+    "correct_answer": "A",
+    "domain": "vocabulary",
+    "skill_tag": "vst_6k",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.44,
+    "difficulty": 0.94
+  },
+  {
+    "stem": "What is the meaning of 'compile'?",
+    "options": {
+      "A": "to have food",
+      "B": "next to",
+      "C": "to come near",
+      "D": "to start"
+    },
+    "correct_answer": "B",
+    "domain": "vocabulary",
+    "skill_tag": "vst_6k",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.84,
+    "difficulty": 0.6
+  },
+  {
+    "stem": "What is the meaning of 'abrupt'?",
+    "options": {
+      "A": "to move fast",
+      "B": "a reply",
+      "C": "sudden",
+      "D": "to gather"
+    },
+    "correct_answer": "C",
+    "domain": "vocabulary",
+    "skill_tag": "vst_8k",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.47,
+    "difficulty": 1.38
+  },
+  {
+    "stem": "What is the meaning of 'anomaly'?",
+    "options": {
+      "A": "to support",
+      "B": "something unusual",
+      "C": "to have food",
+      "D": "to come near"
+    },
+    "correct_answer": "B",
+    "domain": "vocabulary",
+    "skill_tag": "vst_8k",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.91,
+    "difficulty": 1.04
+  },
+  {
+    "stem": "What is the meaning of 'benign'?",
+    "options": {
+      "A": "unclear",
+      "B": "harmless",
+      "C": "to move fast",
+      "D": "a thing you read"
+    },
+    "correct_answer": "B",
+    "domain": "vocabulary",
+    "skill_tag": "vst_8k",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.12,
+    "difficulty": 1.02
+  },
+  {
+    "stem": "What is the meaning of 'candid'?",
+    "options": {
+      "A": "honest",
+      "B": "random",
+      "C": "large in size",
+      "D": "to start"
+    },
+    "correct_answer": "A",
+    "domain": "vocabulary",
+    "skill_tag": "vst_8k",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.55,
+    "difficulty": 1.36
+  },
+  {
+    "stem": "What is the meaning of 'coerce'?",
+    "options": {
+      "A": "sudden",
+      "B": "out of time",
+      "C": "to force",
+      "D": "scholarly"
+    },
+    "correct_answer": "C",
+    "domain": "vocabulary",
+    "skill_tag": "vst_8k",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.58,
+    "difficulty": 1.17
+  },
+  {
+    "stem": "What is the meaning of 'cynical'?",
+    "options": {
+      "A": "out of time",
+      "B": "sudden",
+      "C": "clever",
+      "D": "an animal"
+    },
+    "correct_answer": "B",
+    "domain": "vocabulary",
+    "skill_tag": "vst_8k",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.48,
+    "difficulty": 1.42
+  },
+  {
+    "stem": "What is the meaning of 'alleviate'?",
+    "options": {
+      "A": "to ease",
+      "B": "to give",
+      "C": "following",
+      "D": "to leave behind"
+    },
+    "correct_answer": "A",
+    "domain": "vocabulary",
+    "skill_tag": "vst_10k",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.18,
+    "difficulty": 1.71
+  },
+  {
+    "stem": "What is the meaning of 'astute'?",
+    "options": {
+      "A": "to have food",
+      "B": "to give",
+      "C": "clever",
+      "D": "difficult to understand"
+    },
+    "correct_answer": "C",
+    "domain": "vocabulary",
+    "skill_tag": "vst_10k",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.98,
+    "difficulty": 1.71
+  },
+  {
+    "stem": "What is the meaning of 'brevity'?",
+    "options": {
+      "A": "sudden",
+      "B": "shortness",
+      "C": "to grow",
+      "D": "to come near"
+    },
+    "correct_answer": "B",
+    "domain": "vocabulary",
+    "skill_tag": "vst_10k",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.33,
+    "difficulty": 1.81
+  },
+  {
+    "stem": "What is the meaning of 'convoluted'?",
+    "options": {
+      "A": "to accomplish",
+      "B": "to ease",
+      "C": "complicated",
+      "D": "something unusual"
+    },
+    "correct_answer": "C",
+    "domain": "vocabulary",
+    "skill_tag": "vst_10k",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.32,
+    "difficulty": 1.58
+  },
+  {
+    "stem": "What is the meaning of 'deprecated'?",
+    "options": {
+      "A": "sufficient",
+      "B": "an animal",
+      "C": "to contain",
+      "D": "disapproved"
+    },
+    "correct_answer": "D",
+    "domain": "vocabulary",
+    "skill_tag": "vst_10k",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.6,
+    "difficulty": 1.74
+  },
+  {
+    "stem": "What is the meaning of 'ebullient'?",
+    "options": {
+      "A": "sudden",
+      "B": "to ease",
+      "C": "to grow larger",
+      "D": "next to"
+    },
+    "correct_answer": "B",
+    "domain": "vocabulary",
+    "skill_tag": "vst_10k",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.97,
+    "difficulty": 1.63
+  },
+  {
+    "stem": "What is the meaning of 'abstruse'?",
+    "options": {
+      "A": "scholarly",
+      "B": "complicated",
+      "C": "a thing you read",
+      "D": "difficult to understand"
+    },
+    "correct_answer": "D",
+    "domain": "vocabulary",
+    "skill_tag": "vst_14k",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.51,
+    "difficulty": 2.1
+  },
+  {
+    "stem": "What is the meaning of 'anachronism'?",
+    "options": {
+      "A": "to come near",
+      "B": "out of time",
+      "C": "a manipulator",
+      "D": "to have food"
+    },
+    "correct_answer": "B",
+    "domain": "vocabulary",
+    "skill_tag": "vst_14k",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.79,
+    "difficulty": 2.1
+  },
+  {
+    "stem": "What is the meaning of 'demagogue'?",
+    "options": {
+      "A": "to gather",
+      "B": "a manipulator",
+      "C": "to grow",
+      "D": "sufficient"
+    },
+    "correct_answer": "B",
+    "domain": "vocabulary",
+    "skill_tag": "vst_14k",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.02,
+    "difficulty": 2.41
+  },
+  {
+    "stem": "What is the meaning of 'ephemeral'?",
+    "options": {
+      "A": "temporary",
+      "B": "to force",
+      "C": "sudden",
+      "D": "to give"
+    },
+    "correct_answer": "A",
+    "domain": "vocabulary",
+    "skill_tag": "vst_14k",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.41,
+    "difficulty": 2.01
+  },
+  {
+    "stem": "What is the meaning of 'erudite'?",
+    "options": {
+      "A": "large in size",
+      "B": "a reply",
+      "C": "temporary",
+      "D": "scholarly"
+    },
+    "correct_answer": "D",
+    "domain": "vocabulary",
+    "skill_tag": "vst_14k",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.65,
+    "difficulty": 2.23
+  },
+  {
+    "stem": "What is the meaning of 'mendacity'?",
+    "options": {
+      "A": "to come near",
+      "B": "something unusual",
+      "C": "large in size",
+      "D": "difficult to understand"
+    },
+    "correct_answer": "D",
+    "domain": "vocabulary",
+    "skill_tag": "vst_14k",
+    "stage": 1,
+    "panel": "routing",
+    "discrimination": 1.25,
+    "difficulty": 2.14
+  },
+  {
+    "stem": "What is the meaning of 'book'?",
+    "options": {
+      "A": "a thing you read",
+      "B": "complicated",
+      "C": "to gather",
+      "D": "to have food"
+    },
+    "correct_answer": "A",
+    "domain": "vocabulary",
+    "skill_tag": "vst_1k",
+    "stage": 2,
+    "panel": "low",
+    "discrimination": 1.74,
+    "difficulty": -0.86
+  },
+  {
+    "stem": "What is the meaning of 'cat'?",
+    "options": {
+      "A": "out of time",
+      "B": "to come near",
+      "C": "an animal",
+      "D": "to ease"
+    },
+    "correct_answer": "C",
+    "domain": "vocabulary",
+    "skill_tag": "vst_1k",
+    "stage": 2,
+    "panel": "low",
+    "discrimination": 1.44,
+    "difficulty": -0.61
+  },
+  {
+    "stem": "What is the meaning of 'run'?",
+    "options": {
+      "A": "to move fast",
+      "B": "to grow",
+      "C": "complicated",
+      "D": "large in size"
+    },
+    "correct_answer": "A",
+    "domain": "vocabulary",
+    "skill_tag": "vst_1k",
+    "stage": 2,
+    "panel": "low",
+    "discrimination": 1.69,
+    "difficulty": -1.0
+  },
+  {
+    "stem": "What is the meaning of 'eat'?",
+    "options": {
+      "A": "temporary",
+      "B": "a manipulator",
+      "C": "large in size",
+      "D": "to have food"
+    },
+    "correct_answer": "D",
+    "domain": "vocabulary",
+    "skill_tag": "vst_1k",
+    "stage": 2,
+    "panel": "low",
+    "discrimination": 1.4,
+    "difficulty": -0.59
+  },
+  {
+    "stem": "What is the meaning of 'big'?",
+    "options": {
+      "A": "to support",
+      "B": "large in size",
+      "C": "clever",
+      "D": "to move fast"
+    },
+    "correct_answer": "B",
+    "domain": "vocabulary",
+    "skill_tag": "vst_1k",
+    "stage": 2,
+    "panel": "low",
+    "discrimination": 1.59,
+    "difficulty": -2.32
+  },
+  {
+    "stem": "What is the meaning of 'red'?",
+    "options": {
+      "A": "harmless",
+      "B": "next to",
+      "C": "to accomplish",
+      "D": "a thing you read"
+    },
+    "correct_answer": "D",
+    "domain": "vocabulary",
+    "skill_tag": "vst_1k",
+    "stage": 2,
+    "panel": "low",
+    "discrimination": 1.45,
+    "difficulty": -1.1
+  },
+  {
+    "stem": "What is the meaning of 'happy'?",
+    "options": {
+      "A": "difficult to understand",
+      "B": "disapproved",
+      "C": "an animal",
+      "D": "next to"
+    },
+    "correct_answer": "C",
+    "domain": "vocabulary",
+    "skill_tag": "vst_1k",
+    "stage": 2,
+    "panel": "low",
+    "discrimination": 1.38,
+    "difficulty": -1.07
+  },
+  {
+    "stem": "What is the meaning of 'good'?",
+    "options": {
+      "A": "to move fast",
+      "B": "to grow",
+      "C": "an animal",
+      "D": "random"
+    },
+    "correct_answer": "A",
+    "domain": "vocabulary",
+    "skill_tag": "vst_1k",
+    "stage": 2,
+    "panel": "low",
+    "discrimination": 1.72,
+    "difficulty": -0.81
+  },
+  {
+    "stem": "What is the meaning of 'water'?",
+    "options": {
+      "A": "sudden",
+      "B": "to have food",
+      "C": "a thing you read",
+      "D": "large in size"
+    },
+    "correct_answer": "B",
+    "domain": "vocabulary",
+    "skill_tag": "vst_1k",
+    "stage": 2,
+    "panel": "low",
+    "discrimination": 1.72,
+    "difficulty": -1.27
+  },
+  {
+    "stem": "What is the meaning of 'house'?",
+    "options": {
+      "A": "a discussion",
+      "B": "to ease",
+      "C": "large in size",
+      "D": "harmless"
+    },
+    "correct_answer": "C",
+    "domain": "vocabulary",
+    "skill_tag": "vst_1k",
+    "stage": 2,
+    "panel": "low",
+    "discrimination": 1.22,
+    "difficulty": -2.04
+  },
+  {
+    "stem": "What is the meaning of 'book'?",
+    "options": {
+      "A": "to grow",
+      "B": "to ease",
+      "C": "a reply",
+      "D": "a thing you read"
+    },
+    "correct_answer": "D",
+    "domain": "vocabulary",
+    "skill_tag": "vst_1k",
+    "stage": 2,
+    "panel": "low",
+    "discrimination": 1.22,
+    "difficulty": -1.25
+  },
+  {
+    "stem": "What is the meaning of 'cat'?",
+    "options": {
+      "A": "harmless",
+      "B": "a manipulator",
+      "C": "an animal",
+      "D": "sudden"
+    },
+    "correct_answer": "C",
+    "domain": "vocabulary",
+    "skill_tag": "vst_1k",
+    "stage": 2,
+    "panel": "low",
+    "discrimination": 1.28,
+    "difficulty": -1.24
+  },
+  {
+    "stem": "What is the meaning of 'begin'?",
+    "options": {
+      "A": "difficult to understand",
+      "B": "a manipulator",
+      "C": "to start",
+      "D": "an idea"
+    },
+    "correct_answer": "C",
+    "domain": "vocabulary",
+    "skill_tag": "vst_2k",
+    "stage": 2,
+    "panel": "low",
+    "discrimination": 1.25,
+    "difficulty": -2.44
+  },
+  {
+    "stem": "What is the meaning of 'answer'?",
+    "options": {
+      "A": "honest",
+      "B": "to gather",
+      "C": "a reply",
+      "D": "to grow larger"
+    },
+    "correct_answer": "C",
+    "domain": "vocabulary",
+    "skill_tag": "vst_2k",
+    "stage": 2,
+    "panel": "low",
+    "discrimination": 1.41,
+    "difficulty": -1.81
+  },
+  {
+    "stem": "What is the meaning of 'develop'?",
+    "options": {
+      "A": "to gather",
+      "B": "to grow",
+      "C": "to accomplish",
+      "D": "disapproved"
+    },
+    "correct_answer": "B",
+    "domain": "vocabulary",
+    "skill_tag": "vst_2k",
+    "stage": 2,
+    "panel": "low",
+    "discrimination": 1.65,
+    "difficulty": -2.03
+  },
+  {
+    "stem": "What is the meaning of 'include'?",
+    "options": {
+      "A": "to start",
+      "B": "to leave behind",
+      "C": "an animal",
+      "D": "to contain"
+    },
+    "correct_answer": "D",
+    "domain": "vocabulary",
+    "skill_tag": "vst_2k",
+    "stage": 2,
+    "panel": "low",
+    "discrimination": 1.48,
+    "difficulty": -1.42
+  },
+  {
+    "stem": "What is the meaning of 'provide'?",
+    "options": {
+      "A": "to give",
+      "B": "to come near",
+      "C": "shortness",
+      "D": "unclear"
+    },
+    "correct_answer": "A",
+    "domain": "vocabulary",
+    "skill_tag": "vst_2k",
+    "stage": 2,
+    "panel": "low",
+    "discrimination": 1.27,
+    "difficulty": -1.28
+  },
+  {
+    "stem": "What is the meaning of 'business'?",
+    "options": {
+      "A": "to give",
+      "B": "to gather",
+      "C": "following",
+      "D": "to start"
+    },
+    "correct_answer": "D",
+    "domain": "vocabulary",
+    "skill_tag": "vst_2k",
+    "stage": 2,
+    "panel": "low",
+    "discrimination": 1.69,
+    "difficulty": -1.24
+  },
+  {
+    "stem": "What is the meaning of 'change'?",
+    "options": {
+      "A": "sufficient",
+      "B": "to gather",
+      "C": "a reply",
+      "D": "a thing you read"
+    },
+    "correct_answer": "C",
+    "domain": "vocabulary",
+    "skill_tag": "vst_2k",
+    "stage": 2,
+    "panel": "low",
+    "discrimination": 1.58,
+    "difficulty": -0.57
+  },
+  {
+    "stem": "What is the meaning of 'problem'?",
+    "options": {
+      "A": "shortness",
+      "B": "clever",
+      "C": "logical",
+      "D": "to grow"
+    },
+    "correct_answer": "D",
+    "domain": "vocabulary",
+    "skill_tag": "vst_2k",
+    "stage": 2,
+    "panel": "low",
+    "discrimination": 1.71,
+    "difficulty": -1.09
+  },
+  {
+    "stem": "What is the meaning of 'begin'?",
+    "options": {
+      "A": "honest",
+      "B": "next to",
+      "C": "to contain",
+      "D": "to support"
+    },
+    "correct_answer": "C",
+    "domain": "vocabulary",
+    "skill_tag": "vst_2k",
+    "stage": 2,
+    "panel": "low",
+    "discrimination": 1.63,
+    "difficulty": -2.22
+  },
+  {
+    "stem": "What is the meaning of 'answer'?",
+    "options": {
+      "A": "out of time",
+      "B": "to ease",
+      "C": "an idea",
+      "D": "to give"
+    },
+    "correct_answer": "D",
+    "domain": "vocabulary",
+    "skill_tag": "vst_2k",
+    "stage": 2,
+    "panel": "low",
+    "discrimination": 1.5,
+    "difficulty": -0.99
+  },
+  {
+    "stem": "What is the meaning of 'develop'?",
+    "options": {
+      "A": "to support",
+      "B": "a reply",
+      "C": "unclear",
+      "D": "to start"
+    },
+    "correct_answer": "D",
+    "domain": "vocabulary",
+    "skill_tag": "vst_2k",
+    "stage": 2,
+    "panel": "low",
+    "discrimination": 1.77,
+    "difficulty": -0.97
+  },
+  {
+    "stem": "What is the meaning of 'include'?",
+    "options": {
+      "A": "scholarly",
+      "B": "sufficient",
+      "C": "to grow",
+      "D": "a reply"
+    },
+    "correct_answer": "D",
+    "domain": "vocabulary",
+    "skill_tag": "vst_2k",
+    "stage": 2,
+    "panel": "low",
+    "discrimination": 1.65,
+    "difficulty": -1.22
+  },
+  {
+    "stem": "What is the meaning of 'achieve'?",
+    "options": {
+      "A": "next to",
+      "B": "to accomplish",
+      "C": "to contain",
+      "D": "to gather"
+    },
+    "correct_answer": "B",
+    "domain": "vocabulary",
+    "skill_tag": "vst_3k",
+    "stage": 2,
+    "panel": "medium",
+    "discrimination": 1.38,
+    "difficulty": 0.03
+  },
+  {
+    "stem": "What is the meaning of 'approach'?",
+    "options": {
+      "A": "disapproved",
+      "B": "logical",
+      "C": "to come near",
+      "D": "complicated"
+    },
+    "correct_answer": "C",
+    "domain": "vocabulary",
+    "skill_tag": "vst_3k",
+    "stage": 2,
+    "panel": "medium",
+    "discrimination": 1.78,
+    "difficulty": 0.72
+  },
+  {
+    "stem": "What is the meaning of 'concept'?",
+    "options": {
+      "A": "an idea",
+      "B": "disapproved",
+      "C": "scholarly",
+      "D": "random"
+    },
+    "correct_answer": "A",
+    "domain": "vocabulary",
+    "skill_tag": "vst_3k",
+    "stage": 2,
+    "panel": "medium",
+    "discrimination": 1.88,
+    "difficulty": 0.29
+  },
+  {
+    "stem": "What is the meaning of 'debate'?",
+    "options": {
+      "A": "to accomplish",
+      "B": "a discussion",
+      "C": "an idea",
+      "D": "an animal"
+    },
+    "correct_answer": "B",
+    "domain": "vocabulary",
+    "skill_tag": "vst_3k",
+    "stage": 2,
+    "panel": "medium",
+    "discrimination": 1.83,
+    "difficulty": 0.03
+  },
+  {
+    "stem": "What is the meaning of 'expand'?",
+    "options": {
+      "A": "to grow larger",
+      "B": "to support",
+      "C": "to grow",
+      "D": "to ease"
+    },
+    "correct_answer": "A",
+    "domain": "vocabulary",
+    "skill_tag": "vst_3k",
+    "stage": 2,
+    "panel": "medium",
+    "discrimination": 1.78,
+    "difficulty": 0.85
+  },
+  {
+    "stem": "What is the meaning of 'framework'?",
+    "options": {
+      "A": "to support",
+      "B": "to accomplish",
+      "C": "to come near",
+      "D": "to gather"
+    },
+    "correct_answer": "B",
+    "domain": "vocabulary",
+    "skill_tag": "vst_3k",
+    "stage": 2,
+    "panel": "medium",
+    "discrimination": 1.43,
+    "difficulty": 0.43
+  },
+  {
+    "stem": "What is the meaning of 'generate'?",
+    "options": {
+      "A": "a reply",
+      "B": "to come near",
+      "C": "something unusual",
+      "D": "shortness"
+    },
+    "correct_answer": "B",
+    "domain": "vocabulary",
+    "skill_tag": "vst_3k",
+    "stage": 2,
+    "panel": "medium",
+    "discrimination": 1.88,
+    "difficulty": 0.33
+  },
+  {
+    "stem": "What is the meaning of 'achieve'?",
+    "options": {
+      "A": "an idea",
+      "B": "to gather",
+      "C": "to have food",
+      "D": "a reply"
+    },
+    "correct_answer": "A",
+    "domain": "vocabulary",
+    "skill_tag": "vst_3k",
+    "stage": 2,
+    "panel": "medium",
+    "discrimination": 1.44,
+    "difficulty": 0.62
+  },
+  {
+    "stem": "What is the meaning of 'abandon'?",
+    "options": {
+      "A": "unclear",
+      "B": "to start",
+      "C": "to leave behind",
+      "D": "random"
+    },
+    "correct_answer": "C",
+    "domain": "vocabulary",
+    "skill_tag": "vst_4k",
+    "stage": 2,
+    "panel": "medium",
+    "discrimination": 1.81,
+    "difficulty": 0.0
+  },
+  {
+    "stem": "What is the meaning of 'accumulate'?",
+    "options": {
+      "A": "to grow larger",
+      "B": "to gather",
+      "C": "large in size",
+      "D": "sudden"
+    },
+    "correct_answer": "B",
+    "domain": "vocabulary",
+    "skill_tag": "vst_4k",
+    "stage": 2,
+    "panel": "medium",
+    "discrimination": 1.63,
+    "difficulty": 0.09
+  },
+  {
+    "stem": "What is the meaning of 'adequate'?",
+    "options": {
+      "A": "sufficient",
+      "B": "to come near",
+      "C": "large in size",
+      "D": "to accomplish"
+    },
+    "correct_answer": "A",
+    "domain": "vocabulary",
+    "skill_tag": "vst_4k",
+    "stage": 2,
+    "panel": "medium",
+    "discrimination": 1.53,
+    "difficulty": 0.24
+  },
+  {
+    "stem": "What is the meaning of 'advocate'?",
+    "options": {
+      "A": "a manipulator",
+      "B": "to gather",
+      "C": "to support",
+      "D": "following"
+    },
+    "correct_answer": "C",
+    "domain": "vocabulary",
+    "skill_tag": "vst_4k",
+    "stage": 2,
+    "panel": "medium",
+    "discrimination": 1.65,
+    "difficulty": 0.76
+  },
+  {
+    "stem": "What is the meaning of 'clarify'?",
+    "options": {
+      "A": "following",
+      "B": "scholarly",
+      "C": "to make clear",
+      "D": "to ease"
+    },
+    "correct_answer": "C",
+    "domain": "vocabulary",
+    "skill_tag": "vst_4k",
+    "stage": 2,
+    "panel": "medium",
+    "discrimination": 1.52,
+    "difficulty": 0.05
+  },
+  {
+    "stem": "What is the meaning of 'compatible'?",
+    "options": {
+      "A": "disapproved",
+      "B": "an idea",
+      "C": "out of time",
+      "D": "to leave behind"
+    },
+    "correct_answer": "D",
+    "domain": "vocabulary",
+    "skill_tag": "vst_4k",
+    "stage": 2,
+    "panel": "medium",
+    "discrimination": 1.39,
+    "difficulty": 0.16
+  },
+  {
+    "stem": "What is the meaning of 'convince'?",
+    "options": {
+      "A": "difficult to understand",
+      "B": "to leave behind",
+      "C": "temporary",
+      "D": "to gather"
+    },
+    "correct_answer": "D",
+    "domain": "vocabulary",
+    "skill_tag": "vst_4k",
+    "stage": 2,
+    "panel": "medium",
+    "discrimination": 1.42,
+    "difficulty": 0.62
+  },
+  {
+    "stem": "What is the meaning of 'abandon'?",
+    "options": {
+      "A": "an animal",
+      "B": "to come near",
+      "C": "harmless",
+      "D": "sufficient"
+    },
+    "correct_answer": "D",
+    "domain": "vocabulary",
+    "skill_tag": "vst_4k",
+    "stage": 2,
+    "panel": "medium",
+    "discrimination": 1.58,
+    "difficulty": -0.46
+  },
+  {
+    "stem": "What is the meaning of 'adjacent'?",
+    "options": {
+      "A": "a manipulator",
+      "B": "complicated",
+      "C": "shortness",
+      "D": "next to"
+    },
+    "correct_answer": "D",
+    "domain": "vocabulary",
+    "skill_tag": "vst_6k",
+    "stage": 2,
+    "panel": "medium",
+    "discrimination": 1.46,
+    "difficulty": 0.33
+  },
+  {
+    "stem": "What is the meaning of 'arbitrary'?",
+    "options": {
+      "A": "to contain",
+      "B": "random",
+      "C": "unclear",
+      "D": "something unusual"
+    },
+    "correct_answer": "B",
+    "domain": "vocabulary",
+    "skill_tag": "vst_6k",
+    "stage": 2,
+    "panel": "medium",
+    "discrimination": 1.57,
+    "difficulty": -0.07
+  },
+  {
+    "stem": "What is the meaning of 'coherent'?",
+    "options": {
+      "A": "logical",
+      "B": "something unusual",
+      "C": "unclear",
+      "D": "following"
+    },
+    "correct_answer": "A",
+    "domain": "vocabulary",
+    "skill_tag": "vst_6k",
+    "stage": 2,
+    "panel": "medium",
+    "discrimination": 1.89,
+    "difficulty": 0.7
+  },
+  {
+    "stem": "What is the meaning of 'consecutive'?",
+    "options": {
+      "A": "following",
+      "B": "to ease",
+      "C": "sudden",
+      "D": "to give"
+    },
+    "correct_answer": "A",
+    "domain": "vocabulary",
+    "skill_tag": "vst_6k",
+    "stage": 2,
+    "panel": "medium",
+    "discrimination": 1.6,
+    "difficulty": 0.3
+  },
+  {
+    "stem": "What is the meaning of 'ambiguous'?",
+    "options": {
+      "A": "to move fast",
+      "B": "an animal",
+      "C": "to force",
+      "D": "unclear"
+    },
+    "correct_answer": "D",
+    "domain": "vocabulary",
+    "skill_tag": "vst_6k",
+    "stage": 2,
+    "panel": "medium",
+    "discrimination": 1.9,
+    "difficulty": 0.68
+  },
+  {
+    "stem": "What is the meaning of 'compile'?",
+    "options": {
+      "A": "disapproved",
+      "B": "a discussion",
+      "C": "to start",
+      "D": "next to"
+    },
+    "correct_answer": "D",
+    "domain": "vocabulary",
+    "skill_tag": "vst_6k",
+    "stage": 2,
+    "panel": "medium",
+    "discrimination": 1.53,
+    "difficulty": 0.13
+  },
+  {
+    "stem": "What is the meaning of 'explicit'?",
+    "options": {
+      "A": "difficult to understand",
+      "B": "to give",
+      "C": "out of time",
+      "D": "random"
+    },
+    "correct_answer": "D",
+    "domain": "vocabulary",
+    "skill_tag": "vst_6k",
+    "stage": 2,
+    "panel": "medium",
+    "discrimination": 1.44,
+    "difficulty": 0.21
+  },
+  {
+    "stem": "What is the meaning of 'adjacent'?",
+    "options": {
+      "A": "logical",
+      "B": "to make clear",
+      "C": "following",
+      "D": "to ease"
+    },
+    "correct_answer": "A",
+    "domain": "vocabulary",
+    "skill_tag": "vst_6k",
+    "stage": 2,
+    "panel": "medium",
+    "discrimination": 1.7,
+    "difficulty": 0.25
+  },
+  {
+    "stem": "What is the meaning of 'abrupt'?",
+    "options": {
+      "A": "honest",
+      "B": "unclear",
+      "C": "to force",
+      "D": "sudden"
+    },
+    "correct_answer": "D",
+    "domain": "vocabulary",
+    "skill_tag": "vst_8k",
+    "stage": 2,
+    "panel": "high",
+    "discrimination": 1.81,
+    "difficulty": 2.16
+  },
+  {
+    "stem": "What is the meaning of 'anomaly'?",
+    "options": {
+      "A": "to grow",
+      "B": "large in size",
+      "C": "something unusual",
+      "D": "following"
+    },
+    "correct_answer": "C",
+    "domain": "vocabulary",
+    "skill_tag": "vst_8k",
+    "stage": 2,
+    "panel": "high",
+    "discrimination": 1.68,
+    "difficulty": 1.94
+  },
+  {
+    "stem": "What is the meaning of 'benign'?",
+    "options": {
+      "A": "harmless",
+      "B": "to gather",
+      "C": "disapproved",
+      "D": "to make clear"
+    },
+    "correct_answer": "A",
+    "domain": "vocabulary",
+    "skill_tag": "vst_8k",
+    "stage": 2,
+    "panel": "high",
+    "discrimination": 1.55,
+    "difficulty": 0.53
+  },
+  {
+    "stem": "What is the meaning of 'candid'?",
+    "options": {
+      "A": "an animal",
+      "B": "to leave behind",
+      "C": "next to",
+      "D": "honest"
+    },
+    "correct_answer": "D",
+    "domain": "vocabulary",
+    "skill_tag": "vst_8k",
+    "stage": 2,
+    "panel": "high",
+    "discrimination": 1.56,
+    "difficulty": 1.34
+  },
+  {
+    "stem": "What is the meaning of 'coerce'?",
+    "options": {
+      "A": "to have food",
+      "B": "sufficient",
+      "C": "to support",
+      "D": "to force"
+    },
+    "correct_answer": "D",
+    "domain": "vocabulary",
+    "skill_tag": "vst_8k",
+    "stage": 2,
+    "panel": "high",
+    "discrimination": 1.72,
+    "difficulty": 1.37
+  },
+  {
+    "stem": "What is the meaning of 'cynical'?",
+    "options": {
+      "A": "sudden",
+      "B": "to start",
+      "C": "next to",
+      "D": "to have food"
+    },
+    "correct_answer": "A",
+    "domain": "vocabulary",
+    "skill_tag": "vst_8k",
+    "stage": 2,
+    "panel": "high",
+    "discrimination": 1.55,
+    "difficulty": 2.15
+  },
+  {
+    "stem": "What is the meaning of 'deliberate'?",
+    "options": {
+      "A": "complicated",
+      "B": "something unusual",
+      "C": "a reply",
+      "D": "a thing you read"
+    },
+    "correct_answer": "B",
+    "domain": "vocabulary",
+    "skill_tag": "vst_8k",
+    "stage": 2,
+    "panel": "high",
+    "discrimination": 1.78,
+    "difficulty": 1.99
+  },
+  {
+    "stem": "What is the meaning of 'abrupt'?",
+    "options": {
+      "A": "complicated",
+      "B": "a thing you read",
+      "C": "harmless",
+      "D": "to have food"
+    },
+    "correct_answer": "C",
+    "domain": "vocabulary",
+    "skill_tag": "vst_8k",
+    "stage": 2,
+    "panel": "high",
+    "discrimination": 1.79,
+    "difficulty": 2.0
+  },
+  {
+    "stem": "What is the meaning of 'alleviate'?",
+    "options": {
+      "A": "to accomplish",
+      "B": "to ease",
+      "C": "to contain",
+      "D": "to force"
+    },
+    "correct_answer": "B",
+    "domain": "vocabulary",
+    "skill_tag": "vst_10k",
+    "stage": 2,
+    "panel": "high",
+    "discrimination": 1.53,
+    "difficulty": 1.38
+  },
+  {
+    "stem": "What is the meaning of 'astute'?",
+    "options": {
+      "A": "a thing you read",
+      "B": "to move fast",
+      "C": "to ease",
+      "D": "clever"
+    },
+    "correct_answer": "D",
+    "domain": "vocabulary",
+    "skill_tag": "vst_10k",
+    "stage": 2,
+    "panel": "high",
+    "discrimination": 1.56,
+    "difficulty": 0.62
+  },
+  {
+    "stem": "What is the meaning of 'brevity'?",
+    "options": {
+      "A": "to force",
+      "B": "shortness",
+      "C": "to leave behind",
+      "D": "unclear"
+    },
+    "correct_answer": "B",
+    "domain": "vocabulary",
+    "skill_tag": "vst_10k",
+    "stage": 2,
+    "panel": "high",
+    "discrimination": 1.96,
+    "difficulty": 1.25
+  },
+  {
+    "stem": "What is the meaning of 'convoluted'?",
+    "options": {
+      "A": "to leave behind",
+      "B": "shortness",
+      "C": "complicated",
+      "D": "sufficient"
+    },
+    "correct_answer": "C",
+    "domain": "vocabulary",
+    "skill_tag": "vst_10k",
+    "stage": 2,
+    "panel": "high",
+    "discrimination": 1.67,
+    "difficulty": 1.46
+  },
+  {
+    "stem": "What is the meaning of 'deprecated'?",
+    "options": {
+      "A": "disapproved",
+      "B": "to make clear",
+      "C": "honest",
+      "D": "clever"
+    },
+    "correct_answer": "A",
+    "domain": "vocabulary",
+    "skill_tag": "vst_10k",
+    "stage": 2,
+    "panel": "high",
+    "discrimination": 1.47,
+    "difficulty": 2.36
+  },
+  {
+    "stem": "What is the meaning of 'ebullient'?",
+    "options": {
+      "A": "to ease",
+      "B": "to support",
+      "C": "harmless",
+      "D": "to start"
+    },
+    "correct_answer": "A",
+    "domain": "vocabulary",
+    "skill_tag": "vst_10k",
+    "stage": 2,
+    "panel": "high",
+    "discrimination": 1.83,
+    "difficulty": 0.58
+  },
+  {
+    "stem": "What is the meaning of 'facetious'?",
+    "options": {
+      "A": "to leave behind",
+      "B": "out of time",
+      "C": "clever",
+      "D": "complicated"
+    },
+    "correct_answer": "C",
+    "domain": "vocabulary",
+    "skill_tag": "vst_10k",
+    "stage": 2,
+    "panel": "high",
+    "discrimination": 1.77,
+    "difficulty": 1.89
+  },
+  {
+    "stem": "What is the meaning of 'alleviate'?",
+    "options": {
+      "A": "to leave behind",
+      "B": "difficult to understand",
+      "C": "shortness",
+      "D": "large in size"
+    },
+    "correct_answer": "C",
+    "domain": "vocabulary",
+    "skill_tag": "vst_10k",
+    "stage": 2,
+    "panel": "high",
+    "discrimination": 1.68,
+    "difficulty": 1.98
+  },
+  {
+    "stem": "What is the meaning of 'abstruse'?",
+    "options": {
+      "A": "out of time",
+      "B": "to make clear",
+      "C": "to start",
+      "D": "difficult to understand"
+    },
+    "correct_answer": "D",
+    "domain": "vocabulary",
+    "skill_tag": "vst_14k",
+    "stage": 2,
+    "panel": "high",
+    "discrimination": 1.64,
+    "difficulty": 0.79
+  },
+  {
+    "stem": "What is the meaning of 'anachronism'?",
+    "options": {
+      "A": "sudden",
+      "B": "logical",
+      "C": "out of time",
+      "D": "a reply"
+    },
+    "correct_answer": "C",
+    "domain": "vocabulary",
+    "skill_tag": "vst_14k",
+    "stage": 2,
+    "panel": "high",
+    "discrimination": 1.99,
+    "difficulty": 0.97
+  },
+  {
+    "stem": "What is the meaning of 'demagogue'?",
+    "options": {
+      "A": "honest",
+      "B": "a manipulator",
+      "C": "to ease",
+      "D": "difficult to understand"
+    },
+    "correct_answer": "B",
+    "domain": "vocabulary",
+    "skill_tag": "vst_14k",
+    "stage": 2,
+    "panel": "high",
+    "discrimination": 1.72,
+    "difficulty": 1.25
+  },
+  {
+    "stem": "What is the meaning of 'ephemeral'?",
+    "options": {
+      "A": "a discussion",
+      "B": "harmless",
+      "C": "temporary",
+      "D": "to give"
+    },
+    "correct_answer": "C",
+    "domain": "vocabulary",
+    "skill_tag": "vst_14k",
+    "stage": 2,
+    "panel": "high",
+    "discrimination": 1.98,
+    "difficulty": 2.24
+  },
+  {
+    "stem": "What is the meaning of 'erudite'?",
+    "options": {
+      "A": "scholarly",
+      "B": "to start",
+      "C": "clever",
+      "D": "logical"
+    },
+    "correct_answer": "A",
+    "domain": "vocabulary",
+    "skill_tag": "vst_14k",
+    "stage": 2,
+    "panel": "high",
+    "discrimination": 1.53,
+    "difficulty": 0.81
+  },
+  {
+    "stem": "What is the meaning of 'mendacity'?",
+    "options": {
+      "A": "difficult to understand",
+      "B": "shortness",
+      "C": "logical",
+      "D": "harmless"
+    },
+    "correct_answer": "A",
+    "domain": "vocabulary",
+    "skill_tag": "vst_14k",
+    "stage": 2,
+    "panel": "high",
+    "discrimination": 1.71,
+    "difficulty": 0.87
+  },
+  {
+    "stem": "What is the meaning of 'obfuscate'?",
+    "options": {
+      "A": "shortness",
+      "B": "to have food",
+      "C": "something unusual",
+      "D": "out of time"
+    },
+    "correct_answer": "D",
+    "domain": "vocabulary",
+    "skill_tag": "vst_14k",
+    "stage": 2,
+    "panel": "high",
+    "discrimination": 1.45,
+    "difficulty": 1.24
+  },
+  {
+    "stem": "What is the meaning of 'abstruse'?",
+    "options": {
+      "A": "a manipulator",
+      "B": "next to",
+      "C": "random",
+      "D": "large in size"
+    },
+    "correct_answer": "A",
+    "domain": "vocabulary",
+    "skill_tag": "vst_14k",
+    "stage": 2,
+    "panel": "high",
+    "discrimination": 1.99,
+    "difficulty": 1.35
+  },
+  {
+    "stem": "What is the meaning of 'book'?",
+    "options": {
+      "A": "out of time",
+      "B": "a thing you read",
+      "C": "harmless",
+      "D": "unclear"
+    },
+    "correct_answer": "B",
+    "domain": "vocabulary",
+    "skill_tag": "vst_1k",
+    "stage": 3,
+    "panel": "low-low",
+    "discrimination": 1.83,
+    "difficulty": -2.42
+  },
+  {
+    "stem": "What is the meaning of 'cat'?",
+    "options": {
+      "A": "an animal",
+      "B": "logical",
+      "C": "a thing you read",
+      "D": "to ease"
+    },
+    "correct_answer": "A",
+    "domain": "vocabulary",
+    "skill_tag": "vst_1k",
+    "stage": 3,
+    "panel": "low-low",
+    "discrimination": 1.73,
+    "difficulty": -1.8
+  },
+  {
+    "stem": "What is the meaning of 'run'?",
+    "options": {
+      "A": "to ease",
+      "B": "to move fast",
+      "C": "random",
+      "D": "out of time"
+    },
+    "correct_answer": "B",
+    "domain": "vocabulary",
+    "skill_tag": "vst_1k",
+    "stage": 3,
+    "panel": "low-low",
+    "discrimination": 1.69,
+    "difficulty": -1.68
+  },
+  {
+    "stem": "What is the meaning of 'eat'?",
+    "options": {
+      "A": "to ease",
+      "B": "to contain",
+      "C": "to have food",
+      "D": "to support"
+    },
+    "correct_answer": "C",
+    "domain": "vocabulary",
+    "skill_tag": "vst_1k",
+    "stage": 3,
+    "panel": "low-low",
+    "discrimination": 1.59,
+    "difficulty": -1.55
+  },
+  {
+    "stem": "What is the meaning of 'big'?",
+    "options": {
+      "A": "following",
+      "B": "large in size",
+      "C": "to force",
+      "D": "a thing you read"
+    },
+    "correct_answer": "B",
+    "domain": "vocabulary",
+    "skill_tag": "vst_1k",
+    "stage": 3,
+    "panel": "low-low",
+    "discrimination": 1.95,
+    "difficulty": -2.07
+  },
+  {
+    "stem": "What is the meaning of 'red'?",
+    "options": {
+      "A": "a thing you read",
+      "B": "something unusual",
+      "C": "to come near",
+      "D": "large in size"
+    },
+    "correct_answer": "A",
+    "domain": "vocabulary",
+    "skill_tag": "vst_1k",
+    "stage": 3,
+    "panel": "low-low",
+    "discrimination": 1.5,
+    "difficulty": -1.87
+  },
+  {
+    "stem": "What is the meaning of 'happy'?",
+    "options": {
+      "A": "to gather",
+      "B": "to start",
+      "C": "an animal",
+      "D": "a discussion"
+    },
+    "correct_answer": "C",
+    "domain": "vocabulary",
+    "skill_tag": "vst_1k",
+    "stage": 3,
+    "panel": "low-low",
+    "discrimination": 1.91,
+    "difficulty": -2.11
+  },
+  {
+    "stem": "What is the meaning of 'good'?",
+    "options": {
+      "A": "to move fast",
+      "B": "scholarly",
+      "C": "following",
+      "D": "a thing you read"
+    },
+    "correct_answer": "A",
+    "domain": "vocabulary",
+    "skill_tag": "vst_1k",
+    "stage": 3,
+    "panel": "low-low",
+    "discrimination": 1.91,
+    "difficulty": -1.6
+  },
+  {
+    "stem": "What is the meaning of 'water'?",
+    "options": {
+      "A": "scholarly",
+      "B": "to have food",
+      "C": "to start",
+      "D": "to grow larger"
+    },
+    "correct_answer": "B",
+    "domain": "vocabulary",
+    "skill_tag": "vst_1k",
+    "stage": 3,
+    "panel": "low-low",
+    "discrimination": 1.99,
+    "difficulty": -2.46
+  },
+  {
+    "stem": "What is the meaning of 'house'?",
+    "options": {
+      "A": "harmless",
+      "B": "to contain",
+      "C": "to accomplish",
+      "D": "large in size"
+    },
+    "correct_answer": "D",
+    "domain": "vocabulary",
+    "skill_tag": "vst_1k",
+    "stage": 3,
+    "panel": "low-low",
+    "discrimination": 1.72,
+    "difficulty": -2.46
+  },
+  {
+    "stem": "What is the meaning of 'book'?",
+    "options": {
+      "A": "difficult to understand",
+      "B": "following",
+      "C": "a thing you read",
+      "D": "unclear"
+    },
+    "correct_answer": "C",
+    "domain": "vocabulary",
+    "skill_tag": "vst_1k",
+    "stage": 3,
+    "panel": "low-low",
+    "discrimination": 1.69,
+    "difficulty": -1.93
+  },
+  {
+    "stem": "What is the meaning of 'cat'?",
+    "options": {
+      "A": "to come near",
+      "B": "a thing you read",
+      "C": "an animal",
+      "D": "something unusual"
+    },
+    "correct_answer": "C",
+    "domain": "vocabulary",
+    "skill_tag": "vst_1k",
+    "stage": 3,
+    "panel": "low-low",
+    "discrimination": 2.0,
+    "difficulty": -1.85
+  },
+  {
+    "stem": "What is the meaning of 'begin'?",
+    "options": {
+      "A": "following",
+      "B": "to leave behind",
+      "C": "to start",
+      "D": "to contain"
+    },
+    "correct_answer": "C",
+    "domain": "vocabulary",
+    "skill_tag": "vst_2k",
+    "stage": 3,
+    "panel": "low-high",
+    "discrimination": 1.9,
+    "difficulty": -1.03
+  },
+  {
+    "stem": "What is the meaning of 'answer'?",
+    "options": {
+      "A": "to start",
+      "B": "a reply",
+      "C": "to come near",
+      "D": "harmless"
+    },
+    "correct_answer": "B",
+    "domain": "vocabulary",
+    "skill_tag": "vst_2k",
+    "stage": 3,
+    "panel": "low-high",
+    "discrimination": 1.61,
+    "difficulty": -0.6
+  },
+  {
+    "stem": "What is the meaning of 'develop'?",
+    "options": {
+      "A": "following",
+      "B": "logical",
+      "C": "to grow",
+      "D": "an animal"
+    },
+    "correct_answer": "C",
+    "domain": "vocabulary",
+    "skill_tag": "vst_2k",
+    "stage": 3,
+    "panel": "low-high",
+    "discrimination": 1.81,
+    "difficulty": -0.65
+  },
+  {
+    "stem": "What is the meaning of 'include'?",
+    "options": {
+      "A": "out of time",
+      "B": "difficult to understand",
+      "C": "a manipulator",
+      "D": "to contain"
+    },
+    "correct_answer": "D",
+    "domain": "vocabulary",
+    "skill_tag": "vst_2k",
+    "stage": 3,
+    "panel": "low-high",
+    "discrimination": 1.57,
+    "difficulty": -1.21
+  },
+  {
+    "stem": "What is the meaning of 'provide'?",
+    "options": {
+      "A": "to support",
+      "B": "complicated",
+      "C": "something unusual",
+      "D": "to give"
+    },
+    "correct_answer": "D",
+    "domain": "vocabulary",
+    "skill_tag": "vst_2k",
+    "stage": 3,
+    "panel": "low-high",
+    "discrimination": 1.88,
+    "difficulty": -0.98
+  },
+  {
+    "stem": "What is the meaning of 'business'?",
+    "options": {
+      "A": "random",
+      "B": "an idea",
+      "C": "to start",
+      "D": "to grow larger"
+    },
+    "correct_answer": "C",
+    "domain": "vocabulary",
+    "skill_tag": "vst_2k",
+    "stage": 3,
+    "panel": "low-high",
+    "discrimination": 1.72,
+    "difficulty": -1.28
+  },
+  {
+    "stem": "What is the meaning of 'change'?",
+    "options": {
+      "A": "next to",
+      "B": "following",
+      "C": "to accomplish",
+      "D": "a reply"
+    },
+    "correct_answer": "D",
+    "domain": "vocabulary",
+    "skill_tag": "vst_2k",
+    "stage": 3,
+    "panel": "low-high",
+    "discrimination": 1.65,
+    "difficulty": -0.53
+  },
+  {
+    "stem": "What is the meaning of 'problem'?",
+    "options": {
+      "A": "an animal",
+      "B": "to make clear",
+      "C": "honest",
+      "D": "to grow"
+    },
+    "correct_answer": "D",
+    "domain": "vocabulary",
+    "skill_tag": "vst_2k",
+    "stage": 3,
+    "panel": "low-high",
+    "discrimination": 1.5,
+    "difficulty": -0.54
+  },
+  {
+    "stem": "What is the meaning of 'begin'?",
+    "options": {
+      "A": "to contain",
+      "B": "sudden",
+      "C": "out of time",
+      "D": "an idea"
+    },
+    "correct_answer": "A",
+    "domain": "vocabulary",
+    "skill_tag": "vst_2k",
+    "stage": 3,
+    "panel": "low-high",
+    "discrimination": 1.5,
+    "difficulty": -1.34
+  },
+  {
+    "stem": "What is the meaning of 'answer'?",
+    "options": {
+      "A": "to give",
+      "B": "out of time",
+      "C": "following",
+      "D": "a thing you read"
+    },
+    "correct_answer": "A",
+    "domain": "vocabulary",
+    "skill_tag": "vst_2k",
+    "stage": 3,
+    "panel": "low-high",
+    "discrimination": 1.93,
+    "difficulty": -0.72
+  },
+  {
+    "stem": "What is the meaning of 'develop'?",
+    "options": {
+      "A": "to come near",
+      "B": "an idea",
+      "C": "random",
+      "D": "to start"
+    },
+    "correct_answer": "D",
+    "domain": "vocabulary",
+    "skill_tag": "vst_2k",
+    "stage": 3,
+    "panel": "low-high",
+    "discrimination": 1.99,
+    "difficulty": -1.08
+  },
+  {
+    "stem": "What is the meaning of 'include'?",
+    "options": {
+      "A": "to start",
+      "B": "to force",
+      "C": "a reply",
+      "D": "an animal"
+    },
+    "correct_answer": "C",
+    "domain": "vocabulary",
+    "skill_tag": "vst_2k",
+    "stage": 3,
+    "panel": "low-high",
+    "discrimination": 1.71,
+    "difficulty": -1.36
+  },
+  {
+    "stem": "What is the meaning of 'provide'?",
+    "options": {
+      "A": "to support",
+      "B": "to grow",
+      "C": "difficult to understand",
+      "D": "unclear"
+    },
+    "correct_answer": "B",
+    "domain": "vocabulary",
+    "skill_tag": "vst_2k",
+    "stage": 3,
+    "panel": "low-high",
+    "discrimination": 1.81,
+    "difficulty": -1.18
+  },
+  {
+    "stem": "What is the meaning of 'achieve'?",
+    "options": {
+      "A": "disapproved",
+      "B": "to accomplish",
+      "C": "unclear",
+      "D": "harmless"
+    },
+    "correct_answer": "B",
+    "domain": "vocabulary",
+    "skill_tag": "vst_3k",
+    "stage": 3,
+    "panel": "med-low",
+    "discrimination": 1.85,
+    "difficulty": -0.12
+  },
+  {
+    "stem": "What is the meaning of 'approach'?",
+    "options": {
+      "A": "to come near",
+      "B": "large in size",
+      "C": "to contain",
+      "D": "scholarly"
+    },
+    "correct_answer": "A",
+    "domain": "vocabulary",
+    "skill_tag": "vst_3k",
+    "stage": 3,
+    "panel": "med-low",
+    "discrimination": 1.98,
+    "difficulty": -0.23
+  },
+  {
+    "stem": "What is the meaning of 'concept'?",
+    "options": {
+      "A": "to move fast",
+      "B": "a discussion",
+      "C": "a reply",
+      "D": "an idea"
+    },
+    "correct_answer": "D",
+    "domain": "vocabulary",
+    "skill_tag": "vst_3k",
+    "stage": 3,
+    "panel": "med-low",
+    "discrimination": 1.67,
+    "difficulty": -0.04
+  },
+  {
+    "stem": "What is the meaning of 'debate'?",
+    "options": {
+      "A": "harmless",
+      "B": "shortness",
+      "C": "a discussion",
+      "D": "scholarly"
+    },
+    "correct_answer": "C",
+    "domain": "vocabulary",
+    "skill_tag": "vst_3k",
+    "stage": 3,
+    "panel": "med-low",
+    "discrimination": 1.9,
+    "difficulty": -0.46
+  },
+  {
+    "stem": "What is the meaning of 'expand'?",
+    "options": {
+      "A": "a discussion",
+      "B": "an idea",
+      "C": "to grow larger",
+      "D": "sudden"
+    },
+    "correct_answer": "C",
+    "domain": "vocabulary",
+    "skill_tag": "vst_3k",
+    "stage": 3,
+    "panel": "med-low",
+    "discrimination": 1.64,
+    "difficulty": -0.38
+  },
+  {
+    "stem": "What is the meaning of 'framework'?",
+    "options": {
+      "A": "to accomplish",
+      "B": "a reply",
+      "C": "complicated",
+      "D": "unclear"
+    },
+    "correct_answer": "A",
+    "domain": "vocabulary",
+    "skill_tag": "vst_3k",
+    "stage": 3,
+    "panel": "med-low",
+    "discrimination": 1.76,
+    "difficulty": -0.23
+  },
+  {
+    "stem": "What is the meaning of 'abandon'?",
+    "options": {
+      "A": "to leave behind",
+      "B": "to give",
+      "C": "out of time",
+      "D": "to grow larger"
+    },
+    "correct_answer": "A",
+    "domain": "vocabulary",
+    "skill_tag": "vst_4k",
+    "stage": 3,
+    "panel": "med-low",
+    "discrimination": 1.62,
+    "difficulty": -0.4
+  },
+  {
+    "stem": "What is the meaning of 'accumulate'?",
+    "options": {
+      "A": "to gather",
+      "B": "to move fast",
+      "C": "to have food",
+      "D": "to ease"
+    },
+    "correct_answer": "A",
+    "domain": "vocabulary",
+    "skill_tag": "vst_4k",
+    "stage": 3,
+    "panel": "med-low",
+    "discrimination": 1.54,
+    "difficulty": -0.35
+  },
+  {
+    "stem": "What is the meaning of 'adequate'?",
+    "options": {
+      "A": "logical",
+      "B": "to support",
+      "C": "sufficient",
+      "D": "complicated"
+    },
+    "correct_answer": "C",
+    "domain": "vocabulary",
+    "skill_tag": "vst_4k",
+    "stage": 3,
+    "panel": "med-low",
+    "discrimination": 1.79,
+    "difficulty": -0.36
+  },
+  {
+    "stem": "What is the meaning of 'advocate'?",
+    "options": {
+      "A": "random",
+      "B": "to support",
+      "C": "a thing you read",
+      "D": "unclear"
+    },
+    "correct_answer": "B",
+    "domain": "vocabulary",
+    "skill_tag": "vst_4k",
+    "stage": 3,
+    "panel": "med-low",
+    "discrimination": 1.53,
+    "difficulty": -0.42
+  },
+  {
+    "stem": "What is the meaning of 'clarify'?",
+    "options": {
+      "A": "large in size",
+      "B": "to make clear",
+      "C": "harmless",
+      "D": "random"
+    },
+    "correct_answer": "B",
+    "domain": "vocabulary",
+    "skill_tag": "vst_4k",
+    "stage": 3,
+    "panel": "med-low",
+    "discrimination": 1.7,
+    "difficulty": -0.4
+  },
+  {
+    "stem": "What is the meaning of 'compatible'?",
+    "options": {
+      "A": "to move fast",
+      "B": "to leave behind",
+      "C": "scholarly",
+      "D": "complicated"
+    },
+    "correct_answer": "B",
+    "domain": "vocabulary",
+    "skill_tag": "vst_4k",
+    "stage": 3,
+    "panel": "med-low",
+    "discrimination": 1.71,
+    "difficulty": -0.04
+  },
+  {
+    "stem": "What is the meaning of 'abandon'?",
+    "options": {
+      "A": "to ease",
+      "B": "to come near",
+      "C": "to leave behind",
+      "D": "sudden"
+    },
+    "correct_answer": "C",
+    "domain": "vocabulary",
+    "skill_tag": "vst_4k",
+    "stage": 3,
+    "panel": "med-high",
+    "discrimination": 1.55,
+    "difficulty": 0.97
+  },
+  {
+    "stem": "What is the meaning of 'accumulate'?",
+    "options": {
+      "A": "shortness",
+      "B": "an idea",
+      "C": "out of time",
+      "D": "to gather"
+    },
+    "correct_answer": "D",
+    "domain": "vocabulary",
+    "skill_tag": "vst_4k",
+    "stage": 3,
+    "panel": "med-high",
+    "discrimination": 1.83,
+    "difficulty": 0.48
+  },
+  {
+    "stem": "What is the meaning of 'adequate'?",
+    "options": {
+      "A": "a manipulator",
+      "B": "sufficient",
+      "C": "a thing you read",
+      "D": "to grow"
+    },
+    "correct_answer": "B",
+    "domain": "vocabulary",
+    "skill_tag": "vst_4k",
+    "stage": 3,
+    "panel": "med-high",
+    "discrimination": 1.99,
+    "difficulty": 0.42
+  },
+  {
+    "stem": "What is the meaning of 'advocate'?",
+    "options": {
+      "A": "to support",
+      "B": "to leave behind",
+      "C": "to ease",
+      "D": "temporary"
+    },
+    "correct_answer": "A",
+    "domain": "vocabulary",
+    "skill_tag": "vst_4k",
+    "stage": 3,
+    "panel": "med-high",
+    "discrimination": 1.54,
+    "difficulty": 0.72
+  },
+  {
+    "stem": "What is the meaning of 'clarify'?",
+    "options": {
+      "A": "to support",
+      "B": "to leave behind",
+      "C": "to make clear",
+      "D": "unclear"
+    },
+    "correct_answer": "C",
+    "domain": "vocabulary",
+    "skill_tag": "vst_4k",
+    "stage": 3,
+    "panel": "med-high",
+    "discrimination": 1.79,
+    "difficulty": 0.08
+  },
+  {
+    "stem": "What is the meaning of 'compatible'?",
+    "options": {
+      "A": "harmless",
+      "B": "to leave behind",
+      "C": "an idea",
+      "D": "a thing you read"
+    },
+    "correct_answer": "B",
+    "domain": "vocabulary",
+    "skill_tag": "vst_4k",
+    "stage": 3,
+    "panel": "med-high",
+    "discrimination": 1.79,
+    "difficulty": 0.44
+  },
+  {
+    "stem": "What is the meaning of 'adjacent'?",
+    "options": {
+      "A": "a thing you read",
+      "B": "next to",
+      "C": "to leave behind",
+      "D": "a discussion"
+    },
+    "correct_answer": "B",
+    "domain": "vocabulary",
+    "skill_tag": "vst_6k",
+    "stage": 3,
+    "panel": "med-high",
+    "discrimination": 1.66,
+    "difficulty": 0.08
+  },
+  {
+    "stem": "What is the meaning of 'arbitrary'?",
+    "options": {
+      "A": "to accomplish",
+      "B": "random",
+      "C": "difficult to understand",
+      "D": "unclear"
+    },
+    "correct_answer": "B",
+    "domain": "vocabulary",
+    "skill_tag": "vst_6k",
+    "stage": 3,
+    "panel": "med-high",
+    "discrimination": 1.89,
+    "difficulty": 0.77
+  },
+  {
+    "stem": "What is the meaning of 'coherent'?",
+    "options": {
+      "A": "logical",
+      "B": "to gather",
+      "C": "out of time",
+      "D": "to contain"
+    },
+    "correct_answer": "A",
+    "domain": "vocabulary",
+    "skill_tag": "vst_6k",
+    "stage": 3,
+    "panel": "med-high",
+    "discrimination": 1.62,
+    "difficulty": 0.49
+  },
+  {
+    "stem": "What is the meaning of 'consecutive'?",
+    "options": {
+      "A": "honest",
+      "B": "a discussion",
+      "C": "complicated",
+      "D": "following"
+    },
+    "correct_answer": "D",
+    "domain": "vocabulary",
+    "skill_tag": "vst_6k",
+    "stage": 3,
+    "panel": "med-high",
+    "discrimination": 1.59,
+    "difficulty": 0.55
+  },
+  {
+    "stem": "What is the meaning of 'ambiguous'?",
+    "options": {
+      "A": "next to",
+      "B": "to start",
+      "C": "unclear",
+      "D": "clever"
+    },
+    "correct_answer": "C",
+    "domain": "vocabulary",
+    "skill_tag": "vst_6k",
+    "stage": 3,
+    "panel": "med-high",
+    "discrimination": 1.94,
+    "difficulty": 0.58
+  },
+  {
+    "stem": "What is the meaning of 'compile'?",
+    "options": {
+      "A": "to contain",
+      "B": "to support",
+      "C": "scholarly",
+      "D": "next to"
+    },
+    "correct_answer": "D",
+    "domain": "vocabulary",
+    "skill_tag": "vst_6k",
+    "stage": 3,
+    "panel": "med-high",
+    "discrimination": 1.97,
+    "difficulty": 0.09
+  },
+  {
+    "stem": "What is the meaning of 'abrupt'?",
+    "options": {
+      "A": "scholarly",
+      "B": "to force",
+      "C": "to gather",
+      "D": "sudden"
+    },
+    "correct_answer": "D",
+    "domain": "vocabulary",
+    "skill_tag": "vst_8k",
+    "stage": 3,
+    "panel": "high-med",
+    "discrimination": 1.52,
+    "difficulty": 0.89
+  },
+  {
+    "stem": "What is the meaning of 'anomaly'?",
+    "options": {
+      "A": "something unusual",
+      "B": "to make clear",
+      "C": "a reply",
+      "D": "logical"
+    },
+    "correct_answer": "A",
+    "domain": "vocabulary",
+    "skill_tag": "vst_8k",
+    "stage": 3,
+    "panel": "high-med",
+    "discrimination": 1.53,
+    "difficulty": 0.68
+  },
+  {
+    "stem": "What is the meaning of 'benign'?",
+    "options": {
+      "A": "harmless",
+      "B": "to move fast",
+      "C": "complicated",
+      "D": "random"
+    },
+    "correct_answer": "A",
+    "domain": "vocabulary",
+    "skill_tag": "vst_8k",
+    "stage": 3,
+    "panel": "high-med",
+    "discrimination": 1.75,
+    "difficulty": 1.27
+  },
+  {
+    "stem": "What is the meaning of 'candid'?",
+    "options": {
+      "A": "honest",
+      "B": "next to",
+      "C": "to leave behind",
+      "D": "shortness"
+    },
+    "correct_answer": "A",
+    "domain": "vocabulary",
+    "skill_tag": "vst_8k",
+    "stage": 3,
+    "panel": "high-med",
+    "discrimination": 1.71,
+    "difficulty": 1.04
+  },
+  {
+    "stem": "What is the meaning of 'coerce'?",
+    "options": {
+      "A": "to leave behind",
+      "B": "to force",
+      "C": "sudden",
+      "D": "a discussion"
+    },
+    "correct_answer": "B",
+    "domain": "vocabulary",
+    "skill_tag": "vst_8k",
+    "stage": 3,
+    "panel": "high-med",
+    "discrimination": 1.84,
+    "difficulty": 1.3
+  },
+  {
+    "stem": "What is the meaning of 'cynical'?",
+    "options": {
+      "A": "to leave behind",
+      "B": "harmless",
+      "C": "an animal",
+      "D": "sudden"
+    },
+    "correct_answer": "D",
+    "domain": "vocabulary",
+    "skill_tag": "vst_8k",
+    "stage": 3,
+    "panel": "high-med",
+    "discrimination": 1.89,
+    "difficulty": 1.38
+  },
+  {
+    "stem": "What is the meaning of 'alleviate'?",
+    "options": {
+      "A": "to ease",
+      "B": "to make clear",
+      "C": "an animal",
+      "D": "disapproved"
+    },
+    "correct_answer": "A",
+    "domain": "vocabulary",
+    "skill_tag": "vst_10k",
+    "stage": 3,
+    "panel": "high-med",
+    "discrimination": 1.91,
+    "difficulty": 0.96
+  },
+  {
+    "stem": "What is the meaning of 'astute'?",
+    "options": {
+      "A": "to force",
+      "B": "shortness",
+      "C": "to ease",
+      "D": "clever"
+    },
+    "correct_answer": "D",
+    "domain": "vocabulary",
+    "skill_tag": "vst_10k",
+    "stage": 3,
+    "panel": "high-med",
+    "discrimination": 1.57,
+    "difficulty": 0.93
+  },
+  {
+    "stem": "What is the meaning of 'brevity'?",
+    "options": {
+      "A": "an idea",
+      "B": "shortness",
+      "C": "out of time",
+      "D": "to grow"
+    },
+    "correct_answer": "B",
+    "domain": "vocabulary",
+    "skill_tag": "vst_10k",
+    "stage": 3,
+    "panel": "high-med",
+    "discrimination": 1.58,
+    "difficulty": 0.77
+  },
+  {
+    "stem": "What is the meaning of 'convoluted'?",
+    "options": {
+      "A": "complicated",
+      "B": "to give",
+      "C": "to make clear",
+      "D": "sudden"
+    },
+    "correct_answer": "A",
+    "domain": "vocabulary",
+    "skill_tag": "vst_10k",
+    "stage": 3,
+    "panel": "high-med",
+    "discrimination": 1.56,
+    "difficulty": 0.73
+  },
+  {
+    "stem": "What is the meaning of 'deprecated'?",
+    "options": {
+      "A": "disapproved",
+      "B": "to accomplish",
+      "C": "sudden",
+      "D": "to grow larger"
+    },
+    "correct_answer": "A",
+    "domain": "vocabulary",
+    "skill_tag": "vst_10k",
+    "stage": 3,
+    "panel": "high-med",
+    "discrimination": 1.52,
+    "difficulty": 1.35
+  },
+  {
+    "stem": "What is the meaning of 'ebullient'?",
+    "options": {
+      "A": "following",
+      "B": "to have food",
+      "C": "to start",
+      "D": "to ease"
+    },
+    "correct_answer": "D",
+    "domain": "vocabulary",
+    "skill_tag": "vst_10k",
+    "stage": 3,
+    "panel": "high-med",
+    "discrimination": 1.85,
+    "difficulty": 0.95
+  },
+  {
+    "stem": "What is the meaning of 'alleviate'?",
+    "options": {
+      "A": "difficult to understand",
+      "B": "to ease",
+      "C": "to contain",
+      "D": "a discussion"
+    },
+    "correct_answer": "B",
+    "domain": "vocabulary",
+    "skill_tag": "vst_10k",
+    "stage": 3,
+    "panel": "high-high",
+    "discrimination": 1.84,
+    "difficulty": 1.88
+  },
+  {
+    "stem": "What is the meaning of 'astute'?",
+    "options": {
+      "A": "something unusual",
+      "B": "clever",
+      "C": "to give",
+      "D": "next to"
+    },
+    "correct_answer": "B",
+    "domain": "vocabulary",
+    "skill_tag": "vst_10k",
+    "stage": 3,
+    "panel": "high-high",
+    "discrimination": 1.75,
+    "difficulty": 2.48
+  },
+  {
+    "stem": "What is the meaning of 'brevity'?",
+    "options": {
+      "A": "to contain",
+      "B": "following",
+      "C": "honest",
+      "D": "shortness"
+    },
+    "correct_answer": "D",
+    "domain": "vocabulary",
+    "skill_tag": "vst_10k",
+    "stage": 3,
+    "panel": "high-high",
+    "discrimination": 1.9,
+    "difficulty": 1.51
+  },
+  {
+    "stem": "What is the meaning of 'convoluted'?",
+    "options": {
+      "A": "complicated",
+      "B": "large in size",
+      "C": "to leave behind",
+      "D": "out of time"
+    },
+    "correct_answer": "A",
+    "domain": "vocabulary",
+    "skill_tag": "vst_10k",
+    "stage": 3,
+    "panel": "high-high",
+    "discrimination": 1.9,
+    "difficulty": 2.4
+  },
+  {
+    "stem": "What is the meaning of 'deprecated'?",
+    "options": {
+      "A": "disapproved",
+      "B": "to grow",
+      "C": "sufficient",
+      "D": "to come near"
+    },
+    "correct_answer": "A",
+    "domain": "vocabulary",
+    "skill_tag": "vst_10k",
+    "stage": 3,
+    "panel": "high-high",
+    "discrimination": 1.52,
+    "difficulty": 1.6
+  },
+  {
+    "stem": "What is the meaning of 'ebullient'?",
+    "options": {
+      "A": "a thing you read",
+      "B": "to make clear",
+      "C": "to ease",
+      "D": "something unusual"
+    },
+    "correct_answer": "C",
+    "domain": "vocabulary",
+    "skill_tag": "vst_10k",
+    "stage": 3,
+    "panel": "high-high",
+    "discrimination": 1.58,
+    "difficulty": 2.11
+  },
+  {
+    "stem": "What is the meaning of 'abstruse'?",
+    "options": {
+      "A": "temporary",
+      "B": "clever",
+      "C": "sudden",
+      "D": "difficult to understand"
+    },
+    "correct_answer": "D",
+    "domain": "vocabulary",
+    "skill_tag": "vst_14k",
+    "stage": 3,
+    "panel": "high-high",
+    "discrimination": 1.68,
+    "difficulty": 1.79
+  },
+  {
+    "stem": "What is the meaning of 'anachronism'?",
+    "options": {
+      "A": "disapproved",
+      "B": "to ease",
+      "C": "temporary",
+      "D": "out of time"
+    },
+    "correct_answer": "D",
+    "domain": "vocabulary",
+    "skill_tag": "vst_14k",
+    "stage": 3,
+    "panel": "high-high",
+    "discrimination": 1.81,
+    "difficulty": 1.92
+  },
+  {
+    "stem": "What is the meaning of 'demagogue'?",
+    "options": {
+      "A": "a manipulator",
+      "B": "difficult to understand",
+      "C": "to leave behind",
+      "D": "shortness"
+    },
+    "correct_answer": "A",
+    "domain": "vocabulary",
+    "skill_tag": "vst_14k",
+    "stage": 3,
+    "panel": "high-high",
+    "discrimination": 1.52,
+    "difficulty": 2.22
+  },
+  {
+    "stem": "What is the meaning of 'ephemeral'?",
+    "options": {
+      "A": "temporary",
+      "B": "out of time",
+      "C": "shortness",
+      "D": "to ease"
+    },
+    "correct_answer": "A",
+    "domain": "vocabulary",
+    "skill_tag": "vst_14k",
+    "stage": 3,
+    "panel": "high-high",
+    "discrimination": 1.54,
+    "difficulty": 1.92
+  },
+  {
+    "stem": "What is the meaning of 'erudite'?",
+    "options": {
+      "A": "random",
+      "B": "scholarly",
+      "C": "next to",
+      "D": "a discussion"
+    },
+    "correct_answer": "B",
+    "domain": "vocabulary",
+    "skill_tag": "vst_14k",
+    "stage": 3,
+    "panel": "high-high",
+    "discrimination": 1.7,
+    "difficulty": 1.63
+  },
+  {
+    "stem": "What is the meaning of 'mendacity'?",
+    "options": {
+      "A": "a discussion",
+      "B": "to give",
+      "C": "random",
+      "D": "difficult to understand"
+    },
+    "correct_answer": "D",
+    "domain": "vocabulary",
+    "skill_tag": "vst_14k",
+    "stage": 3,
+    "panel": "high-high",
+    "discrimination": 1.83,
+    "difficulty": 1.9
+  }
+]
