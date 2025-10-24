@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: literacy-test-backend
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11
+      - key: DATABASE_URL
+        sync: false
+      - key: DIRECT_URL
+        sync: false
+      - key: FRONTEND_URL
+        value: https://literacy-test.netlify.app
+    healthCheckPath: /health
+    autoDeploy: true

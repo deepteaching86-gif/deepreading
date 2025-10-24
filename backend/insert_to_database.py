@@ -60,7 +60,7 @@ def main():
         print()
 
         # 2. Insert passages first (because items reference passages)
-        success1 = execute_sql_file(cursor, 'insert_passages.sql')
+        success1 = execute_sql_file(cursor, 'insert_passages_fixed.sql')
         if success1:
             conn.commit()
             print("[OK] Passages committed to database")
@@ -71,7 +71,7 @@ def main():
             return
 
         # 3. Insert items
-        success2 = execute_sql_file(cursor, 'insert_600_items.sql')
+        success2 = execute_sql_file(cursor, 'insert_600_items_fixed.sql')
         if success2:
             conn.commit()
             print("[OK] Items committed to database")
@@ -112,8 +112,8 @@ def main():
         print("       You can manually run the SQL files in Supabase SQL Editor:")
         print("       1. Go to https://supabase.com/dashboard")
         print("       2. Navigate to SQL Editor")
-        print("       3. Run insert_passages.sql first")
-        print("       4. Then run insert_600_items.sql")
+        print("       3. Run insert_passages_fixed.sql first")
+        print("       4. Then run insert_600_items_fixed.sql")
 
     except Exception as e:
         print(f"[ERROR] Unexpected error: {e}")
