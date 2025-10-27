@@ -291,22 +291,22 @@ export default function Dashboard() {
         <section className="mb-12">
           <h2 className="text-2xl font-bold mb-6 text-foreground">영어 레벨 테스트</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg shadow-md hover:shadow-lg transition-shadow p-6 border-2 border-blue-200">
+            <div className="bg-card rounded-lg shadow-md hover:shadow-lg transition-shadow p-6 border border-border">
               <div className="flex justify-between items-start mb-4">
                 <div>
-                  <h3 className="text-lg font-semibold text-blue-900">
+                  <h3 className="text-lg font-semibold text-card-foreground">
                     영어 적응형 레벨 테스트
                   </h3>
-                  <p className="text-sm text-blue-700 mt-1">
+                  <p className="text-sm text-muted-foreground mt-1">
                     IRT 3PL 기반 적응형 평가
                   </p>
                 </div>
-                <span className="px-3 py-1 bg-blue-600 text-white rounded-full text-xs font-medium">
+                <span className="px-3 py-1 bg-primary text-primary-foreground rounded-full text-xs font-medium">
                   NEW
                 </span>
               </div>
 
-              <div className="space-y-2 mb-4 text-sm text-blue-800">
+              <div className="space-y-2 mb-4 text-sm text-card-foreground">
                 <div className="flex items-center gap-2">
                   <span>📚</span>
                   <span>문법, 어휘, 독해 통합 평가</span>
@@ -327,7 +327,7 @@ export default function Dashboard() {
 
               <button
                 onClick={() => navigate('/test/english')}
-                className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                className="w-full bg-primary text-primary-foreground py-2 px-4 rounded-lg hover:bg-primary/90 transition-colors font-medium"
               >
                 시작하기
               </button>

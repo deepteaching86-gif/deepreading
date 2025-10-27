@@ -69,31 +69,31 @@ export const EnglishTestScreen: React.FC<EnglishTestScreenProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col">
       {/* Header with Progress */}
-      <div className="bg-white shadow-sm sticky top-0 z-10">
+      <div className="bg-card shadow-sm sticky top-0 z-10 border-b border-border">
         <div className="max-w-4xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between mb-3">
             <div>
-              <h2 className="text-lg font-semibold text-gray-800">
+              <h2 className="text-lg font-semibold text-foreground">
                 English Adaptive Test
               </h2>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-muted-foreground">
                 {stageLabels[stage as keyof typeof stageLabels]} • 문항 {itemsCompleted + 1}/{totalItems}
               </p>
             </div>
             <div className="text-right">
-              <div className="text-2xl font-bold text-blue-600">
+              <div className="text-2xl font-bold text-primary">
                 {itemsCompleted}/{totalItems}
               </div>
-              <div className="text-xs text-gray-500">완료</div>
+              <div className="text-xs text-muted-foreground">완료</div>
             </div>
           </div>
 
           {/* Progress Bar */}
-          <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+          <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
             <motion.div
-              className="bg-gradient-to-r from-blue-500 to-indigo-600 h-full"
+              className="bg-primary h-full"
               initial={{ width: 0 }}
               animate={{ width: `${progress}%` }}
               transition={{ duration: 0.5, ease: 'easeOut' }}
@@ -114,15 +114,15 @@ export const EnglishTestScreen: React.FC<EnglishTestScreenProps> = ({
           >
             {/* Passage (if exists) */}
             {currentItem.passage && (
-              <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+              <div className="bg-card rounded-xl shadow-sm p-6 border border-border">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-md font-semibold text-gray-800 flex items-center">
-                    <span className="text-blue-500 mr-2">📖</span>
+                  <h3 className="text-md font-semibold text-foreground flex items-center">
+                    <span className="text-primary mr-2">📖</span>
                     지문
                   </h3>
                   <button
                     onClick={() => setShowPassage(!showPassage)}
-                    className="text-sm text-blue-600 hover:text-blue-700"
+                    className="text-sm text-primary hover:text-primary/80"
                   >
                     {showPassage ? '접기' : '펼치기'}
                   </button>
@@ -135,7 +135,7 @@ export const EnglishTestScreen: React.FC<EnglishTestScreenProps> = ({
                       exit={{ height: 0, opacity: 0 }}
                       className="prose prose-sm max-w-none"
                     >
-                      <p className="text-gray-700 leading-relaxed whitespace-pre-line">
+                      <p className="text-foreground leading-relaxed whitespace-pre-line">
                         {currentItem.passage}
                       </p>
                     </motion.div>
@@ -145,8 +145,8 @@ export const EnglishTestScreen: React.FC<EnglishTestScreenProps> = ({
             )}
 
             {/* Question */}
-            <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-800 mb-6">
+            <div className="bg-card rounded-xl shadow-sm p-6 border border-border">
+              <h3 className="text-lg font-semibold text-foreground mb-6">
                 {currentItem.stem}
               </h3>
 
@@ -161,8 +161,8 @@ export const EnglishTestScreen: React.FC<EnglishTestScreenProps> = ({
                     className={`
                       w-full p-4 rounded-lg border-2 text-left transition-all
                       ${selectedAnswer === key
-                        ? 'border-blue-500 bg-blue-50 shadow-md'
-                        : 'border-gray-200 bg-white hover:border-blue-300 hover:bg-gray-50'
+                        ? 'border-primary bg-primary/10 shadow-md'
+                        : 'border-border bg-card hover:border-primary/50 hover:bg-muted'
                       }
                     `}
                   >
@@ -170,14 +170,14 @@ export const EnglishTestScreen: React.FC<EnglishTestScreenProps> = ({
                       <div className={`
                         w-8 h-8 rounded-full flex items-center justify-center mr-4 flex-shrink-0
                         ${selectedAnswer === key
-                          ? 'bg-blue-500 text-white'
-                          : 'bg-gray-200 text-gray-600'
+                          ? 'bg-primary text-primary-foreground'
+                          : 'bg-muted text-muted-foreground'
                         }
                       `}>
                         {key}
                       </div>
                       <div className="flex-1 pt-1">
-                        <p className="text-gray-700">{value}</p>
+                        <p className="text-foreground">{value}</p>
                       </div>
                     </div>
                   </motion.button>
@@ -195,8 +195,8 @@ export const EnglishTestScreen: React.FC<EnglishTestScreenProps> = ({
                 className={`
                   px-8 py-3 rounded-lg font-semibold text-lg
                   ${!selectedAnswer || isSubmitting
-                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                    : 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:shadow-lg'
+                    ? 'bg-muted text-muted-foreground cursor-not-allowed'
+                    : 'bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-lg'
                   }
                   transition-all duration-200
                 `}
