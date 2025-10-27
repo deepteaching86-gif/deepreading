@@ -53,7 +53,7 @@ router.all('/*', async (req: Request, res: Response) => {
     });
 
     // Send the response
-    res.status(response.status).json(response.data);
+    return res.status(response.status).json(response.data);
   } catch (error) {
     console.error('❌ Proxy error:', error);
 
@@ -73,7 +73,7 @@ router.all('/*', async (req: Request, res: Response) => {
       }
     }
 
-    res.status(500).json({
+    return res.status(500).json({
       error: 'Proxy Error',
       message: error instanceof Error ? error.message : 'Unknown error',
     });
