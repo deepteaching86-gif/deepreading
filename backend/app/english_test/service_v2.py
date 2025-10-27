@@ -316,8 +316,8 @@ class EnglishTestServiceV2:
         Returns:
             Selected item or None
         """
-        # Select form using rotation (simple modulo for now)
-        form_id = (random.randint(1, self.FORM_COUNT))
+        # Select form using rotation (currently only form 1 is available)
+        form_id = 1  # TODO: Implement proper form rotation when forms 2 and 3 are added
 
         # Get candidate items from database
         candidates = self.db.get_items_for_selection(
@@ -330,11 +330,10 @@ class EnglishTestServiceV2:
         if not candidates:
             return None
 
-        # Use IRT engine for Fisher Information-based selection with exposure control
-        selected_item = self.irt.select_item_with_exposure_control(
-            items=candidates,
-            theta=theta_current,
-            k=5  # Top-5 randomesque selection
+        # Use IRT engine for Fisher Information-based selection
+        selected_item = self.irt.select_next_item(
+            theta_current=theta_current,
+            candidate_items=candidates
         )
 
         return selected_item

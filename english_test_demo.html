@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>영어 적응형 레벨 테스트 데모</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 800px;
+            width: 100%;
+            padding: 40px;
+        }
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+        .progress {
+            background: #f0f0f0;
+            height: 8px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        .progress-bar {
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            height: 100%;
+            transition: width 0.3s;
+        }
+        .question-box {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        .passage {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+            line-height: 1.6;
+        }
+        .question {
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .option {
+            background: white;
+            padding: 15px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .option:hover {
+            border-color: #667eea;
+            transform: translateX(5px);
+        }
+        .option.selected {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        button:hover { transform: scale(1.05); }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #666;
+        }
+        .results {
+            text-align: center;
+        }
+        .score {
+            font-size: 72px;
+            font-weight: bold;
+            color: #667eea;
+            margin: 20px 0;
+        }
+        .stat {
+            display: inline-block;
+            margin: 10px 20px;
+            padding: 15px 30px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="app">
+        <h1>영어 적응형 레벨 테스트</h1>
+        <p class="subtitle">IRT 3PL 기반 MST 적응형 평가 시스템</p>
+
+        <div id="start-screen">
+            <div class="question-box" style="text-align: center;">
+                <h2 style="margin-bottom: 20px;">테스트 정보</h2>
+                <div class="stat">
+                    <div class="stat-label">총 문항수</div>
+                    <div class="stat-value">40문항</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-label">평가 영역</div>
+                    <div class="stat-value">문법/어휘/독해</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-label">예상 시간</div>
+                    <div class="stat-value">20-30분</div>
+                </div>
+                <div style="margin-top: 30px;">
+                    <button onclick="startTest()">시작하기</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="test-screen" style="display: none;">
+            <div class="info">
+                <span id="item-info">문항 1/40</span>
+                <span id="domain-info">영역: 문법</span>
+            </div>
+            <div class="progress">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+
+            <div class="question-box">
+                <div id="passage-container"></div>
+                <div class="question" id="question"></div>
+                <div class="options" id="options"></div>
+            </div>
+
+            <button id="submit-btn" onclick="submitAnswer()" disabled>다음</button>
+        </div>
+
+        <div id="result-screen" style="display: none;">
+            <div class="results">
+                <h2>테스트 완료!</h2>
+                <div class="score" id="proficiency-level">-</div>
+                <p style="margin-bottom: 30px; color: #666;">숙련도 레벨 (1-10)</p>
+
+                <div class="stat">
+                    <div class="stat-label">Lexile 점수</div>
+                    <div class="stat-value" id="lexile-score">-</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-label">AR Level</div>
+                    <div class="stat-value" id="ar-level">-</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-label">정답률</div>
+                    <div class="stat-value" id="accuracy">-</div>
+                </div>
+
+                <div style="margin-top: 30px;">
+                    <button onclick="location.reload()">다시 시작</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3000';
+        let sessionId = null;
+        let currentItem = null;
+        let selectedAnswer = null;
+        let itemsCompleted = 0;
+        let totalItems = 40;
+
+        async function startTest() {
+            try {
+                const response = await fetch(`${API_BASE}/api/english-test/start`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_id: 'demo_user_' + Date.now() })
+                });
+
+                const data = await response.json();
+                sessionId = data.session_id;
+                currentItem = data.item;
+                totalItems = data.total_items_planned;
+
+                document.getElementById('start-screen').style.display = 'none';
+                document.getElementById('test-screen').style.display = 'block';
+
+                displayItem(currentItem);
+            } catch (error) {
+                alert('테스트 시작 실패: ' + error.message);
+            }
+        }
+
+        function displayItem(item) {
+            itemsCompleted++;
+            document.getElementById('item-info').textContent = `문항 ${itemsCompleted}/${totalItems}`;
+            document.getElementById('domain-info').textContent = `영역: ${getDomainKr(item.domain)}`;
+            document.getElementById('progress-bar').style.width = `${(itemsCompleted / totalItems) * 100}%`;
+
+            // Passage
+            const passageContainer = document.getElementById('passage-container');
+            if (item.passage) {
+                passageContainer.innerHTML = `<div class="passage">${item.passage}</div>`;
+            } else {
+                passageContainer.innerHTML = '';
+            }
+
+            // Question
+            document.getElementById('question').textContent = item.stem;
+
+            // Options
+            const optionsContainer = document.getElementById('options');
+            optionsContainer.innerHTML = '';
+            Object.entries(item.options).forEach(([key, value]) => {
+                const option = document.createElement('div');
+                option.className = 'option';
+                option.textContent = `${key}. ${value}`;
+                option.onclick = () => selectOption(key, option);
+                optionsContainer.appendChild(option);
+            });
+
+            selectedAnswer = null;
+            document.getElementById('submit-btn').disabled = true;
+        }
+
+        function selectOption(answer, element) {
+            document.querySelectorAll('.option').forEach(opt => opt.classList.remove('selected'));
+            element.classList.add('selected');
+            selectedAnswer = answer;
+            document.getElementById('submit-btn').disabled = false;
+        }
+
+        async function submitAnswer() {
+            if (!selectedAnswer) return;
+
+            document.getElementById('submit-btn').disabled = true;
+
+            try {
+                const response = await fetch(`${API_BASE}/api/english-test/submit-response`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        session_id: sessionId,
+                        item_id: currentItem.id,
+                        selected_answer: selectedAnswer,
+                        response_time: 10
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.test_completed) {
+                    await showResults();
+                } else {
+                    currentItem = data.next_item;
+                    displayItem(currentItem);
+                }
+            } catch (error) {
+                alert('답변 제출 실패: ' + error.message);
+                document.getElementById('submit-btn').disabled = false;
+            }
+        }
+
+        async function showResults() {
+            try {
+                const response = await fetch(`${API_BASE}/api/english-test/finalize`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ session_id: sessionId })
+                });
+
+                const results = await response.json();
+
+                document.getElementById('test-screen').style.display = 'none';
+                document.getElementById('result-screen').style.display = 'block';
+
+                document.getElementById('proficiency-level').textContent = results.proficiency_level;
+                document.getElementById('lexile-score').textContent = results.lexile_score || 'N/A';
+                document.getElementById('ar-level').textContent = results.ar_level?.toFixed(1) || 'N/A';
+                document.getElementById('accuracy').textContent = results.accuracy_percentage.toFixed(1) + '%';
+            } catch (error) {
+                alert('결과 조회 실패: ' + error.message);
+            }
+        }
+
+        function getDomainKr(domain) {
+            const map = {
+                'grammar': '문법',
+                'vocabulary': '어휘',
+                'reading': '독해'
+            };
+            return map[domain] || domain;
+        }
+    </script>
+</body>
+</html>

@@ -110,6 +110,12 @@ class EnglishTestDB:
             values = []
 
             for field, value in updates.items():
+                # Convert numpy types to Python native types
+                if hasattr(value, 'item'):  # numpy scalar
+                    value = value.item()
+                elif isinstance(value, (list, tuple)) and len(value) > 0 and hasattr(value[0], 'item'):
+                    value = [v.item() if hasattr(v, 'item') else v for v in value]
+
                 set_clauses.append(f"{field} = %s")
                 values.append(value)
 
@@ -188,6 +194,12 @@ class EnglishTestDB:
                 # Parse JSON options field
                 if isinstance(item['options'], str):
                     item['options'] = json.loads(item['options'])
+
+                # Map IRT parameters: discrimination->a, difficulty->b, guessing->c
+                item['a'] = item['discrimination']
+                item['b'] = item['difficulty']
+                item['c'] = item['guessing']
+
                 return item
             return None
 
@@ -242,10 +254,15 @@ class EnglishTestDB:
             cursor.execute(query, params)
             items = [dict(row) for row in cursor.fetchall()]
 
-            # Parse JSON options
+            # Parse JSON options and map IRT parameters
             for item in items:
                 if isinstance(item['options'], str):
                     item['options'] = json.loads(item['options'])
+
+                # Map IRT parameters: discrimination->a, difficulty->b, guessing->c
+                item['a'] = item['discrimination']
+                item['b'] = item['difficulty']
+                item['c'] = item['guessing']
 
             return items
 
@@ -306,6 +323,12 @@ class EnglishTestDB:
         cursor = conn.cursor(cursor_factory=RealDictCursor)
 
         try:
+            # Convert numpy types to Python native types
+            if theta_estimate is not None:
+                theta_estimate = float(theta_estimate)
+            if standard_error is not None:
+                standard_error = float(standard_error)
+
             cursor.execute("""
                 INSERT INTO english_test_responses (
                     session_id, item_id, selected_answer, is_correct,

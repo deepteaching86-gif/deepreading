@@ -23,21 +23,11 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# CORS middleware
-allowed_origins = [
-    "http://localhost:3000",
-    "http://localhost:5173",
-]
-
-# Add production frontend URL if available
-frontend_url = os.getenv("FRONTEND_URL")
-if frontend_url:
-    allowed_origins.append(frontend_url)
-
+# CORS middleware - Allow all origins for demo
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allowed_origins,
-    allow_credentials=True,
+    allow_origins=["*"],  # Allow all origins for demo
+    allow_credentials=False,  # Must be False when allow_origins is "*"
     allow_methods=["*"],
     allow_headers=["*"],
 )
