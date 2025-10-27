@@ -139,6 +139,7 @@ import teachersRoutes from './routes/teachers/teachers.routes';
 import reportRoutes from './routes/report.routes';
 import migrationRoutes from './routes/migration.routes';
 import visionRoutes from './routes/vision.routes';
+import englishTestProxyRoutes from './routes/english-test-proxy.routes';
 
 // For Render backend: full paths including /api prefix
 app.use(`/api/${env.API_VERSION}/auth`, authRoutes);
@@ -157,6 +158,9 @@ app.use(`/api/${env.API_VERSION}/students`, studentsRoutes);
 app.use(`/api/${env.API_VERSION}/parents`, parentsRoutes);
 app.use(`/api/${env.API_VERSION}/teachers`, teachersRoutes);
 app.use(`/api/${env.API_VERSION}/vision`, visionRoutes);
+
+// English Test Proxy - Forward to Python backend
+app.use(`/api/${env.API_VERSION}/english-test`, englishTestProxyRoutes);
 
 // 404 handler
 app.use((req, res) => {

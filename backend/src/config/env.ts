@@ -72,6 +72,9 @@ const envSchema = z.object({
   APP_NAME: z.string().default('Literacy Assessment System'),
   APP_URL: z.string().url().default('http://localhost:3000'),
   FRONTEND_URL: z.string().url().default('http://localhost:3001'),
+
+  // Python Backend (English Test)
+  PYTHON_BACKEND_URL: z.string().url().default('http://localhost:3000'),
 });
 
 export type Env = z.infer<typeof envSchema>;
