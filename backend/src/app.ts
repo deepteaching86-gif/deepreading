@@ -159,8 +159,8 @@ app.use(`/api/${env.API_VERSION}/parents`, parentsRoutes);
 app.use(`/api/${env.API_VERSION}/teachers`, teachersRoutes);
 app.use(`/api/${env.API_VERSION}/vision`, visionRoutes);
 
-// English Test Proxy - Forward to Python backend
-app.use(`/api/${env.API_VERSION}/english-test`, englishTestProxyRoutes);
+// English Test Proxy - Forward to Python backend (no version prefix)
+app.use('/api/english-test', englishTestProxyRoutes);
 
 // 404 handler
 app.use((req, res) => {
