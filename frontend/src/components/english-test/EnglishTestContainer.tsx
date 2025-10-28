@@ -23,6 +23,8 @@ export const EnglishTestContainer: React.FC<EnglishTestContainerProps> = ({ user
     totalItems,
     mstStage,
     mstPanel,
+    currentTheta,
+    standardError,
     finalResults,
     error,
     isSubmitting,
@@ -84,6 +86,8 @@ export const EnglishTestContainer: React.FC<EnglishTestContainerProps> = ({ user
         totalItems={totalItems}
         stage={mstStage}
         panel={mstPanel}
+        currentTheta={currentTheta}
+        standardError={standardError}
         onSubmitResponse={submitResponse}
         isSubmitting={isSubmitting}
       />

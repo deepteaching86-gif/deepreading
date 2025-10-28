@@ -45,6 +45,7 @@ export interface Item {
   };
   domain: 'grammar' | 'vocabulary' | 'reading';
   skillTag?: string;
+  difficulty?: number; // IRT difficulty parameter (b)
 }
 
 export interface StartTestResponse {

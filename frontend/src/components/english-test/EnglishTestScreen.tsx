@@ -19,6 +19,7 @@ interface Item {
     C: string;
     D: string;
   };
+  difficulty?: number;
 }
 
 interface EnglishTestScreenProps {
@@ -28,6 +29,8 @@ interface EnglishTestScreenProps {
   totalItems: number;
   stage: number;
   panel: string;
+  currentTheta?: number | null;
+  standardError?: number | null;
   onSubmitResponse: (answer: string, responseTime: number) => void;
   isSubmitting?: boolean;
 }
@@ -38,6 +41,8 @@ export const EnglishTestScreen: React.FC<EnglishTestScreenProps> = ({
   totalItems,
   stage,
   panel,
+  currentTheta,
+  standardError,
   onSubmitResponse,
   isSubmitting = false
 }) => {
@@ -99,6 +104,55 @@ export const EnglishTestScreen: React.FC<EnglishTestScreenProps> = ({
               transition={{ duration: 0.5, ease: 'easeOut' }}
             />
           </div>
+
+          {/* Ability & Difficulty Visualization */}
+          {(currentTheta !== null && currentTheta !== undefined) && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-4 flex items-center justify-between gap-4 text-sm"
+            >
+              {/* Ability Estimate */}
+              <div className="flex items-center gap-2">
+                <span className="text-muted-foreground">능력 추정치:</span>
+                <motion.div
+                  key={currentTheta}
+                  initial={{ scale: 1.2 }}
+                  animate={{ scale: 1 }}
+                  className="flex items-center gap-1"
+                >
+                  <span className="font-semibold text-primary">θ = {currentTheta.toFixed(2)}</span>
+                  {standardError && (
+                    <span className="text-xs text-muted-foreground">(±{standardError.toFixed(2)})</span>
+                  )}
+                </motion.div>
+              </div>
+
+              {/* Item Difficulty */}
+              {currentItem.difficulty !== undefined && (
+                <div className="flex items-center gap-2">
+                  <span className="text-muted-foreground">문항 난이도:</span>
+                  <motion.div
+                    key={currentItem.id}
+                    initial={{ scale: 1.2 }}
+                    animate={{ scale: 1 }}
+                    className="flex items-center gap-1"
+                  >
+                    <span className="font-semibold text-foreground">
+                      b = {currentItem.difficulty.toFixed(2)}
+                    </span>
+                    {/* Difficulty Comparison Indicator */}
+                    {currentTheta !== null && (
+                      <span className="text-lg">
+                        {currentItem.difficulty > currentTheta + 0.5 ? '📈' :
+                         currentItem.difficulty < currentTheta - 0.5 ? '📉' : '➡️'}
+                      </span>
+                    )}
+                  </motion.div>
+                </div>
+              )}
+            </motion.div>
+          )}
         </div>
       </div>
 
