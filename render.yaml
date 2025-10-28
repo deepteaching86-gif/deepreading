@@ -10,7 +10,7 @@ services:
       - key: DATABASE_URL
         value: postgresql://postgres.sxnjeqqvqbhueqbwsnpj:DeepReading2025!@#$SecureDB@db.sxnjeqqvqbhueqbwsnpj.supabase.co:5432/postgres
       - key: GOOGLE_API_KEY
-        value: AIzaSyAzVuq6Oxp7pVvAkkJPrK6dBk99WN3X5NM
+        sync: false
       - key: SUPABASE_URL
         value: https://sxnjeqqvqbhueqbwsnpj.supabase.co
       - key: SUPABASE_ANON_KEY
