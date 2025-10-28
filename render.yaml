@@ -1,16 +1,14 @@
 services:
   - type: web
     name: literacy-backend
-    runtime: python
+    runtime: node
     plan: free
     region: singapore
-    buildCommand: cd backend && pip install -r requirements.txt
-    startCommand: cd backend && python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    buildCommand: cd backend && npm install && npm run build
+    startCommand: cd backend && npm start
     envVars:
       - key: DATABASE_URL
         value: postgresql://postgres.sxnjeqqvqbhueqbwsnpj:DeepReading2025%21%40%23%24SecureDB@db.sxnjeqqvqbhueqbwsnpj.supabase.co:5432/postgres
-      - key: GOOGLE_API_KEY
-        sync: false
       - key: SUPABASE_URL
         value: https://sxnjeqqvqbhueqbwsnpj.supabase.co
       - key: SUPABASE_ANON_KEY
