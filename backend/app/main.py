@@ -15,6 +15,7 @@ load_dotenv()
 
 # Import routers
 from app.english_test.router import router as english_test_router
+from app.ai.router import router as ai_router
 
 # Create FastAPI app
 app = FastAPI(
@@ -34,6 +35,7 @@ app.add_middleware(
 
 # Include routers
 app.include_router(english_test_router, prefix="/api/english-test", tags=["English Test"])
+app.include_router(ai_router, prefix="/api/admin/ai", tags=["Admin AI"])
 
 # Root endpoint
 @app.get("/")
@@ -53,3 +55,4 @@ async def health_check():
         "status": "healthy",
         "service": "literacy-test-api"
     }
+

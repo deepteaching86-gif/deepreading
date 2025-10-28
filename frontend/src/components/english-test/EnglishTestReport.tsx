@@ -59,7 +59,7 @@ export const EnglishTestReport: React.FC<EnglishTestReportProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-6">
+    <div className="min-h-screen bg-gradient-to-br bg-white py-12 px-6">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <motion.div
@@ -71,7 +71,7 @@ export const EnglishTestReport: React.FC<EnglishTestReportProps> = ({
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.2, type: 'spring' }}
-            className="w-24 h-24 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full mx-auto mb-4 flex items-center justify-center"
+            className="w-24 h-24 bg-gradient-to-br from-purple-600 to-purple-800 rounded-full mx-auto mb-4 flex items-center justify-center"
           >
             <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -157,7 +157,7 @@ export const EnglishTestReport: React.FC<EnglishTestReportProps> = ({
           {results.vocabularyBands && (
             <div className="border-t pt-6">
               <h3 className="font-semibold text-gray-800 mb-4 flex items-center">
-                <span className="text-blue-500 mr-2">📊</span>
+                <span className="text-purple-600 mr-2">📊</span>
                 어휘 밴드별 분석
               </h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -180,13 +180,13 @@ export const EnglishTestReport: React.FC<EnglishTestReportProps> = ({
           className="bg-white rounded-2xl shadow-xl p-8 mb-6"
         >
           <h3 className="font-semibold text-gray-800 mb-4 flex items-center text-xl">
-            <span className="text-blue-500 mr-2">💡</span>
+            <span className="text-purple-600 mr-2">💡</span>
             학습 제안
           </h3>
           <div className="space-y-3">
             {getRecommendations(results.proficiencyLevel).map((rec, idx) => (
-              <div key={idx} className="flex items-start p-3 bg-blue-50 rounded-lg">
-                <span className="text-blue-500 mr-3 mt-1">•</span>
+              <div key={idx} className="flex items-start p-3 bg-purple-50 rounded-lg">
+                <span className="text-purple-600 mr-3 mt-1">•</span>
                 <p className="text-gray-700">{rec}</p>
               </div>
             ))}
@@ -199,7 +199,7 @@ export const EnglishTestReport: React.FC<EnglishTestReportProps> = ({
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={onReturnHome}
-            className="flex-1 py-4 rounded-xl font-semibold text-lg bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:shadow-lg transition-all"
+            className="flex-1 py-4 rounded-xl font-semibold text-lg bg-gradient-to-r from-purple-600 to-purple-800 text-white hover:shadow-lg transition-all"
           >
             홈으로 돌아가기
           </motion.button>
@@ -207,7 +207,7 @@ export const EnglishTestReport: React.FC<EnglishTestReportProps> = ({
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => window.print()}
-            className="px-6 py-4 rounded-xl font-semibold text-lg border-2 border-blue-500 text-blue-600 hover:bg-blue-50 transition-all"
+            className="px-6 py-4 rounded-xl font-semibold text-lg border-2 border-purple-600 text-purple-700 hover:bg-purple-50 transition-all"
           >
             결과 인쇄
           </motion.button>

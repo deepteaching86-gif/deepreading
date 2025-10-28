@@ -1,43 +1,24 @@
 services:
   - type: web
     name: literacy-backend
-    runtime: node
+    runtime: python
     plan: free
     region: singapore
-    buildCommand: cd backend && npm install && npx prisma generate && npm run build
-    startCommand: cd backend && node dist/server.js
-    # Updated: 2025-10-14 v2 - Skip migrations on startup (pooler doesn't support DDL operations)
+    buildCommand: cd backend && pip install -r requirements.txt
+    startCommand: cd backend && python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT
     envVars:
-      - key: NODE_ENV
-        value: production
       - key: DATABASE_URL
-        value: postgresql://postgres.sxnjeqqvqbhueqbwsnpj:DeepReading2025%21%40%23%24SecureDB@aws-1-ap-northeast-2.pooler.supabase.com:6543/postgres?pgbouncer=true&connection_limit=1
+        value: postgresql://postgres.sxnjeqqvqbhueqbwsnpj:DeepReading2025!@#$SecureDB@db.sxnjeqqvqbhueqbwsnpj.supabase.co:5432/postgres
+      - key: GOOGLE_API_KEY
+        value: AIzaSyAzVuq6Oxp7pVvAkkJPrK6dBk99WN3X5NM
       - key: SUPABASE_URL
         value: https://sxnjeqqvqbhueqbwsnpj.supabase.co
       - key: SUPABASE_ANON_KEY
         value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN4bmplcXF2cWJodWVxYndzbnBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk0ODUxMjAsImV4cCI6MjA3NTA2MTEyMH0.6xGE1QVp4GNV2iGRRwrXEU4ZblJqcn_gNusVhK8RmXI
       - key: SUPABASE_SERVICE_ROLE_KEY
         value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN4bmplcXF2cWJodWVxYndzbnBqIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1OTQ4NTEyMCwiZXhwIjoyMDc1MDYxMTIwfQ.SBNG3wXzfT5ahxBJBD84x_FAUHghy4iYj4c5apyrjRI
-      - key: JWT_SECRET
-        value: literacy-assessment-production-jwt-key-2025-super-secure
-      - key: JWT_ACCESS_EXPIRY
-        value: 15m
-      - key: JWT_REFRESH_EXPIRY
-        value: 7d
-      - key: BCRYPT_ROUNDS
-        value: 10
       - key: CORS_ORIGIN
         value: https://playful-cocada-a89755.netlify.app
-      - key: API_VERSION
-        value: v1
-      - key: RATE_LIMIT_WINDOW_MS
-        value: 900000
-      - key: RATE_LIMIT_MAX_REQUESTS
-        value: 100
-      - key: LOG_LEVEL
-        value: info
-      - key: APP_NAME
-        value: Literacy Assessment System
       - key: FRONTEND_URL
         value: https://playful-cocada-a89755.netlify.app
       - key: APP_URL

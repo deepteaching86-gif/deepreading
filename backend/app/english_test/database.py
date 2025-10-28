@@ -233,23 +233,25 @@ class EnglishTestDB:
 
         try:
             query = """
-                SELECT * FROM items
-                WHERE stage = %s
-                  AND panel = %s
-                  AND form_id = %s
-                  AND status = 'active'
+                SELECT i.*, p.title as passage_title, p.content as passage_content
+                FROM items i
+                LEFT JOIN passages p ON i.passage_id = p.id
+                WHERE i.stage = %s
+                  AND i.panel = %s
+                  AND i.form_id = %s
+                  AND i.status = 'active'
             """
             params = [stage, panel, form_id]
 
             if domain:
-                query += " AND domain = %s"
+                query += " AND i.domain = %s"
                 params.append(domain)
 
             if excluded_ids:
-                query += f" AND id NOT IN ({','.join(['%s'] * len(excluded_ids))})"
+                query += f" AND i.id NOT IN ({','.join(['%s'] * len(excluded_ids))})"
                 params.extend(excluded_ids)
 
-            query += " ORDER BY exposure_rate NULLS FIRST, exposure_count ASC;"
+            query += " ORDER BY i.exposure_rate NULLS FIRST, i.exposure_count ASC;"
 
             cursor.execute(query, params)
             items = [dict(row) for row in cursor.fetchall()]
