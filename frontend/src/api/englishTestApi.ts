@@ -46,6 +46,7 @@ export interface Item {
   domain: 'grammar' | 'vocabulary' | 'reading';
   skillTag?: string;
   difficulty?: number; // IRT difficulty parameter (b)
+  source?: 'manual' | 'ai_generated'; // Item source for visual distinction
 }
 
 export interface StartTestResponse {

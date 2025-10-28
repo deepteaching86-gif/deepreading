@@ -350,7 +350,8 @@ class EnglishTestServiceV2:
             'options': item['options'],
             'domain': item['domain'],
             'skill_tag': item.get('skill_tag'),
-            'difficulty': item.get('difficulty')  # Add difficulty for visualization
+            'difficulty': item.get('difficulty'),  # Add difficulty for visualization
+            'source': item.get('source', 'manual')  # Add source: 'manual' or 'ai_generated'
         }
 
     def _estimate_lexile(self, theta: float) -> int:

@@ -200,9 +200,21 @@ export const EnglishTestScreen: React.FC<EnglishTestScreenProps> = ({
 
             {/* Question */}
             <div className="bg-card rounded-xl shadow-sm p-6 border border-border">
-              <h3 className="text-lg font-semibold text-foreground mb-6">
-                {currentItem.stem}
-              </h3>
+              <div className="flex items-start justify-between mb-6">
+                <h3 className="text-lg font-semibold text-foreground flex-1">
+                  {currentItem.stem}
+                </h3>
+                {/* Source Badge */}
+                {currentItem.source && (
+                  <span className={`ml-3 mt-1 px-2 py-1 rounded-md text-xs font-medium whitespace-nowrap ${
+                    currentItem.source === 'ai_generated'
+                      ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300'
+                      : 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
+                  }`}>
+                    {currentItem.source === 'ai_generated' ? '🤖 AI 생성' : '✏️ 수동'}
+                  </span>
+                )}
+              </div>
 
               {/* Options */}
               <div className="space-y-3">
