@@ -34,10 +34,10 @@
 - **Type**: PostgreSQL
 - **Connection**: Connection Pooler for Render deployment
 - **주요 테이블**:
-  - `items`: 문항 정보 (IRT parameters: a, b, c)
+  - `items`: 문항 정보 (IRT parameters: a, b, c) + VST fields (frequency_band, target_word, is_pseudoword, band_size, source)
   - `passages`: 지문 정보
-  - `sessions`: 테스트 세션
-  - `responses`: 응답 기록
+  - `english_test_sessions`: 테스트 세션
+  - `english_test_responses`: 응답 기록
 
 ## 중요: Backend Runtime 혼동 주의!
 
@@ -78,13 +78,19 @@ LITERACY TEST PROJECT/
 │   │   ├── english_test/
 │   │   │   ├── router.py                 # 테스트 API 라우터
 │   │   │   ├── admin_routes.py           # 관리자 API 라우터
-│   │   │   ├── service_v2.py             # 테스트 로직 (IRT, MST)
+│   │   │   ├── service_v2.py             # 테스트 로직 (IRT, MST, VST)
 │   │   │   └── database.py               # DB 연결
 │   │   └── ai/
 │   │       └── router.py                 # AI 문항 생성 API
+│   ├── prisma/
+│   │   └── migrations/
+│   │       └── add_vst_fields_to_items.sql  # VST 필드 마이그레이션
 │   ├── requirements.txt                   # Python 의존성
-│   ├── generated_52_items.json           # 수동 생성 52개 깨끗한 문항
-│   └── cleanup_and_insert_clean_items.py # DB 정리 스크립트
+│   ├── complete_40_items.json            # 40개 테스트 문항 (Grammar 13, Vocabulary 17, Reading 10)
+│   ├── grammar_items_13.json             # Grammar 문항 13개
+│   ├── vocabulary_items_17_vst.json      # Vocabulary 문항 17개 (VST)
+│   ├── reading_items_10.json             # Reading 문항 10개
+│   └── cleanup_and_insert_clean_items.py # DB 정리 및 40개 문항 삽입 스크립트
 │
 └── render.yaml               # Render 배포 설정 (Python runtime)
 ```
@@ -157,6 +163,16 @@ VITE_API_URL=https://literacy-backend.onrender.com
 - 문항 난이도 (b)
 - 난이도 비교 지표 (📈 📉 ➡️)
 
+### 4. VST (Vocabulary Size Test) Implementation
+- **Nation's VST Formula**: `Vocabulary Size = Σ((correct/tested) × band_size)`
+- **Frequency Bands**: 1k, 2k, 4k, 6k, 8k, 10k, 14k (7 bands)
+- **Pseudowords**: 3 fake words (trelict, flumbinate, grelastic) for overestimation detection
+- **Confidence Level**:
+  - High: ≥66% pseudoword accuracy (2/3 correct)
+  - Low: <66% pseudoword accuracy
+- **Database Fields**: frequency_band, target_word, is_pseudoword, band_size, source
+- **Total Vocabulary Items**: 17 (14 real words + 3 pseudowords)
+
 ## 트러블슈팅
 
 ### Backend 404 Error
@@ -189,10 +205,24 @@ VITE_API_URL=https://literacy-backend.onrender.com
 3. ✅ Admin API endpoint 추가 (cleanup-and-insert-clean-items)
 4. ✅ Item source tracking 기능 추가 (manual vs AI)
 5. ✅ Real-time difficulty visualization 추가
+6. ✅ VST (Vocabulary Size Test) 구현 완료:
+   - Nation's VST 공식 구현 (service_v2.py)
+   - VST 필드 마이그레이션 (frequency_band, target_word, is_pseudoword, band_size)
+   - database.py에 VST 필드 쿼리 추가
+   - 40개 문항 구성: Grammar 13, Vocabulary 17 (VST), Reading 10
+   - cleanup_and_insert_clean_items.py 업데이트
 
 ## 다음 단계
 
-1. ⏳ Render Python 배포 완료 대기
-2. ⏳ DB 정리 API 실행 (나쁜 600개 문항 삭제, 깨끗한 52개 삽입)
-3. ⏳ 22번 문제 먹통 버그 테스트
-4. ⏳ 추가 고품질 문항 생성 (의미적 맥락, 난이도, 문법 검토)
+1. ⏳ DB 정리 및 40개 문항 삽입 실행:
+   - cleanup_and_insert_clean_items.py 스크립트 실행
+   - VST 필드 마이그레이션 적용
+   - Grammar 13개, Vocabulary 17개 (VST), Reading 10개 삽입 확인
+2. ⏳ 프론트엔드 결과 화면 업데이트:
+   - vocabulary_size 표시
+   - vocabulary_bands 세부 정보 표시
+   - pseudoword accuracy 및 confidence level 표시
+3. ⏳ VST 기능 테스트:
+   - 어휘 문항 17개 응답 후 vocabulary_size 계산 확인
+   - frequency band별 정확도 분포 확인
+   - pseudoword 정확도 기반 confidence level 확인

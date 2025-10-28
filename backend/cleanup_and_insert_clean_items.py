@@ -1,8 +1,11 @@
 """
-데이터베이스 정리 및 깨끗한 문항 삽입 스크립트
+데이터베이스 정리 및 40개 문항 삽입 스크립트 (VST 포함)
 ==================================================
 
-나쁜 600개 문항을 삭제하고 깨끗한 52개 수동 문항을 삽입합니다.
+기존 문항을 삭제하고 VST 포함 40개 문항을 삽입합니다.
+- Grammar: 13개
+- Vocabulary: 17개 (VST with frequency bands + pseudowords)
+- Reading: 10개 + 4 passages
 문항 출처 구분을 위해 'source' 필드를 추가합니다.
 """
 
@@ -36,20 +39,19 @@ def main():
         print(f"   기존 문항 수: {old_item_count}")
         print(f"   기존 지문 수: {old_passage_count}")
 
-        # 2. source 컬럼 추가 (이미 존재하면 무시)
-        print("\n2️⃣ 문항 출처 구분을 위한 'source' 컬럼 추가...")
+        # 2. VST 필드 추가 (Migration 실행)
+        print("\n2️⃣ VST 필드 및 source 컬럼 추가 (Migration)...")
         try:
-            cursor.execute("""
-                ALTER TABLE items
-                ADD COLUMN IF NOT EXISTS source VARCHAR(50) DEFAULT 'manual';
-            """)
-            cursor.execute("""
-                COMMENT ON COLUMN items.source IS '문항 출처: manual(수동), ai_generated(AI 생성)';
-            """)
+            # Read and execute migration SQL
+            with open('prisma/migrations/add_vst_fields_to_items.sql', 'r', encoding='utf-8') as f:
+                migration_sql = f.read()
+
+            # Execute migration
+            cursor.execute(migration_sql)
             conn.commit()
-            print("   ✅ source 컬럼 추가 완료")
+            print("   ✅ VST 필드 추가 완료 (frequency_band, target_word, is_pseudoword, band_size, source)")
         except Exception as e:
-            print(f"   ℹ️  source 컬럼이 이미 존재하거나 추가 중 오류: {e}")
+            print(f"   ℹ️  VST 필드가 이미 존재하거나 추가 중 오류: {e}")
             conn.rollback()
 
         # 3. 기존 데이터 삭제
@@ -61,43 +63,64 @@ def main():
         conn.commit()
         print("   ✅ 기존 데이터 삭제 완료")
 
-        # 4. 깨끗한 52개 문항 데이터 로드
-        print("\n4️⃣ 깨끗한 문항 데이터 로드 중...")
-        with open('generated_52_items.json', 'r', encoding='utf-8') as f:
+        # 4. 깨끗한 40개 문항 데이터 로드 (VST 포함)
+        print("\n4️⃣ 깨끗한 40개 문항 데이터 로드 중 (VST 포함)...")
+        with open('complete_40_items.json', 'r', encoding='utf-8') as f:
             data = json.load(f)
 
-        passages = data['passages']
+        passages = data.get('passages', [])
         items = data['items']
         print(f"   로드 완료: {len(passages)}개 지문, {len(items)}개 문항")
+        print(f"   - Grammar: {sum(1 for i in items if i['domain'] == 'grammar')}개")
+        print(f"   - Vocabulary: {sum(1 for i in items if i['domain'] == 'vocabulary')}개")
+        print(f"   - Reading: {sum(1 for i in items if i['domain'] == 'reading')}개")
 
         # 5. 지문 삽입
         print("\n5️⃣ 지문 삽입 중...")
         for passage in passages:
+            # Calculate word_count if not provided
+            word_count = passage.get('word_count', len(passage['content'].split()))
+
             cursor.execute("""
-                INSERT INTO passages (id, title, content, cefr_level, lexile_score, ar_score, created_at)
+                INSERT INTO passages (title, content, word_count, lexile_score, ar_level, genre, created_at)
                 VALUES (%s, %s, %s, %s, %s, %s, %s)
+                RETURNING id
             """, (
-                passage['id'],
                 passage['title'],
                 passage['content'],
-                passage.get('cefr_level', 'A2'),
+                word_count,
                 passage.get('lexile_score', 200),
                 passage.get('ar_score', 1.5),
-                datetime.fromisoformat(passage.get('created_at', '2025-01-15T00:00:00'))
+                passage.get('text_type', 'expository'),  # text_type → genre
+                datetime.now()
             ))
+            # Store passage id for items reference
+            passage['inserted_id'] = cursor.fetchone()[0]
+
         conn.commit()
         print(f"   ✅ {len(passages)}개 지문 삽입 완료")
 
-        # 6. 문항 삽입
-        print("\n6️⃣ 문항 삽입 중...")
+        # 6. 문항 삽입 (VST 필드 포함)
+        print("\n6️⃣ 문항 삽입 중 (VST 필드 포함)...")
+
+        # Create passage_id mapping (original_id → inserted_id)
+        passage_id_map = {p['id']: p.get('inserted_id') for p in passages if 'inserted_id' in p}
+
         for item in items:
+            # Map passage_id if reading item
+            mapped_passage_id = None
+            if item.get('passage_id') and passage_id_map:
+                mapped_passage_id = passage_id_map.get(item['passage_id'])
+
             cursor.execute("""
                 INSERT INTO items (
                     stage, panel, form_id, domain, stem, options, correct_answer,
                     skill_tags, difficulty, discrimination, guessing,
-                    passage_id, status, exposure_count, exposure_rate, created_at, source
+                    passage_id, status, exposure_count, exposure_rate,
+                    frequency_band, target_word, is_pseudoword, band_size,
+                    source, created_at
                 )
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """, (
                 item['stage'],
                 item['panel'],
@@ -110,15 +133,20 @@ def main():
                 item['difficulty'],
                 item['discrimination'],
                 item.get('guessing', 0.25),
-                item.get('passage_id'),
+                mapped_passage_id,
                 item.get('status', 'active'),
                 item.get('exposure_count', 0),
                 item.get('exposure_rate', 0.0),
-                datetime.fromisoformat(item.get('created_at', '2025-01-15T00:00:00')),
-                'manual'  # 수동 생성 문항 표시
+                # VST fields (vocabulary domain only)
+                item.get('frequency_band'),
+                item.get('target_word'),
+                item.get('is_pseudoword', False),
+                item.get('band_size'),
+                item.get('source', 'manual'),  # 수동 생성 문항 표시
+                datetime.now()
             ))
         conn.commit()
-        print(f"   ✅ {len(items)}개 문항 삽입 완료 (모두 'manual'로 표시)")
+        print(f"   ✅ {len(items)}개 문항 삽입 완료 (VST 필드 포함)")
 
         # 7. 최종 상태 확인
         print("\n7️⃣ 최종 데이터베이스 상태 확인...")

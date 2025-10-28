@@ -1,0 +1,1120 @@
+{
+  "passages": [
+    {
+      "id": "P001",
+      "title": "The Water Cycle",
+      "content": "The water cycle is a continuous process by which water circulates between the Earth's oceans, atmosphere, and land. It involves the following key stages: evaporation, condensation, precipitation, and collection. First, the sun heats water in rivers, lakes, and oceans, causing evaporation. The water vapor rises into the atmosphere where it cools and condenses into clouds. When the clouds become heavy with water droplets, precipitation occurs in the form of rain, snow, sleet, or hail. The water then collects in bodies of water or soaks into the ground, and the cycle begins again. This process is essential for sustaining life on Earth and regulating the planet's climate.",
+      "text_type": "expository",
+      "cefr_level": "B1",
+      "lexile_score": 850,
+      "ar_score": 4.5
+    },
+    {
+      "id": "P002",
+      "title": "Should Students Wear School Uniforms?",
+      "content": "The debate over school uniforms has been ongoing for decades. Supporters argue that uniforms promote equality among students by eliminating visible economic disparities and reducing peer pressure related to clothing choices. They also claim that uniforms improve discipline and academic performance by creating a more serious learning environment. However, opponents contend that uniforms suppress individual expression and creativity, which are important aspects of personal development. They argue that the cost of uniforms can be burdensome for low-income families, and there is limited evidence that uniforms actually improve academic outcomes. Both sides present valid points, making this a complex issue without a simple solution.",
+      "text_type": "argumentative",
+      "cefr_level": "B2",
+      "lexile_score": 950,
+      "ar_score": 5.5
+    },
+    {
+      "id": "P003",
+      "title": "The Lost Wallet",
+      "content": "Sarah rushed down the crowded street, her heart pounding with anxiety. She had just realized that her wallet was missing. It contained not just her money and credit cards, but also her mother's antique locket—the only memento she had from her grandmother. Retracing her steps, Sarah returned to the coffee shop where she had been earlier. The young barista looked up as Sarah approached the counter. \"Excuse me,\" Sarah said breathlessly, \"I think I left my wallet here.\" The barista smiled warmly and reached under the counter. \"Is this yours?\" she asked, holding up a familiar brown leather wallet. Relief washed over Sarah as she checked inside—everything was there, including the precious locket. \"Thank you so much,\" Sarah said gratefully. \"You've saved me from a terrible day.\" The barista simply nodded and said, \"I'm just glad I could help. Someone did the same for me once.\"",
+      "text_type": "narrative",
+      "cefr_level": "A2",
+      "lexile_score": 700,
+      "ar_score": 3.5
+    },
+    {
+      "id": "P004",
+      "title": "Community Library Event",
+      "content": "NOTICE: Summer Reading Program\n\nThe Riverside Community Library is pleased to announce our annual Summer Reading Program for all ages!\n\nDates: June 1 - August 31\n\nProgram Highlights:\n• Children (ages 5-12): Read 10 books to earn prizes\n• Teens (ages 13-18): Participate in book clubs and creative writing workshops\n• Adults: Join our monthly book discussion groups\n\nSpecial Events:\n• June 15: Author Meet-and-Greet with bestselling novelist Maria Chen\n• July 20: Family Movie Night featuring classic adaptations\n• August 10: Book Sale (all proceeds benefit library programs)\n\nRegistration: Sign up at the main desk or online at www.riversidelibrary.org\n\nFor more information, contact: library@riverside.org or call (555) 123-4567\n\nNote: All events are free for library members. Non-members can purchase a day pass for $5.",
+      "text_type": "practical",
+      "cefr_level": "B1",
+      "lexile_score": 800,
+      "ar_score": 4.0
+    }
+  ],
+  "items": [
+    {
+      "id": "V001",
+      "stage": 1,
+      "panel": "routing",
+      "form_id": 1,
+      "domain": "vocabulary",
+      "item_type": "definition_matching",
+      "frequency_band": "1k",
+      "band_size": 1000,
+      "target_word": "happy",
+      "is_pseudoword": false,
+      "stem": "What does 'happy' mean?",
+      "options": {
+        "A": "Feeling sad",
+        "B": "Feeling pleased",
+        "C": "Feeling angry",
+        "D": "Feeling tired"
+      },
+      "correct_answer": "B",
+      "skill_tags": [
+        "VST",
+        "1k_band",
+        "definition_matching",
+        "emotion"
+      ],
+      "difficulty": -1.8,
+      "discrimination": 1.2,
+      "guessing": 0.25,
+      "status": "active"
+    },
+    {
+      "id": "V002",
+      "stage": 1,
+      "panel": "routing",
+      "form_id": 1,
+      "domain": "vocabulary",
+      "item_type": "synonym",
+      "frequency_band": "1k",
+      "band_size": 1000,
+      "target_word": "big",
+      "is_pseudoword": false,
+      "stem": "Which word means the same as 'big'?",
+      "options": {
+        "A": "Small",
+        "B": "Large",
+        "C": "Thin",
+        "D": "Short"
+      },
+      "correct_answer": "B",
+      "skill_tags": [
+        "VST",
+        "1k_band",
+        "synonym",
+        "size"
+      ],
+      "difficulty": -1.6,
+      "discrimination": 1.3,
+      "guessing": 0.25,
+      "status": "active"
+    },
+    {
+      "id": "V003",
+      "stage": 1,
+      "panel": "routing",
+      "form_id": 1,
+      "domain": "vocabulary",
+      "item_type": "context_inference",
+      "frequency_band": "2k",
+      "band_size": 1000,
+      "target_word": "suggest",
+      "is_pseudoword": false,
+      "stem": "The teacher will suggest some books for us to read during the summer.\n\nWhat does 'suggest' mean in this sentence?",
+      "options": {
+        "A": "To demand",
+        "B": "To recommend",
+        "C": "To refuse",
+        "D": "To forget"
+      },
+      "correct_answer": "B",
+      "skill_tags": [
+        "VST",
+        "2k_band",
+        "context_inference",
+        "communication"
+      ],
+      "difficulty": -1.3,
+      "discrimination": 1.4,
+      "guessing": 0.25,
+      "status": "active"
+    },
+    {
+      "id": "V004",
+      "stage": 1,
+      "panel": "routing",
+      "form_id": 1,
+      "domain": "vocabulary",
+      "item_type": "antonym",
+      "frequency_band": "2k",
+      "band_size": 1000,
+      "target_word": "benefit",
+      "is_pseudoword": false,
+      "stem": "What is the opposite meaning of 'benefit'?",
+      "options": {
+        "A": "Advantage",
+        "B": "Profit",
+        "C": "Harm",
+        "D": "Help"
+      },
+      "correct_answer": "C",
+      "skill_tags": [
+        "VST",
+        "2k_band",
+        "antonym",
+        "abstract"
+      ],
+      "difficulty": -1.1,
+      "discrimination": 1.3,
+      "guessing": 0.25,
+      "status": "active"
+    },
+    {
+      "id": "V005",
+      "stage": 2,
+      "panel": "medium",
+      "form_id": 1,
+      "domain": "vocabulary",
+      "item_type": "definition_matching",
+      "frequency_band": "4k",
+      "band_size": 2000,
+      "target_word": "diverse",
+      "is_pseudoword": false,
+      "stem": "What does 'diverse' mean?",
+      "options": {
+        "A": "All the same",
+        "B": "Very different from each other",
+        "C": "Very similar",
+        "D": "Completely identical"
+      },
+      "correct_answer": "B",
+      "skill_tags": [
+        "VST",
+        "4k_band",
+        "definition_matching",
+        "description"
+      ],
+      "difficulty": -0.8,
+      "discrimination": 1.4,
+      "guessing": 0.25,
+      "status": "active"
+    },
+    {
+      "id": "V007",
+      "stage": 2,
+      "panel": "medium",
+      "form_id": 1,
+      "domain": "vocabulary",
+      "item_type": "context_inference",
+      "frequency_band": "4k",
+      "band_size": 2000,
+      "target_word": "consistent",
+      "is_pseudoword": false,
+      "stem": "The athlete's performance has been consistent throughout the season, always scoring between 15 and 20 points.\n\nWhat does 'consistent' mean in this sentence?",
+      "options": {
+        "A": "Unpredictable",
+        "B": "Steady and unchanging",
+        "C": "Getting worse",
+        "D": "Very surprising"
+      },
+      "correct_answer": "B",
+      "skill_tags": [
+        "VST",
+        "4k_band",
+        "context_inference",
+        "evaluation"
+      ],
+      "difficulty": -0.6,
+      "discrimination": 1.4,
+      "guessing": 0.25,
+      "status": "active"
+    },
+    {
+      "id": "V009",
+      "stage": 2,
+      "panel": "medium",
+      "form_id": 1,
+      "domain": "vocabulary",
+      "item_type": "synonym",
+      "frequency_band": "6k",
+      "band_size": 2000,
+      "target_word": "subtle",
+      "is_pseudoword": false,
+      "stem": "Which word means the same as 'subtle'?",
+      "options": {
+        "A": "Obvious",
+        "B": "Loud",
+        "C": "Delicate and not obvious",
+        "D": "Very strong"
+      },
+      "correct_answer": "C",
+      "skill_tags": [
+        "VST",
+        "6k_band",
+        "synonym",
+        "description"
+      ],
+      "difficulty": -0.3,
+      "discrimination": 1.4,
+      "guessing": 0.25,
+      "status": "active"
+    },
+    {
+      "id": "V010",
+      "stage": 2,
+      "panel": "medium",
+      "form_id": 1,
+      "domain": "vocabulary",
+      "item_type": "context_inference",
+      "frequency_band": "6k",
+      "band_size": 2000,
+      "target_word": "coherent",
+      "is_pseudoword": false,
+      "stem": "The professor's explanation was coherent and easy to follow, with all the ideas connected logically.\n\nWhat does 'coherent' mean?",
+      "options": {
+        "A": "Confusing and unclear",
+        "B": "Logical and well-organized",
+        "C": "Very complicated",
+        "D": "Completely wrong"
+      },
+      "correct_answer": "B",
+      "skill_tags": [
+        "VST",
+        "6k_band",
+        "context_inference",
+        "academic"
+      ],
+      "difficulty": -0.1,
+      "discrimination": 1.5,
+      "guessing": 0.25,
+      "status": "active"
+    },
+    {
+      "id": "V011",
+      "stage": 2,
+      "panel": "high",
+      "form_id": 1,
+      "domain": "vocabulary",
+      "item_type": "definition_matching",
+      "frequency_band": "8k",
+      "band_size": 2000,
+      "target_word": "ubiquitous",
+      "is_pseudoword": false,
+      "stem": "What does 'ubiquitous' mean?",
+      "options": {
+        "A": "Very rare",
+        "B": "Present everywhere",
+        "C": "Completely absent",
+        "D": "Difficult to find"
+      },
+      "correct_answer": "B",
+      "skill_tags": [
+        "VST",
+        "8k_band",
+        "definition_matching",
+        "academic"
+      ],
+      "difficulty": 0.2,
+      "discrimination": 1.4,
+      "guessing": 0.25,
+      "status": "active"
+    },
+    {
+      "id": "V012",
+      "stage": 2,
+      "panel": "high",
+      "form_id": 1,
+      "domain": "vocabulary",
+      "item_type": "antonym",
+      "frequency_band": "8k",
+      "band_size": 2000,
+      "target_word": "meticulous",
+      "is_pseudoword": false,
+      "stem": "What is the opposite meaning of 'meticulous' (showing great attention to detail)?",
+      "options": {
+        "A": "Careful",
+        "B": "Precise",
+        "C": "Careless",
+        "D": "Thorough"
+      },
+      "correct_answer": "C",
+      "skill_tags": [
+        "VST",
+        "8k_band",
+        "antonym",
+        "personality"
+      ],
+      "difficulty": 0.3,
+      "discrimination": 1.3,
+      "guessing": 0.25,
+      "status": "active"
+    },
+    {
+      "id": "V013",
+      "stage": 2,
+      "panel": "high",
+      "form_id": 1,
+      "domain": "vocabulary",
+      "item_type": "context_inference",
+      "frequency_band": "10k",
+      "band_size": 2000,
+      "target_word": "ephemeral",
+      "is_pseudoword": false,
+      "stem": "The beauty of cherry blossoms is ephemeral, lasting only a few days before the petals fall.\n\nWhat does 'ephemeral' mean?",
+      "options": {
+        "A": "Lasting forever",
+        "B": "Very short-lived",
+        "C": "Extremely beautiful",
+        "D": "Very expensive"
+      },
+      "correct_answer": "B",
+      "skill_tags": [
+        "VST",
+        "10k_band",
+        "context_inference",
+        "time"
+      ],
+      "difficulty": 0.7,
+      "discrimination": 1.5,
+      "guessing": 0.25,
+      "status": "active"
+    },
+    {
+      "id": "V014",
+      "stage": 2,
+      "panel": "high",
+      "form_id": 1,
+      "domain": "vocabulary",
+      "item_type": "synonym",
+      "frequency_band": "10k",
+      "band_size": 2000,
+      "target_word": "corroborate",
+      "is_pseudoword": false,
+      "stem": "Which word means the same as 'corroborate' (to confirm or support)?",
+      "options": {
+        "A": "Deny",
+        "B": "Verify",
+        "C": "Question",
+        "D": "Reject"
+      },
+      "correct_answer": "B",
+      "skill_tags": [
+        "VST",
+        "10k_band",
+        "synonym",
+        "academic"
+      ],
+      "difficulty": 0.8,
+      "discrimination": 1.4,
+      "guessing": 0.25,
+      "status": "active"
+    },
+    {
+      "id": "V015",
+      "stage": 3,
+      "panel": "high",
+      "form_id": 1,
+      "domain": "vocabulary",
+      "item_type": "definition_matching",
+      "frequency_band": "14k",
+      "band_size": 4000,
+      "target_word": "obfuscate",
+      "is_pseudoword": false,
+      "stem": "What does 'obfuscate' mean?",
+      "options": {
+        "A": "To make something clear",
+        "B": "To make something confusing or unclear",
+        "C": "To simplify",
+        "D": "To explain thoroughly"
+      },
+      "correct_answer": "B",
+      "skill_tags": [
+        "VST",
+        "14k_band",
+        "definition_matching",
+        "academic"
+      ],
+      "difficulty": 1.2,
+      "discrimination": 1.5,
+      "guessing": 0.25,
+      "status": "active"
+    },
+    {
+      "id": "V016",
+      "stage": 3,
+      "panel": "high",
+      "form_id": 1,
+      "domain": "vocabulary",
+      "item_type": "context_inference",
+      "frequency_band": "14k",
+      "band_size": 4000,
+      "target_word": "recalcitrant",
+      "is_pseudoword": false,
+      "stem": "The recalcitrant student refused to follow any of the teacher's instructions, despite repeated warnings.\n\nWhat does 'recalcitrant' mean?",
+      "options": {
+        "A": "Obedient and cooperative",
+        "B": "Stubbornly resistant to authority",
+        "C": "Very intelligent",
+        "D": "Eager to learn"
+      },
+      "correct_answer": "B",
+      "skill_tags": [
+        "VST",
+        "14k_band",
+        "context_inference",
+        "behavior"
+      ],
+      "difficulty": 1.3,
+      "discrimination": 1.4,
+      "guessing": 0.25,
+      "status": "active"
+    },
+    {
+      "id": "V017",
+      "stage": 1,
+      "panel": "routing",
+      "form_id": 1,
+      "domain": "vocabulary",
+      "item_type": "pseudoword",
+      "frequency_band": "pseudoword",
+      "band_size": 0,
+      "target_word": "trelict",
+      "is_pseudoword": true,
+      "stem": "The scientist used a trelict to measure the temperature accurately.\n\nWhat does 'trelict' mean?",
+      "options": {
+        "A": "A type of thermometer",
+        "B": "A chemical solution",
+        "C": "A laboratory tool",
+        "D": "I don't know this word"
+      },
+      "correct_answer": "D",
+      "skill_tags": [
+        "VST",
+        "pseudoword",
+        "overstatement_detection"
+      ],
+      "difficulty": 0.0,
+      "discrimination": 1.5,
+      "guessing": 0.0,
+      "status": "active"
+    },
+    {
+      "id": "V018",
+      "stage": 2,
+      "panel": "medium",
+      "form_id": 1,
+      "domain": "vocabulary",
+      "item_type": "pseudoword",
+      "frequency_band": "pseudoword",
+      "band_size": 0,
+      "target_word": "flumbinate",
+      "is_pseudoword": true,
+      "stem": "The company decided to flumbinate their marketing strategy to reach more customers.\n\nWhat does 'flumbinate' mean?",
+      "options": {
+        "A": "To improve or enhance",
+        "B": "To cancel or stop",
+        "C": "To copy exactly",
+        "D": "I don't know this word"
+      },
+      "correct_answer": "D",
+      "skill_tags": [
+        "VST",
+        "pseudoword",
+        "overstatement_detection"
+      ],
+      "difficulty": 0.0,
+      "discrimination": 1.5,
+      "guessing": 0.0,
+      "status": "active"
+    },
+    {
+      "id": "V019",
+      "stage": 2,
+      "panel": "high",
+      "form_id": 1,
+      "domain": "vocabulary",
+      "item_type": "pseudoword",
+      "frequency_band": "pseudoword",
+      "band_size": 0,
+      "target_word": "grelastic",
+      "is_pseudoword": true,
+      "stem": "The material was highly grelastic, allowing it to bend without breaking.\n\nWhat does 'grelastic' mean?",
+      "options": {
+        "A": "Flexible and stretchy",
+        "B": "Very hard and rigid",
+        "C": "Soft and smooth",
+        "D": "I don't know this word"
+      },
+      "correct_answer": "D",
+      "skill_tags": [
+        "VST",
+        "pseudoword",
+        "overstatement_detection"
+      ],
+      "difficulty": 0.0,
+      "discrimination": 1.5,
+      "guessing": 0.0,
+      "status": "active"
+    },
+    {
+      "id": "G001",
+      "stage": 1,
+      "panel": "routing",
+      "form_id": 1,
+      "domain": "grammar",
+      "item_type": "verb_tense",
+      "stem": "She _____ to the park every Sunday.",
+      "options": {
+        "A": "go",
+        "B": "goes",
+        "C": "went",
+        "D": "going"
+      },
+      "correct_answer": "B",
+      "skill_tags": [
+        "present_simple",
+        "third_person_singular"
+      ],
+      "difficulty": -1.5,
+      "discrimination": 1.3,
+      "guessing": 0.25,
+      "status": "active"
+    },
+    {
+      "id": "G002",
+      "stage": 1,
+      "panel": "routing",
+      "form_id": 1,
+      "domain": "grammar",
+      "item_type": "article",
+      "stem": "I saw _____ elephant at the zoo yesterday.",
+      "options": {
+        "A": "a",
+        "B": "an",
+        "C": "the",
+        "D": "no article"
+      },
+      "correct_answer": "B",
+      "skill_tags": [
+        "articles",
+        "indefinite_article"
+      ],
+      "difficulty": -1.2,
+      "discrimination": 1.2,
+      "guessing": 0.25,
+      "status": "active"
+    },
+    {
+      "id": "G003",
+      "stage": 1,
+      "panel": "routing",
+      "form_id": 1,
+      "domain": "grammar",
+      "item_type": "pronoun",
+      "stem": "This book is _____. I bought it yesterday.",
+      "options": {
+        "A": "my",
+        "B": "mine",
+        "C": "me",
+        "D": "I"
+      },
+      "correct_answer": "B",
+      "skill_tags": [
+        "possessive_pronouns"
+      ],
+      "difficulty": -1.0,
+      "discrimination": 1.3,
+      "guessing": 0.25,
+      "status": "active"
+    },
+    {
+      "id": "G004",
+      "stage": 2,
+      "panel": "low",
+      "form_id": 1,
+      "domain": "grammar",
+      "item_type": "preposition",
+      "stem": "The meeting will start _____ 3 o'clock.",
+      "options": {
+        "A": "in",
+        "B": "on",
+        "C": "at",
+        "D": "by"
+      },
+      "correct_answer": "C",
+      "skill_tags": [
+        "prepositions_of_time"
+      ],
+      "difficulty": -0.8,
+      "discrimination": 1.4,
+      "guessing": 0.25,
+      "status": "active"
+    },
+    {
+      "id": "G005",
+      "stage": 2,
+      "panel": "medium",
+      "form_id": 1,
+      "domain": "grammar",
+      "item_type": "verb_tense",
+      "stem": "While I _____ dinner, the phone rang.",
+      "options": {
+        "A": "cook",
+        "B": "was cooking",
+        "C": "cooked",
+        "D": "have cooked"
+      },
+      "correct_answer": "B",
+      "skill_tags": [
+        "past_continuous",
+        "time_clauses"
+      ],
+      "difficulty": -0.5,
+      "discrimination": 1.5,
+      "guessing": 0.25,
+      "status": "active"
+    },
+    {
+      "id": "G006",
+      "stage": 2,
+      "panel": "medium",
+      "form_id": 1,
+      "domain": "grammar",
+      "item_type": "conditional",
+      "stem": "If it _____ tomorrow, we will cancel the picnic.",
+      "options": {
+        "A": "rains",
+        "B": "will rain",
+        "C": "rained",
+        "D": "would rain"
+      },
+      "correct_answer": "A",
+      "skill_tags": [
+        "first_conditional",
+        "if_clauses"
+      ],
+      "difficulty": -0.3,
+      "discrimination": 1.4,
+      "guessing": 0.25,
+      "status": "active"
+    },
+    {
+      "id": "G007",
+      "stage": 2,
+      "panel": "medium",
+      "form_id": 1,
+      "domain": "grammar",
+      "item_type": "relative_clause",
+      "stem": "The woman _____ lives next door is a teacher.",
+      "options": {
+        "A": "which",
+        "B": "who",
+        "C": "what",
+        "D": "where"
+      },
+      "correct_answer": "B",
+      "skill_tags": [
+        "relative_pronouns",
+        "defining_clauses"
+      ],
+      "difficulty": -0.2,
+      "discrimination": 1.3,
+      "guessing": 0.25,
+      "status": "active"
+    },
+    {
+      "id": "G008",
+      "stage": 2,
+      "panel": "high",
+      "form_id": 1,
+      "domain": "grammar",
+      "item_type": "perfect_tense",
+      "stem": "By the time you arrive, I _____ my homework.",
+      "options": {
+        "A": "finish",
+        "B": "finished",
+        "C": "will finish",
+        "D": "will have finished"
+      },
+      "correct_answer": "D",
+      "skill_tags": [
+        "future_perfect",
+        "time_sequences"
+      ],
+      "difficulty": 0.3,
+      "discrimination": 1.5,
+      "guessing": 0.25,
+      "status": "active"
+    },
+    {
+      "id": "G009",
+      "stage": 2,
+      "panel": "high",
+      "form_id": 1,
+      "domain": "grammar",
+      "item_type": "passive_voice",
+      "stem": "The report _____ by the committee last week.",
+      "options": {
+        "A": "reviewed",
+        "B": "was reviewed",
+        "C": "is reviewed",
+        "D": "has reviewed"
+      },
+      "correct_answer": "B",
+      "skill_tags": [
+        "passive_voice",
+        "past_simple_passive"
+      ],
+      "difficulty": 0.5,
+      "discrimination": 1.4,
+      "guessing": 0.25,
+      "status": "active"
+    },
+    {
+      "id": "G010",
+      "stage": 3,
+      "panel": "medium",
+      "form_id": 1,
+      "domain": "grammar",
+      "item_type": "modal_verb",
+      "stem": "You _____ have told me earlier. Now it's too late.",
+      "options": {
+        "A": "should",
+        "B": "must",
+        "C": "can",
+        "D": "will"
+      },
+      "correct_answer": "A",
+      "skill_tags": [
+        "modal_verbs",
+        "should_have",
+        "regret"
+      ],
+      "difficulty": 0.2,
+      "discrimination": 1.3,
+      "guessing": 0.25,
+      "status": "active"
+    },
+    {
+      "id": "G011",
+      "stage": 3,
+      "panel": "high",
+      "form_id": 1,
+      "domain": "grammar",
+      "item_type": "subjunctive",
+      "stem": "It is essential that every student _____ the assignment on time.",
+      "options": {
+        "A": "submits",
+        "B": "submit",
+        "C": "submitted",
+        "D": "will submit"
+      },
+      "correct_answer": "B",
+      "skill_tags": [
+        "subjunctive_mood",
+        "formal_register"
+      ],
+      "difficulty": 0.9,
+      "discrimination": 1.5,
+      "guessing": 0.25,
+      "status": "active"
+    },
+    {
+      "id": "G012",
+      "stage": 3,
+      "panel": "high",
+      "form_id": 1,
+      "domain": "grammar",
+      "item_type": "inversion",
+      "stem": "Rarely _____ such a beautiful sunset.",
+      "options": {
+        "A": "I have seen",
+        "B": "have I seen",
+        "C": "I saw",
+        "D": "did I saw"
+      },
+      "correct_answer": "B",
+      "skill_tags": [
+        "inversion",
+        "negative_adverbials"
+      ],
+      "difficulty": 1.1,
+      "discrimination": 1.4,
+      "guessing": 0.25,
+      "status": "active"
+    },
+    {
+      "id": "G013",
+      "stage": 3,
+      "panel": "high",
+      "form_id": 1,
+      "domain": "grammar",
+      "item_type": "cleft_sentence",
+      "stem": "_____ that matters most in a crisis is staying calm.",
+      "options": {
+        "A": "It is",
+        "B": "That is",
+        "C": "What",
+        "D": "Which"
+      },
+      "correct_answer": "C",
+      "skill_tags": [
+        "cleft_sentences",
+        "emphasis"
+      ],
+      "difficulty": 1.3,
+      "discrimination": 1.5,
+      "guessing": 0.25,
+      "status": "active"
+    },
+    {
+      "id": "R001",
+      "passage_id": "P001",
+      "stage": 1,
+      "panel": "routing",
+      "form_id": 1,
+      "domain": "reading",
+      "item_type": "main_idea",
+      "stem": "What is the main idea of the passage?",
+      "options": {
+        "A": "The sun is the most important part of the water cycle",
+        "B": "The water cycle is a continuous process that sustains life",
+        "C": "Rain is the only form of precipitation",
+        "D": "Water only exists in oceans and rivers"
+      },
+      "correct_answer": "B",
+      "skill_tags": [
+        "main_idea",
+        "expository_text",
+        "scientific_concept"
+      ],
+      "difficulty": -0.8,
+      "discrimination": 1.4,
+      "guessing": 0.25,
+      "status": "active"
+    },
+    {
+      "id": "R002",
+      "passage_id": "P001",
+      "stage": 2,
+      "panel": "medium",
+      "form_id": 1,
+      "domain": "reading",
+      "item_type": "sequence",
+      "stem": "According to the passage, what happens AFTER water vapor condenses into clouds?",
+      "options": {
+        "A": "Evaporation occurs",
+        "B": "The sun heats the water",
+        "C": "Precipitation occurs",
+        "D": "Water collects in the ground"
+      },
+      "correct_answer": "C",
+      "skill_tags": [
+        "sequence",
+        "cause_effect",
+        "process_understanding"
+      ],
+      "difficulty": -0.3,
+      "discrimination": 1.3,
+      "guessing": 0.25,
+      "status": "active"
+    },
+    {
+      "id": "R003",
+      "passage_id": "P001",
+      "stage": 2,
+      "panel": "medium",
+      "form_id": 1,
+      "domain": "reading",
+      "item_type": "inference",
+      "stem": "Based on the passage, why is the water cycle important?",
+      "options": {
+        "A": "It makes clouds look beautiful",
+        "B": "It sustains life and regulates climate",
+        "C": "It only affects ocean water",
+        "D": "It happens once a year"
+      },
+      "correct_answer": "B",
+      "skill_tags": [
+        "inference",
+        "implicit_meaning",
+        "critical_thinking"
+      ],
+      "difficulty": 0.1,
+      "discrimination": 1.4,
+      "guessing": 0.25,
+      "status": "active"
+    },
+    {
+      "id": "R004",
+      "passage_id": "P002",
+      "stage": 2,
+      "panel": "high",
+      "form_id": 1,
+      "domain": "reading",
+      "item_type": "author_purpose",
+      "stem": "What is the author's main purpose in this passage?",
+      "options": {
+        "A": "To convince readers that uniforms are necessary",
+        "B": "To present both sides of the school uniform debate",
+        "C": "To prove that uniforms harm students",
+        "D": "To describe what school uniforms look like"
+      },
+      "correct_answer": "B",
+      "skill_tags": [
+        "author_purpose",
+        "argumentative_text",
+        "balanced_perspective"
+      ],
+      "difficulty": 0.4,
+      "discrimination": 1.5,
+      "guessing": 0.25,
+      "status": "active"
+    },
+    {
+      "id": "R005",
+      "passage_id": "P002",
+      "stage": 3,
+      "panel": "high",
+      "form_id": 1,
+      "domain": "reading",
+      "item_type": "evaluation",
+      "stem": "Which statement best evaluates the strength of the arguments presented?",
+      "options": {
+        "A": "Only the supporters' arguments are valid",
+        "B": "Both sides present valid points, making it complex",
+        "C": "The opponents' arguments are stronger",
+        "D": "Neither side has any valid arguments"
+      },
+      "correct_answer": "B",
+      "skill_tags": [
+        "evaluation",
+        "argument_analysis",
+        "critical_reading"
+      ],
+      "difficulty": 0.8,
+      "discrimination": 1.4,
+      "guessing": 0.25,
+      "status": "active"
+    },
+    {
+      "id": "R006",
+      "passage_id": "P003",
+      "stage": 1,
+      "panel": "routing",
+      "form_id": 1,
+      "domain": "reading",
+      "item_type": "literal_comprehension",
+      "stem": "What item did Sarah lose that was most important to her?",
+      "options": {
+        "A": "Her credit cards",
+        "B": "Her mother's antique locket",
+        "C": "Her money",
+        "D": "Her phone"
+      },
+      "correct_answer": "B",
+      "skill_tags": [
+        "literal_comprehension",
+        "detail_recognition",
+        "narrative_text"
+      ],
+      "difficulty": -1.0,
+      "discrimination": 1.2,
+      "guessing": 0.25,
+      "status": "active"
+    },
+    {
+      "id": "R007",
+      "passage_id": "P003",
+      "stage": 2,
+      "panel": "low",
+      "form_id": 1,
+      "domain": "reading",
+      "item_type": "character_emotion",
+      "stem": "How did Sarah feel when the barista showed her the wallet?",
+      "options": {
+        "A": "Anxious and worried",
+        "B": "Angry and frustrated",
+        "C": "Relieved and grateful",
+        "D": "Confused and uncertain"
+      },
+      "correct_answer": "C",
+      "skill_tags": [
+        "character_emotion",
+        "inference",
+        "emotional_intelligence"
+      ],
+      "difficulty": -0.6,
+      "discrimination": 1.3,
+      "guessing": 0.25,
+      "status": "active"
+    },
+    {
+      "id": "R008",
+      "passage_id": "P003",
+      "stage": 2,
+      "panel": "medium",
+      "form_id": 1,
+      "domain": "reading",
+      "item_type": "theme",
+      "stem": "What is the main theme of this story?",
+      "options": {
+        "A": "Always check your pockets",
+        "B": "Kindness and honesty are rewarded",
+        "C": "Coffee shops are dangerous places",
+        "D": "Never trust strangers"
+      },
+      "correct_answer": "B",
+      "skill_tags": [
+        "theme",
+        "moral_lesson",
+        "story_interpretation"
+      ],
+      "difficulty": 0.0,
+      "discrimination": 1.4,
+      "guessing": 0.25,
+      "status": "active"
+    },
+    {
+      "id": "R009",
+      "passage_id": "P004",
+      "stage": 2,
+      "panel": "medium",
+      "form_id": 1,
+      "domain": "reading",
+      "item_type": "specific_detail",
+      "stem": "According to the notice, how many books must children read to earn prizes?",
+      "options": {
+        "A": "5 books",
+        "B": "10 books",
+        "C": "15 books",
+        "D": "20 books"
+      },
+      "correct_answer": "B",
+      "skill_tags": [
+        "specific_detail",
+        "practical_reading",
+        "information_extraction"
+      ],
+      "difficulty": -0.5,
+      "discrimination": 1.2,
+      "guessing": 0.25,
+      "status": "active"
+    },
+    {
+      "id": "R010",
+      "passage_id": "P004",
+      "stage": 2,
+      "panel": "medium",
+      "form_id": 1,
+      "domain": "reading",
+      "item_type": "practical_application",
+      "stem": "If you are NOT a library member, how much would you need to pay to attend the author meet-and-greet?",
+      "options": {
+        "A": "It's free for everyone",
+        "B": "$5 for a day pass",
+        "C": "$10 for a day pass",
+        "D": "Non-members cannot attend"
+      },
+      "correct_answer": "B",
+      "skill_tags": [
+        "practical_application",
+        "inference",
+        "notice_reading"
+      ],
+      "difficulty": -0.2,
+      "discrimination": 1.3,
+      "guessing": 0.25,
+      "status": "active"
+    }
+  ]
+}

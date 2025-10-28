@@ -380,16 +380,19 @@ class EnglishTestServiceV2:
 
     def _calculate_vocabulary_metrics(self, responses: List[Dict]) -> tuple[Optional[int], Optional[Dict]]:
         """
-        Calculate vocabulary size and frequency band distribution (FR-004).
+        Calculate vocabulary size using Nation's VST formula (FR-004).
 
-        Uses VST (Vocabulary Size Test) theory.
-        Requires 14 vocabulary items + 3 pseudowords.
+        Formula: Vocab Size = Σ((correct/tested) × band_size) for each frequency band
 
         Args:
-            responses: List of response dictionaries
+            responses: List of response dictionaries with VST fields
 
         Returns:
-            Tuple of (vocabulary_size, vocabulary_bands)
+            Tuple of (vocabulary_size, vocabulary_bands_data)
+            vocabulary_bands_data includes:
+                - band distribution (correct/total per band)
+                - pseudoword accuracy
+                - confidence level (High/Low)
         """
         # Filter vocabulary domain responses
         vocab_responses = [r for r in responses if r['domain'] == 'vocabulary']
@@ -397,22 +400,64 @@ class EnglishTestServiceV2:
         if len(vocab_responses) < 14:
             return None, None
 
-        # Group by frequency band (requires item metadata)
-        # Placeholder implementation - needs frequency_band field from items table
+        # Separate real words and pseudowords
+        real_words = [r for r in vocab_responses if not r.get('is_pseudoword', False)]
+        pseudowords = [r for r in vocab_responses if r.get('is_pseudoword', False)]
 
-        # Simple calculation: correct_count * 1000 (VST formula approximation)
-        correct_vocab = sum(1 for r in vocab_responses if r['is_correct'])
-        vocabulary_size = correct_vocab * 1000
+        # Group real words by frequency band
+        band_stats = {}
+        for response in real_words:
+            band = response.get('frequency_band')
+            band_size = response.get('band_size', 0)
 
-        # Band distribution placeholder
+            if not band or not band_size:
+                continue
+
+            if band not in band_stats:
+                band_stats[band] = {
+                    'correct': 0,
+                    'total': 0,
+                    'band_size': band_size
+                }
+
+            band_stats[band]['total'] += 1
+            if response['is_correct']:
+                band_stats[band]['correct'] += 1
+
+        # Calculate vocabulary size using Nation's formula
+        total_vocab_size = 0
+        for band, stats in band_stats.items():
+            if stats['total'] > 0:
+                band_estimate = (stats['correct'] / stats['total']) * stats['band_size']
+                total_vocab_size += band_estimate
+
+        # Check pseudoword accuracy for confidence level
+        pseudoword_accuracy = 0.0
+        confidence = 'Unknown'
+
+        if len(pseudowords) > 0:
+            correct_pseudo = sum(1 for p in pseudowords if p['is_correct'])
+            pseudoword_accuracy = correct_pseudo / len(pseudowords)
+
+            # Confidence: High if ≥66% pseudoword accuracy (2/3 correct)
+            confidence = 'High' if pseudoword_accuracy >= 0.66 else 'Low'
+
+        # Prepare band distribution with details
         vocabulary_bands = {
-            '1k': 0,
-            '2k': 0,
-            '4k': 0,
-            '6k': 0,
-            '8k': 0,
-            '10k': 0,
-            '14k': 0
+            'bands': {
+                band: {
+                    'correct': stats['correct'],
+                    'total': stats['total'],
+                    'percentage': round((stats['correct'] / stats['total']) * 100, 1) if stats['total'] > 0 else 0
+                }
+                for band, stats in band_stats.items()
+            },
+            'pseudowords': {
+                'correct': sum(1 for p in pseudowords if p['is_correct']),
+                'total': len(pseudowords),
+                'accuracy': round(pseudoword_accuracy * 100, 1)
+            },
+            'confidence': confidence
         }
 
-        return vocabulary_size, vocabulary_bands
+        return int(total_vocab_size), vocabulary_bands

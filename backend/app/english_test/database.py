@@ -366,7 +366,9 @@ class EnglishTestDB:
 
         try:
             cursor.execute("""
-                SELECT r.*, i.discrimination, i.difficulty, i.guessing, i.domain
+                SELECT r.*,
+                       i.discrimination, i.difficulty, i.guessing, i.domain,
+                       i.frequency_band, i.target_word, i.is_pseudoword, i.band_size
                 FROM english_test_responses r
                 JOIN items i ON r.item_id = i.id
                 WHERE r.session_id = %s
