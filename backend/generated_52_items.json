@@ -1,0 +1,1376 @@
+{
+  "passages": [
+    {
+      "id": 101,
+      "title": "Making a Sandwich",
+      "content": "Making a sandwich is easy and fun. First, you need two pieces of bread. Then, you put butter or mayonnaise on the bread. After that, you add meat, cheese, and vegetables like lettuce and tomatoes. Finally, you put the second piece of bread on top. Now your sandwich is ready to eat! You can make different kinds of sandwiches by using different ingredients.",
+      "cefr_level": "A2",
+      "lexile_score": 200,
+      "ar_score": 1.5
+    },
+    {
+      "id": 102,
+      "title": "The School Library",
+      "content": "Our school library is a wonderful place. It has thousands of books on many different subjects. Students can borrow books for two weeks. The library also has computers where students can do research and homework. There are quiet study areas and group discussion rooms. The librarian, Mrs. Johnson, is very helpful. She helps students find the books they need and teaches them how to use the library resources.",
+      "cefr_level": "A2",
+      "lexile_score": 250,
+      "ar_score": 2.0
+    },
+    {
+      "id": 103,
+      "title": "A Day at the Beach",
+      "content": "Last Sunday, my family went to the beach. The weather was perfect with bright sunshine and a cool breeze. My sister and I built a big sandcastle near the water. We collected seashells and looked for crabs in the tide pools. Dad went swimming in the ocean while Mom read a book under an umbrella. We had a picnic lunch with sandwiches, fruit, and lemonade. Everyone had a great time and we stayed until sunset.",
+      "cefr_level": "A2",
+      "lexile_score": 280,
+      "ar_score": 2.2
+    },
+    {
+      "id": 104,
+      "title": "The Pet Shop",
+      "content": "The pet shop on Main Street sells many different kinds of animals. You can buy dogs, cats, rabbits, birds, and fish. The shop also sells pet food, toys, and supplies. The owner, Mr. Lee, loves animals and takes good care of them. He makes sure all the animals are healthy and happy. Many families visit the shop on weekends to look at the animals and buy pet supplies.",
+      "cefr_level": "A2",
+      "lexile_score": 220,
+      "ar_score": 1.8
+    },
+    {
+      "id": 105,
+      "title": "Learning to Ride a Bike",
+      "content": "Learning to ride a bicycle can be scary at first, but it gets easier with practice. When I was seven years old, my dad taught me how to ride. He held the back of the bike while I pedaled. I fell down many times, but I did not give up. After two weeks of practice, I could ride by myself. Now I ride my bike to school every day. It is faster than walking and good exercise too.",
+      "cefr_level": "A2",
+      "lexile_score": 260,
+      "ar_score": 2.1
+    },
+    {
+      "id": 106,
+      "title": "My Favorite Season",
+      "content": "Spring is my favorite season of the year. In spring, the weather gets warmer and flowers begin to bloom. Trees grow new green leaves and birds return from their winter homes. People spend more time outside enjoying the nice weather. Children play in parks and gardens. Families have picnics and barbecues. Spring makes everyone feel happy and full of energy after the cold winter months.",
+      "cefr_level": "A2",
+      "lexile_score": 240,
+      "ar_score": 1.9
+    },
+    {
+      "id": 107,
+      "title": "The Birthday Party",
+      "content": "Yesterday was my best friend Emma's birthday party. She invited fifteen friends to her house. Her mother decorated the living room with colorful balloons and streamers. We played fun games like musical chairs and treasure hunt. Emma received many presents including books, toys, and clothes. The birthday cake was chocolate with pink frosting and ten candles. We all sang Happy Birthday and ate cake and ice cream. It was a wonderful party and everyone had fun.",
+      "cefr_level": "A2",
+      "lexile_score": 270,
+      "ar_score": 2.0
+    }
+  ],
+  "items": [
+    {
+      "stage": 2,
+      "panel": "high",
+      "form_id": 1,
+      "domain": "vocabulary",
+      "stem": "The scientist's hypothesis was _____ by extensive experimental data.",
+      "options": {
+        "A": "corroborated",
+        "B": "refuted",
+        "C": "ignored",
+        "D": "questioned"
+      },
+      "correct_answer": "A",
+      "skill_tags": [
+        "academic vocabulary",
+        "context clues"
+      ],
+      "difficulty": 1.5,
+      "discrimination": 1.3,
+      "guessing": 0.25,
+      "status": "active",
+      "exposure_count": 0,
+      "exposure_rate": 0.0,
+      "created_at": "2025-01-15T00:00:00"
+    },
+    {
+      "stage": 2,
+      "panel": "high",
+      "form_id": 1,
+      "domain": "vocabulary",
+      "stem": "The politician's speech was filled with _____ statements designed to appeal to emotions.",
+      "options": {
+        "A": "analytical",
+        "B": "rhetorical",
+        "C": "literal",
+        "D": "objective"
+      },
+      "correct_answer": "B",
+      "skill_tags": [
+        "academic vocabulary",
+        "word meaning"
+      ],
+      "difficulty": 1.8,
+      "discrimination": 1.4,
+      "guessing": 0.25,
+      "status": "active",
+      "exposure_count": 0,
+      "exposure_rate": 0.0,
+      "created_at": "2025-01-15T00:00:00"
+    },
+    {
+      "stage": 2,
+      "panel": "high",
+      "form_id": 1,
+      "domain": "vocabulary",
+      "stem": "The company tried to _____ the negative publicity with a charitable donation.",
+      "options": {
+        "A": "exacerbate",
+        "B": "mitigate",
+        "C": "amplify",
+        "D": "ignore"
+      },
+      "correct_answer": "B",
+      "skill_tags": [
+        "academic vocabulary",
+        "context clues"
+      ],
+      "difficulty": 1.6,
+      "discrimination": 1.35,
+      "guessing": 0.25,
+      "status": "active",
+      "exposure_count": 0,
+      "exposure_rate": 0.0,
+      "created_at": "2025-01-15T00:00:00"
+    },
+    {
+      "stage": 2,
+      "panel": "high",
+      "form_id": 1,
+      "domain": "vocabulary",
+      "stem": "Her argument was so _____ that even skeptics were convinced.",
+      "options": {
+        "A": "ambiguous",
+        "B": "compelling",
+        "C": "superficial",
+        "D": "irrelevant"
+      },
+      "correct_answer": "B",
+      "skill_tags": [
+        "academic vocabulary",
+        "word meaning"
+      ],
+      "difficulty": 1.4,
+      "discrimination": 1.25,
+      "guessing": 0.25,
+      "status": "active",
+      "exposure_count": 0,
+      "exposure_rate": 0.0,
+      "created_at": "2025-01-15T00:00:00"
+    },
+    {
+      "stage": 2,
+      "panel": "high",
+      "form_id": 1,
+      "domain": "vocabulary",
+      "stem": "The author's writing style is characterized by its _____ and precision.",
+      "options": {
+        "A": "verbosity",
+        "B": "ambiguity",
+        "C": "brevity",
+        "D": "redundancy"
+      },
+      "correct_answer": "C",
+      "skill_tags": [
+        "academic vocabulary",
+        "context clues"
+      ],
+      "difficulty": 1.7,
+      "discrimination": 1.4,
+      "guessing": 0.25,
+      "status": "active",
+      "exposure_count": 0,
+      "exposure_rate": 0.0,
+      "created_at": "2025-01-15T00:00:00"
+    },
+    {
+      "stage": 2,
+      "panel": "high",
+      "form_id": 1,
+      "domain": "vocabulary",
+      "stem": "The museum's new exhibit provides a _____ look at ancient civilizations.",
+      "options": {
+        "A": "cursory",
+        "B": "comprehensive",
+        "C": "superficial",
+        "D": "brief"
+      },
+      "correct_answer": "B",
+      "skill_tags": [
+        "academic vocabulary",
+        "word meaning"
+      ],
+      "difficulty": 1.5,
+      "discrimination": 1.3,
+      "guessing": 0.25,
+      "status": "active",
+      "exposure_count": 0,
+      "exposure_rate": 0.0,
+      "created_at": "2025-01-15T00:00:00"
+    },
+    {
+      "stage": 2,
+      "panel": "high",
+      "form_id": 1,
+      "domain": "vocabulary",
+      "stem": "The committee decided to _____ the meeting until more information was available.",
+      "options": {
+        "A": "expedite",
+        "B": "postpone",
+        "C": "conclude",
+        "D": "commence"
+      },
+      "correct_answer": "B",
+      "skill_tags": [
+        "academic vocabulary",
+        "context clues"
+      ],
+      "difficulty": 1.3,
+      "discrimination": 1.2,
+      "guessing": 0.25,
+      "status": "active",
+      "exposure_count": 0,
+      "exposure_rate": 0.0,
+      "created_at": "2025-01-15T00:00:00"
+    },
+    {
+      "stage": 2,
+      "panel": "high",
+      "form_id": 1,
+      "domain": "vocabulary",
+      "stem": "The scientist's findings were _____ to previous research in the field.",
+      "options": {
+        "A": "contrary",
+        "B": "consistent",
+        "C": "irrelevant",
+        "D": "superior"
+      },
+      "correct_answer": "A",
+      "skill_tags": [
+        "academic vocabulary",
+        "word relationships"
+      ],
+      "difficulty": 1.6,
+      "discrimination": 1.35,
+      "guessing": 0.25,
+      "status": "active",
+      "exposure_count": 0,
+      "exposure_rate": 0.0,
+      "created_at": "2025-01-15T00:00:00"
+    },
+    {
+      "stage": 2,
+      "panel": "high",
+      "form_id": 1,
+      "domain": "vocabulary",
+      "stem": "The detective's investigation revealed a _____ pattern of fraudulent activity.",
+      "options": {
+        "A": "random",
+        "B": "systematic",
+        "C": "isolated",
+        "D": "accidental"
+      },
+      "correct_answer": "B",
+      "skill_tags": [
+        "academic vocabulary",
+        "context clues"
+      ],
+      "difficulty": 1.7,
+      "discrimination": 1.4,
+      "guessing": 0.25,
+      "status": "active",
+      "exposure_count": 0,
+      "exposure_rate": 0.0,
+      "created_at": "2025-01-15T00:00:00"
+    },
+    {
+      "stage": 2,
+      "panel": "high",
+      "form_id": 1,
+      "domain": "vocabulary",
+      "stem": "The treaty was designed to _____ tensions between the two nations.",
+      "options": {
+        "A": "escalate",
+        "B": "alleviate",
+        "C": "maintain",
+        "D": "create"
+      },
+      "correct_answer": "B",
+      "skill_tags": [
+        "academic vocabulary",
+        "word meaning"
+      ],
+      "difficulty": 1.8,
+      "discrimination": 1.45,
+      "guessing": 0.25,
+      "status": "active",
+      "exposure_count": 0,
+      "exposure_rate": 0.0,
+      "created_at": "2025-01-15T00:00:00"
+    },
+    {
+      "stage": 2,
+      "panel": "high",
+      "form_id": 1,
+      "domain": "vocabulary",
+      "stem": "The professor's lecture was so _____ that many students struggled to follow it.",
+      "options": {
+        "A": "lucid",
+        "B": "convoluted",
+        "C": "straightforward",
+        "D": "elementary"
+      },
+      "correct_answer": "B",
+      "skill_tags": [
+        "academic vocabulary",
+        "context clues"
+      ],
+      "difficulty": 1.9,
+      "discrimination": 1.5,
+      "guessing": 0.25,
+      "status": "active",
+      "exposure_count": 0,
+      "exposure_rate": 0.0,
+      "created_at": "2025-01-15T00:00:00"
+    },
+    {
+      "stage": 2,
+      "panel": "high",
+      "form_id": 1,
+      "domain": "vocabulary",
+      "stem": "The artist's work is known for its _____ approach to traditional themes.",
+      "options": {
+        "A": "conventional",
+        "B": "innovative",
+        "C": "orthodox",
+        "D": "typical"
+      },
+      "correct_answer": "B",
+      "skill_tags": [
+        "academic vocabulary",
+        "word meaning"
+      ],
+      "difficulty": 1.5,
+      "discrimination": 1.3,
+      "guessing": 0.25,
+      "status": "active",
+      "exposure_count": 0,
+      "exposure_rate": 0.0,
+      "created_at": "2025-01-15T00:00:00"
+    },
+    {
+      "stage": 2,
+      "panel": "high",
+      "form_id": 1,
+      "domain": "vocabulary",
+      "stem": "The journalist's report was criticized for its _____ of important facts.",
+      "options": {
+        "A": "inclusion",
+        "B": "omission",
+        "C": "emphasis",
+        "D": "verification"
+      },
+      "correct_answer": "B",
+      "skill_tags": [
+        "academic vocabulary",
+        "context clues"
+      ],
+      "difficulty": 1.7,
+      "discrimination": 1.4,
+      "guessing": 0.25,
+      "status": "active",
+      "exposure_count": 0,
+      "exposure_rate": 0.0,
+      "created_at": "2025-01-15T00:00:00"
+    },
+    {
+      "stage": 2,
+      "panel": "medium",
+      "form_id": 1,
+      "domain": "vocabulary",
+      "stem": "She was very _____ about her travel plans and shared all the details.",
+      "options": {
+        "A": "secretive",
+        "B": "enthusiastic",
+        "C": "reluctant",
+        "D": "indifferent"
+      },
+      "correct_answer": "B",
+      "skill_tags": [
+        "general vocabulary",
+        "context clues"
+      ],
+      "difficulty": 0.2,
+      "discrimination": 1.1,
+      "guessing": 0.25,
+      "status": "active",
+      "exposure_count": 0,
+      "exposure_rate": 0.0,
+      "created_at": "2025-01-15T00:00:00"
+    },
+    {
+      "stage": 2,
+      "panel": "medium",
+      "form_id": 1,
+      "domain": "vocabulary",
+      "stem": "The weather was _____ for the outdoor wedding ceremony.",
+      "options": {
+        "A": "terrible",
+        "B": "perfect",
+        "C": "unpredictable",
+        "D": "unusual"
+      },
+      "correct_answer": "B",
+      "skill_tags": [
+        "general vocabulary",
+        "word meaning"
+      ],
+      "difficulty": 0.1,
+      "discrimination": 1.0,
+      "guessing": 0.25,
+      "status": "active",
+      "exposure_count": 0,
+      "exposure_rate": 0.0,
+      "created_at": "2025-01-15T00:00:00"
+    },
+    {
+      "stage": 2,
+      "panel": "medium",
+      "form_id": 1,
+      "domain": "vocabulary",
+      "stem": "The teacher asked the students to _____ their homework before the deadline.",
+      "options": {
+        "A": "ignore",
+        "B": "submit",
+        "C": "destroy",
+        "D": "lose"
+      },
+      "correct_answer": "B",
+      "skill_tags": [
+        "general vocabulary",
+        "context clues"
+      ],
+      "difficulty": 0.0,
+      "discrimination": 1.0,
+      "guessing": 0.25,
+      "status": "active",
+      "exposure_count": 0,
+      "exposure_rate": 0.0,
+      "created_at": "2025-01-15T00:00:00"
+    },
+    {
+      "stage": 2,
+      "panel": "medium",
+      "form_id": 1,
+      "domain": "vocabulary",
+      "stem": "The movie was so _____ that I fell asleep halfway through.",
+      "options": {
+        "A": "exciting",
+        "B": "boring",
+        "C": "interesting",
+        "D": "thrilling"
+      },
+      "correct_answer": "B",
+      "skill_tags": [
+        "general vocabulary",
+        "word meaning"
+      ],
+      "difficulty": -0.2,
+      "discrimination": 0.95,
+      "guessing": 0.25,
+      "status": "active",
+      "exposure_count": 0,
+      "exposure_rate": 0.0,
+      "created_at": "2025-01-15T00:00:00"
+    },
+    {
+      "stage": 2,
+      "panel": "medium",
+      "form_id": 1,
+      "domain": "vocabulary",
+      "stem": "He tried to _____ his mistake by apologizing to everyone.",
+      "options": {
+        "A": "worsen",
+        "B": "fix",
+        "C": "hide",
+        "D": "repeat"
+      },
+      "correct_answer": "B",
+      "skill_tags": [
+        "general vocabulary",
+        "context clues"
+      ],
+      "difficulty": 0.3,
+      "discrimination": 1.15,
+      "guessing": 0.25,
+      "status": "active",
+      "exposure_count": 0,
+      "exposure_rate": 0.0,
+      "created_at": "2025-01-15T00:00:00"
+    },
+    {
+      "stage": 2,
+      "panel": "medium",
+      "form_id": 1,
+      "domain": "vocabulary",
+      "stem": "The library has a _____ collection of books on history.",
+      "options": {
+        "A": "small",
+        "B": "vast",
+        "C": "limited",
+        "D": "empty"
+      },
+      "correct_answer": "B",
+      "skill_tags": [
+        "general vocabulary",
+        "word meaning"
+      ],
+      "difficulty": 0.2,
+      "discrimination": 1.1,
+      "guessing": 0.25,
+      "status": "active",
+      "exposure_count": 0,
+      "exposure_rate": 0.0,
+      "created_at": "2025-01-15T00:00:00"
+    },
+    {
+      "stage": 2,
+      "panel": "medium",
+      "form_id": 1,
+      "domain": "vocabulary",
+      "stem": "She decided to _____ the invitation to the party because she was too busy.",
+      "options": {
+        "A": "accept",
+        "B": "decline",
+        "C": "send",
+        "D": "receive"
+      },
+      "correct_answer": "B",
+      "skill_tags": [
+        "general vocabulary",
+        "context clues"
+      ],
+      "difficulty": 0.4,
+      "discrimination": 1.2,
+      "guessing": 0.25,
+      "status": "active",
+      "exposure_count": 0,
+      "exposure_rate": 0.0,
+      "created_at": "2025-01-15T00:00:00"
+    },
+    {
+      "stage": 2,
+      "panel": "medium",
+      "form_id": 1,
+      "domain": "vocabulary",
+      "stem": "The new restaurant offers a _____ of international dishes.",
+      "options": {
+        "A": "lack",
+        "B": "variety",
+        "C": "shortage",
+        "D": "absence"
+      },
+      "correct_answer": "B",
+      "skill_tags": [
+        "general vocabulary",
+        "word meaning"
+      ],
+      "difficulty": 0.1,
+      "discrimination": 1.0,
+      "guessing": 0.25,
+      "status": "active",
+      "exposure_count": 0,
+      "exposure_rate": 0.0,
+      "created_at": "2025-01-15T00:00:00"
+    },
+    {
+      "stage": 2,
+      "panel": "medium",
+      "form_id": 1,
+      "domain": "vocabulary",
+      "stem": "His explanation was clear and easy to _____.",
+      "options": {
+        "A": "confuse",
+        "B": "understand",
+        "C": "ignore",
+        "D": "forget"
+      },
+      "correct_answer": "B",
+      "skill_tags": [
+        "general vocabulary",
+        "context clues"
+      ],
+      "difficulty": -0.1,
+      "discrimination": 0.9,
+      "guessing": 0.25,
+      "status": "active",
+      "exposure_count": 0,
+      "exposure_rate": 0.0,
+      "created_at": "2025-01-15T00:00:00"
+    },
+    {
+      "stage": 2,
+      "panel": "medium",
+      "form_id": 1,
+      "domain": "vocabulary",
+      "stem": "The athlete trained _____ for months before the competition.",
+      "options": {
+        "A": "lazily",
+        "B": "diligently",
+        "C": "rarely",
+        "D": "never"
+      },
+      "correct_answer": "B",
+      "skill_tags": [
+        "general vocabulary",
+        "word meaning"
+      ],
+      "difficulty": 0.3,
+      "discrimination": 1.15,
+      "guessing": 0.25,
+      "status": "active",
+      "exposure_count": 0,
+      "exposure_rate": 0.0,
+      "created_at": "2025-01-15T00:00:00"
+    },
+    {
+      "stage": 2,
+      "panel": "medium",
+      "form_id": 1,
+      "domain": "vocabulary",
+      "stem": "The concert was _____ due to bad weather conditions.",
+      "options": {
+        "A": "continued",
+        "B": "canceled",
+        "C": "started",
+        "D": "extended"
+      },
+      "correct_answer": "B",
+      "skill_tags": [
+        "general vocabulary",
+        "context clues"
+      ],
+      "difficulty": 0.0,
+      "discrimination": 1.0,
+      "guessing": 0.25,
+      "status": "active",
+      "exposure_count": 0,
+      "exposure_rate": 0.0,
+      "created_at": "2025-01-15T00:00:00"
+    },
+    {
+      "stage": 2,
+      "panel": "medium",
+      "form_id": 1,
+      "domain": "vocabulary",
+      "stem": "She was _____ when she heard the good news about her promotion.",
+      "options": {
+        "A": "sad",
+        "B": "delighted",
+        "C": "angry",
+        "D": "worried"
+      },
+      "correct_answer": "B",
+      "skill_tags": [
+        "general vocabulary",
+        "word meaning"
+      ],
+      "difficulty": 0.2,
+      "discrimination": 1.1,
+      "guessing": 0.25,
+      "status": "active",
+      "exposure_count": 0,
+      "exposure_rate": 0.0,
+      "created_at": "2025-01-15T00:00:00"
+    },
+    {
+      "stage": 2,
+      "panel": "medium",
+      "form_id": 1,
+      "domain": "vocabulary",
+      "stem": "The instructions were _____ enough for anyone to follow.",
+      "options": {
+        "A": "complicated",
+        "B": "simple",
+        "C": "confusing",
+        "D": "difficult"
+      },
+      "correct_answer": "B",
+      "skill_tags": [
+        "general vocabulary",
+        "context clues"
+      ],
+      "difficulty": -0.2,
+      "discrimination": 0.95,
+      "guessing": 0.25,
+      "status": "active",
+      "exposure_count": 0,
+      "exposure_rate": 0.0,
+      "created_at": "2025-01-15T00:00:00"
+    },
+    {
+      "stage": 2,
+      "panel": "low",
+      "form_id": 1,
+      "domain": "vocabulary",
+      "stem": "I am _____ because I did not eat breakfast this morning.",
+      "options": {
+        "A": "happy",
+        "B": "hungry",
+        "C": "tired",
+        "D": "angry"
+      },
+      "correct_answer": "B",
+      "skill_tags": [
+        "basic vocabulary",
+        "word meaning"
+      ],
+      "difficulty": -1.5,
+      "discrimination": 0.8,
+      "guessing": 0.25,
+      "status": "active",
+      "exposure_count": 0,
+      "exposure_rate": 0.0,
+      "created_at": "2025-01-15T00:00:00"
+    },
+    {
+      "stage": 2,
+      "panel": "low",
+      "form_id": 1,
+      "domain": "vocabulary",
+      "stem": "The sun is very _____ today. We should wear hats.",
+      "options": {
+        "A": "cold",
+        "B": "bright",
+        "C": "dark",
+        "D": "wet"
+      },
+      "correct_answer": "B",
+      "skill_tags": [
+        "basic vocabulary",
+        "context clues"
+      ],
+      "difficulty": -1.8,
+      "discrimination": 0.75,
+      "guessing": 0.25,
+      "status": "active",
+      "exposure_count": 0,
+      "exposure_rate": 0.0,
+      "created_at": "2025-01-15T00:00:00"
+    },
+    {
+      "stage": 2,
+      "panel": "low",
+      "form_id": 1,
+      "domain": "vocabulary",
+      "stem": "She _____ her bicycle to school every day.",
+      "options": {
+        "A": "flies",
+        "B": "rides",
+        "C": "swims",
+        "D": "climbs"
+      },
+      "correct_answer": "B",
+      "skill_tags": [
+        "basic vocabulary",
+        "word meaning"
+      ],
+      "difficulty": -2.0,
+      "discrimination": 0.7,
+      "guessing": 0.25,
+      "status": "active",
+      "exposure_count": 0,
+      "exposure_rate": 0.0,
+      "created_at": "2025-01-15T00:00:00"
+    },
+    {
+      "stage": 2,
+      "panel": "low",
+      "form_id": 1,
+      "domain": "vocabulary",
+      "stem": "My favorite color is _____. The sky and ocean are this color.",
+      "options": {
+        "A": "red",
+        "B": "blue",
+        "C": "yellow",
+        "D": "green"
+      },
+      "correct_answer": "B",
+      "skill_tags": [
+        "basic vocabulary",
+        "context clues"
+      ],
+      "difficulty": -2.2,
+      "discrimination": 0.65,
+      "guessing": 0.25,
+      "status": "active",
+      "exposure_count": 0,
+      "exposure_rate": 0.0,
+      "created_at": "2025-01-15T00:00:00"
+    },
+    {
+      "stage": 2,
+      "panel": "low",
+      "form_id": 1,
+      "domain": "vocabulary",
+      "stem": "Please _____ the door when you leave the room.",
+      "options": {
+        "A": "open",
+        "B": "close",
+        "C": "break",
+        "D": "paint"
+      },
+      "correct_answer": "B",
+      "skill_tags": [
+        "basic vocabulary",
+        "word meaning"
+      ],
+      "difficulty": -1.7,
+      "discrimination": 0.75,
+      "guessing": 0.25,
+      "status": "active",
+      "exposure_count": 0,
+      "exposure_rate": 0.0,
+      "created_at": "2025-01-15T00:00:00"
+    },
+    {
+      "stage": 2,
+      "panel": "low",
+      "form_id": 1,
+      "domain": "vocabulary",
+      "stem": "My brother is _____ than me. He is only 5 years old.",
+      "options": {
+        "A": "older",
+        "B": "younger",
+        "C": "taller",
+        "D": "heavier"
+      },
+      "correct_answer": "B",
+      "skill_tags": [
+        "basic vocabulary",
+        "context clues"
+      ],
+      "difficulty": -1.6,
+      "discrimination": 0.8,
+      "guessing": 0.25,
+      "status": "active",
+      "exposure_count": 0,
+      "exposure_rate": 0.0,
+      "created_at": "2025-01-15T00:00:00"
+    },
+    {
+      "stage": 2,
+      "panel": "low",
+      "form_id": 1,
+      "domain": "vocabulary",
+      "stem": "I need to _____ my hands before eating dinner.",
+      "options": {
+        "A": "dry",
+        "B": "wash",
+        "C": "hide",
+        "D": "wave"
+      },
+      "correct_answer": "B",
+      "skill_tags": [
+        "basic vocabulary",
+        "word meaning"
+      ],
+      "difficulty": -1.9,
+      "discrimination": 0.7,
+      "guessing": 0.25,
+      "status": "active",
+      "exposure_count": 0,
+      "exposure_rate": 0.0,
+      "created_at": "2025-01-15T00:00:00"
+    },
+    {
+      "stage": 2,
+      "panel": "low",
+      "form_id": 1,
+      "domain": "vocabulary",
+      "stem": "The dog is _____ under the table sleeping.",
+      "options": {
+        "A": "flying",
+        "B": "lying",
+        "C": "standing",
+        "D": "jumping"
+      },
+      "correct_answer": "B",
+      "skill_tags": [
+        "basic vocabulary",
+        "context clues"
+      ],
+      "difficulty": -1.4,
+      "discrimination": 0.85,
+      "guessing": 0.25,
+      "status": "active",
+      "exposure_count": 0,
+      "exposure_rate": 0.0,
+      "created_at": "2025-01-15T00:00:00"
+    },
+    {
+      "stage": 2,
+      "panel": "low",
+      "form_id": 1,
+      "domain": "vocabulary",
+      "stem": "She _____ a beautiful song at the school concert.",
+      "options": {
+        "A": "drew",
+        "B": "sang",
+        "C": "wrote",
+        "D": "danced"
+      },
+      "correct_answer": "B",
+      "skill_tags": [
+        "basic vocabulary",
+        "word meaning"
+      ],
+      "difficulty": -1.7,
+      "discrimination": 0.75,
+      "guessing": 0.25,
+      "status": "active",
+      "exposure_count": 0,
+      "exposure_rate": 0.0,
+      "created_at": "2025-01-15T00:00:00"
+    },
+    {
+      "stage": 2,
+      "panel": "low",
+      "form_id": 1,
+      "domain": "vocabulary",
+      "stem": "We use a _____ to write on the blackboard at school.",
+      "options": {
+        "A": "pencil",
+        "B": "chalk",
+        "C": "crayon",
+        "D": "marker"
+      },
+      "correct_answer": "B",
+      "skill_tags": [
+        "basic vocabulary",
+        "context clues"
+      ],
+      "difficulty": -1.5,
+      "discrimination": 0.8,
+      "guessing": 0.25,
+      "status": "active",
+      "exposure_count": 0,
+      "exposure_rate": 0.0,
+      "created_at": "2025-01-15T00:00:00"
+    },
+    {
+      "stage": 2,
+      "panel": "high",
+      "form_id": 1,
+      "domain": "grammar",
+      "stem": "By the time you arrive tomorrow, I _____ the project.",
+      "options": {
+        "A": "complete",
+        "B": "will have completed",
+        "C": "completed",
+        "D": "am completing"
+      },
+      "correct_answer": "B",
+      "skill_tags": [
+        "future perfect",
+        "tense usage"
+      ],
+      "difficulty": 1.6,
+      "discrimination": 1.35,
+      "guessing": 0.25,
+      "status": "active",
+      "exposure_count": 0,
+      "exposure_rate": 0.0,
+      "created_at": "2025-01-15T00:00:00"
+    },
+    {
+      "stage": 2,
+      "panel": "low",
+      "form_id": 1,
+      "domain": "grammar",
+      "stem": "She _____ to the store yesterday to buy some bread.",
+      "options": {
+        "A": "go",
+        "B": "went",
+        "C": "goes",
+        "D": "going"
+      },
+      "correct_answer": "B",
+      "skill_tags": [
+        "past tense",
+        "irregular verbs"
+      ],
+      "difficulty": -1.6,
+      "discrimination": 0.8,
+      "guessing": 0.25,
+      "status": "active",
+      "exposure_count": 0,
+      "exposure_rate": 0.0,
+      "created_at": "2025-01-15T00:00:00"
+    },
+    {
+      "stage": 2,
+      "panel": "low",
+      "form_id": 1,
+      "domain": "reading",
+      "passage_id": 101,
+      "stem": "What is the first step in making a sandwich?",
+      "options": {
+        "A": "Add vegetables",
+        "B": "Get two pieces of bread",
+        "C": "Put on meat and cheese",
+        "D": "Eat the sandwich"
+      },
+      "correct_answer": "B",
+      "skill_tags": [
+        "literal comprehension",
+        "sequence"
+      ],
+      "difficulty": -1.7,
+      "discrimination": 0.75,
+      "guessing": 0.25,
+      "status": "active",
+      "exposure_count": 0,
+      "exposure_rate": 0.0,
+      "created_at": "2025-01-15T00:00:00"
+    },
+    {
+      "stage": 2,
+      "panel": "low",
+      "form_id": 1,
+      "domain": "reading",
+      "passage_id": 101,
+      "stem": "According to the passage, what can you do to make different sandwiches?",
+      "options": {
+        "A": "Use the same ingredients every time",
+        "B": "Use different ingredients",
+        "C": "Only use bread and butter",
+        "D": "Never add vegetables"
+      },
+      "correct_answer": "B",
+      "skill_tags": [
+        "inferential comprehension",
+        "main idea"
+      ],
+      "difficulty": -1.5,
+      "discrimination": 0.8,
+      "guessing": 0.25,
+      "status": "active",
+      "exposure_count": 0,
+      "exposure_rate": 0.0,
+      "created_at": "2025-01-15T00:00:00"
+    },
+    {
+      "stage": 2,
+      "panel": "low",
+      "form_id": 1,
+      "domain": "reading",
+      "passage_id": 102,
+      "stem": "How long can students borrow books from the library?",
+      "options": {
+        "A": "One week",
+        "B": "Two weeks",
+        "C": "Three weeks",
+        "D": "One month"
+      },
+      "correct_answer": "B",
+      "skill_tags": [
+        "literal comprehension",
+        "details"
+      ],
+      "difficulty": -1.6,
+      "discrimination": 0.8,
+      "guessing": 0.25,
+      "status": "active",
+      "exposure_count": 0,
+      "exposure_rate": 0.0,
+      "created_at": "2025-01-15T00:00:00"
+    },
+    {
+      "stage": 2,
+      "panel": "low",
+      "form_id": 1,
+      "domain": "reading",
+      "passage_id": 102,
+      "stem": "What does Mrs. Johnson do at the library?",
+      "options": {
+        "A": "She cleans the library",
+        "B": "She helps students find books",
+        "C": "She writes books",
+        "D": "She teaches math"
+      },
+      "correct_answer": "B",
+      "skill_tags": [
+        "literal comprehension",
+        "main idea"
+      ],
+      "difficulty": -1.7,
+      "discrimination": 0.75,
+      "guessing": 0.25,
+      "status": "active",
+      "exposure_count": 0,
+      "exposure_rate": 0.0,
+      "created_at": "2025-01-15T00:00:00"
+    },
+    {
+      "stage": 2,
+      "panel": "low",
+      "form_id": 1,
+      "domain": "reading",
+      "passage_id": 103,
+      "stem": "What did the writer and their sister do at the beach?",
+      "options": {
+        "A": "They went swimming",
+        "B": "They built a sandcastle",
+        "C": "They read books",
+        "D": "They played soccer"
+      },
+      "correct_answer": "B",
+      "skill_tags": [
+        "literal comprehension",
+        "details"
+      ],
+      "difficulty": -1.8,
+      "discrimination": 0.75,
+      "guessing": 0.25,
+      "status": "active",
+      "exposure_count": 0,
+      "exposure_rate": 0.0,
+      "created_at": "2025-01-15T00:00:00"
+    },
+    {
+      "stage": 2,
+      "panel": "low",
+      "form_id": 1,
+      "domain": "reading",
+      "passage_id": 103,
+      "stem": "When did the family leave the beach?",
+      "options": {
+        "A": "In the morning",
+        "B": "At sunset",
+        "C": "At noon",
+        "D": "After midnight"
+      },
+      "correct_answer": "B",
+      "skill_tags": [
+        "literal comprehension",
+        "sequence"
+      ],
+      "difficulty": -1.6,
+      "discrimination": 0.8,
+      "guessing": 0.25,
+      "status": "active",
+      "exposure_count": 0,
+      "exposure_rate": 0.0,
+      "created_at": "2025-01-15T00:00:00"
+    },
+    {
+      "stage": 2,
+      "panel": "low",
+      "form_id": 1,
+      "domain": "reading",
+      "passage_id": 104,
+      "stem": "What kinds of animals can you buy at the pet shop?",
+      "options": {
+        "A": "Only dogs and cats",
+        "B": "Only fish",
+        "C": "Dogs, cats, rabbits, birds, and fish",
+        "D": "Only birds"
+      },
+      "correct_answer": "C",
+      "skill_tags": [
+        "literal comprehension",
+        "details"
+      ],
+      "difficulty": -1.7,
+      "discrimination": 0.75,
+      "guessing": 0.25,
+      "status": "active",
+      "exposure_count": 0,
+      "exposure_rate": 0.0,
+      "created_at": "2025-01-15T00:00:00"
+    },
+    {
+      "stage": 2,
+      "panel": "low",
+      "form_id": 1,
+      "domain": "reading",
+      "passage_id": 104,
+      "stem": "Who is Mr. Lee?",
+      "options": {
+        "A": "A teacher",
+        "B": "The pet shop owner",
+        "C": "A veterinarian",
+        "D": "A customer"
+      },
+      "correct_answer": "B",
+      "skill_tags": [
+        "literal comprehension",
+        "main idea"
+      ],
+      "difficulty": -1.9,
+      "discrimination": 0.7,
+      "guessing": 0.25,
+      "status": "active",
+      "exposure_count": 0,
+      "exposure_rate": 0.0,
+      "created_at": "2025-01-15T00:00:00"
+    },
+    {
+      "stage": 2,
+      "panel": "low",
+      "form_id": 1,
+      "domain": "reading",
+      "passage_id": 105,
+      "stem": "Who taught the writer how to ride a bike?",
+      "options": {
+        "A": "Their mother",
+        "B": "Their dad",
+        "C": "Their teacher",
+        "D": "Their friend"
+      },
+      "correct_answer": "B",
+      "skill_tags": [
+        "literal comprehension",
+        "details"
+      ],
+      "difficulty": -1.8,
+      "discrimination": 0.75,
+      "guessing": 0.25,
+      "status": "active",
+      "exposure_count": 0,
+      "exposure_rate": 0.0,
+      "created_at": "2025-01-15T00:00:00"
+    },
+    {
+      "stage": 2,
+      "panel": "low",
+      "form_id": 1,
+      "domain": "reading",
+      "passage_id": 105,
+      "stem": "How does the writer go to school now?",
+      "options": {
+        "A": "By bus",
+        "B": "By bike",
+        "C": "By car",
+        "D": "On foot"
+      },
+      "correct_answer": "B",
+      "skill_tags": [
+        "literal comprehension",
+        "main idea"
+      ],
+      "difficulty": -1.6,
+      "discrimination": 0.8,
+      "guessing": 0.25,
+      "status": "active",
+      "exposure_count": 0,
+      "exposure_rate": 0.0,
+      "created_at": "2025-01-15T00:00:00"
+    },
+    {
+      "stage": 2,
+      "panel": "low",
+      "form_id": 1,
+      "domain": "reading",
+      "passage_id": 106,
+      "stem": "What happens to trees in spring?",
+      "options": {
+        "A": "They lose their leaves",
+        "B": "They grow new green leaves",
+        "C": "They die",
+        "D": "They stay the same"
+      },
+      "correct_answer": "B",
+      "skill_tags": [
+        "literal comprehension",
+        "details"
+      ],
+      "difficulty": -1.7,
+      "discrimination": 0.75,
+      "guessing": 0.25,
+      "status": "active",
+      "exposure_count": 0,
+      "exposure_rate": 0.0,
+      "created_at": "2025-01-15T00:00:00"
+    },
+    {
+      "stage": 2,
+      "panel": "low",
+      "form_id": 1,
+      "domain": "reading",
+      "passage_id": 106,
+      "stem": "Why do people like spring?",
+      "options": {
+        "A": "Because it is cold",
+        "B": "Because the weather is warmer and flowers bloom",
+        "C": "Because it rains a lot",
+        "D": "Because school ends"
+      },
+      "correct_answer": "B",
+      "skill_tags": [
+        "inferential comprehension",
+        "main idea"
+      ],
+      "difficulty": -1.5,
+      "discrimination": 0.8,
+      "guessing": 0.25,
+      "status": "active",
+      "exposure_count": 0,
+      "exposure_rate": 0.0,
+      "created_at": "2025-01-15T00:00:00"
+    },
+    {
+      "stage": 2,
+      "panel": "low",
+      "form_id": 1,
+      "domain": "reading",
+      "passage_id": 107,
+      "stem": "How many friends did Emma invite to her party?",
+      "options": {
+        "A": "Ten",
+        "B": "Fifteen",
+        "C": "Twenty",
+        "D": "Five"
+      },
+      "correct_answer": "B",
+      "skill_tags": [
+        "literal comprehension",
+        "details"
+      ],
+      "difficulty": -1.8,
+      "discrimination": 0.75,
+      "guessing": 0.25,
+      "status": "active",
+      "exposure_count": 0,
+      "exposure_rate": 0.0,
+      "created_at": "2025-01-15T00:00:00"
+    },
+    {
+      "stage": 2,
+      "panel": "low",
+      "form_id": 1,
+      "domain": "reading",
+      "passage_id": 107,
+      "stem": "What kind of cake did Emma have?",
+      "options": {
+        "A": "Vanilla with white frosting",
+        "B": "Chocolate with pink frosting",
+        "C": "Strawberry with yellow frosting",
+        "D": "Carrot cake"
+      },
+      "correct_answer": "B",
+      "skill_tags": [
+        "literal comprehension",
+        "details"
+      ],
+      "difficulty": -1.6,
+      "discrimination": 0.8,
+      "guessing": 0.25,
+      "status": "active",
+      "exposure_count": 0,
+      "exposure_rate": 0.0,
+      "created_at": "2025-01-15T00:00:00"
+    }
+  ]
+}
