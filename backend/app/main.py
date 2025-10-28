@@ -15,6 +15,7 @@ load_dotenv()
 
 # Import routers
 from app.english_test.router import router as english_test_router
+from app.english_test.admin_routes import router as admin_router
 from app.ai.router import router as ai_router
 
 # Create FastAPI app
@@ -35,6 +36,7 @@ app.add_middleware(
 
 # Include routers
 app.include_router(english_test_router, prefix="/api/english-test", tags=["English Test"])
+app.include_router(admin_router, prefix="/api/admin/english-test", tags=["Admin English Test"])
 app.include_router(ai_router, prefix="/api/admin/ai", tags=["Admin AI"])
 
 # Root endpoint
