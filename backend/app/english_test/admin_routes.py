@@ -17,9 +17,14 @@ router = APIRouter()
 @router.post("/cleanup-and-insert-clean-items")
 async def cleanup_and_insert_clean_items() -> Dict:
     """
-    데이터베이스 정리 및 깨끗한 52개 문항 삽입
+    데이터베이스 정리 및 40개 문항 삽입 (VST 포함)
 
     WARNING: 이 엔드포인트는 모든 기존 데이터를 삭제합니다!
+
+    40개 문항 구성:
+    - Grammar: 13개
+    - Vocabulary: 17개 (VST with frequency bands + pseudowords)
+    - Reading: 10개 + 4 passages
     """
     from app.english_test.database import EnglishTestDB
 
@@ -45,68 +50,82 @@ async def cleanup_and_insert_clean_items() -> Dict:
             "old_passages": old_passage_count
         })
 
-        # 2. source 컬럼 추가
+        # 2. VST 필드 및 source 컬럼 추가 (Migration)
         try:
-            cursor.execute("""
-                ALTER TABLE items
-                ADD COLUMN IF NOT EXISTS source VARCHAR(50) DEFAULT 'manual';
-            """)
-            cursor.execute("""
-                COMMENT ON COLUMN items.source IS '문항 출처: manual(수동), ai_generated(AI 생성)';
-            """)
+            migration_sql_path = os.path.join(os.path.dirname(__file__), '..', '..', 'prisma', 'migrations', 'add_vst_fields_to_items.sql')
+            with open(migration_sql_path, 'r', encoding='utf-8') as f:
+                migration_sql = f.read()
+
+            cursor.execute(migration_sql)
             conn.commit()
-            results["steps"].append({"step": "2_add_source_column", "status": "success"})
+            results["steps"].append({"step": "2_vst_migration", "status": "success"})
         except Exception as e:
             conn.rollback()
-            results["steps"].append({"step": "2_add_source_column", "status": "already_exists"})
+            results["steps"].append({"step": "2_vst_migration", "status": f"already_exists or error: {str(e)}"})
 
         # 3. 기존 데이터 삭제
-        cursor.execute("DELETE FROM responses")
-        cursor.execute("DELETE FROM sessions")
+        cursor.execute("DELETE FROM english_test_responses")
+        cursor.execute("DELETE FROM english_test_sessions")
         cursor.execute("DELETE FROM items")
         cursor.execute("DELETE FROM passages")
         conn.commit()
         results["steps"].append({"step": "3_delete_old_data", "status": "success"})
 
-        # 4. 깨끗한 52개 문항 데이터 로드
-        json_path = os.path.join(os.path.dirname(__file__), '..', '..', 'generated_52_items.json')
+        # 4. 40개 문항 데이터 로드 (VST 포함)
+        json_path = os.path.join(os.path.dirname(__file__), '..', '..', 'complete_40_items.json')
         with open(json_path, 'r', encoding='utf-8') as f:
             data = json.load(f)
 
-        passages = data['passages']
+        passages = data.get('passages', [])
         items = data['items']
         results["steps"].append({
             "step": "4_load_data",
             "passages_count": len(passages),
-            "items_count": len(items)
+            "items_count": len(items),
+            "grammar_count": sum(1 for i in items if i['domain'] == 'grammar'),
+            "vocabulary_count": sum(1 for i in items if i['domain'] == 'vocabulary'),
+            "reading_count": sum(1 for i in items if i['domain'] == 'reading')
         })
 
         # 5. 지문 삽입
         for passage in passages:
+            word_count = passage.get('word_count', len(passage['content'].split()))
+
             cursor.execute("""
-                INSERT INTO passages (id, title, content, cefr_level, lexile_score, ar_score, created_at)
+                INSERT INTO passages (title, content, word_count, lexile_score, ar_level, genre, created_at)
                 VALUES (%s, %s, %s, %s, %s, %s, %s)
+                RETURNING id
             """, (
-                passage['id'],
                 passage['title'],
                 passage['content'],
-                passage.get('cefr_level', 'A2'),
+                word_count,
                 passage.get('lexile_score', 200),
                 passage.get('ar_score', 1.5),
-                datetime.fromisoformat(passage.get('created_at', '2025-01-15T00:00:00'))
+                passage.get('text_type', 'expository'),
+                datetime.now()
             ))
+            passage['inserted_id'] = cursor.fetchone()[0]
+
         conn.commit()
         results["steps"].append({"step": "5_insert_passages", "count": len(passages)})
 
-        # 6. 문항 삽입
+        # 6. 문항 삽입 (VST 필드 포함)
+        passage_id_map = {p['id']: p.get('inserted_id') for p in passages if 'inserted_id' in p}
+
         for item in items:
+            mapped_passage_id = None
+            if item.get('passage_id') and passage_id_map:
+                mapped_passage_id = passage_id_map.get(item['passage_id'])
+
             cursor.execute("""
                 INSERT INTO items (
                     stage, panel, form_id, domain, stem, options, correct_answer,
                     skill_tags, difficulty, discrimination, guessing,
-                    passage_id, status, exposure_count, exposure_rate, created_at, source
+                    passage_id, status, exposure_count, exposure_rate,
+                    frequency_band, target_word, is_pseudoword, band_size,
+                    source, created_at
                 )
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """, (
                 item['stage'],
                 item['panel'],
@@ -119,12 +138,17 @@ async def cleanup_and_insert_clean_items() -> Dict:
                 item['difficulty'],
                 item['discrimination'],
                 item.get('guessing', 0.25),
-                item.get('passage_id'),
+                mapped_passage_id,
                 item.get('status', 'active'),
                 item.get('exposure_count', 0),
                 item.get('exposure_rate', 0.0),
-                datetime.fromisoformat(item.get('created_at', '2025-01-15T00:00:00')),
-                'manual'
+                # VST fields (vocabulary domain only)
+                item.get('frequency_band'),
+                item.get('target_word'),
+                item.get('is_pseudoword', False),
+                item.get('band_size'),
+                item.get('source', 'manual'),
+                datetime.now()
             ))
         conn.commit()
         results["steps"].append({"step": "6_insert_items", "count": len(items)})
