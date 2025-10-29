@@ -9,7 +9,7 @@ services:
     startCommand: cd backend && npm start
     envVars:
       - key: DATABASE_URL
-        value: postgresql://postgres.sxnjeqqvqbhueqbwsnpj:DeepReading2025%21%40%23%24SecureDB@aws-1-ap-northeast-2.pooler.supabase.com:6543/postgres
+        value: postgresql://postgres.sxnjeqqvqbhueqbwsnpj:DeepReading2025%21%40%23%24SecureDB@aws-1-ap-northeast-2.pooler.supabase.com:6543/postgres?pgbouncer=true
       - key: SUPABASE_URL
         value: https://sxnjeqqvqbhueqbwsnpj.supabase.co
       - key: SUPABASE_ANON_KEY
@@ -37,7 +37,7 @@ services:
     startCommand: cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: DATABASE_URL
-        value: postgresql://postgres.sxnjeqqvqbhueqbwsnpj:DeepReading2025%21%40%23%24SecureDB@aws-1-ap-northeast-2.pooler.supabase.com:6543/postgres
+        value: postgresql://postgres.sxnjeqqvqbhueqbwsnpj:DeepReading2025%21%40%23%24SecureDB@aws-1-ap-northeast-2.pooler.supabase.com:6543/postgres?pgbouncer=true
       - key: SUPABASE_URL
         value: https://sxnjeqqvqbhueqbwsnpj.supabase.co
       - key: SUPABASE_ANON_KEY
