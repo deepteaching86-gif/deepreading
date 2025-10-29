@@ -120,7 +120,7 @@ async def cleanup_and_insert_clean_items() -> Dict:
             cursor.execute("""
                 INSERT INTO items (
                     stage, panel, form_id, domain, stem, options, correct_answer,
-                    skill_tags, difficulty, discrimination, guessing,
+                    skill_tag, difficulty, discrimination, guessing,
                     passage_id, status, exposure_count, exposure_rate,
                     frequency_band, target_word, is_pseudoword, band_size,
                     source, created_at
