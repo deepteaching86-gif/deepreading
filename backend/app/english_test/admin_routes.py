@@ -3,6 +3,7 @@ English Test Admin Routes
 =========================
 
 관리자 전용 라우트: 데이터베이스 관리 및 문항 생성
+Version: 2.1.0 - Fixed skill_tag column name for VST implementation
 """
 
 from fastapi import APIRouter, HTTPException
