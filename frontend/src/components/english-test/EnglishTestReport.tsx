@@ -17,7 +17,11 @@ export interface TestResults {
   lexileScore?: number;
   arLevel?: number;
   vocabularySize?: number;
-  vocabularyBands?: Record<string, number>;
+  vocabularyBands?: {
+    bands: Record<string, { correct: number; total: number; percentage: number }>;
+    pseudowords: { correct: number; total: number; accuracy: number };
+    confidence: string;
+  };
   totalItems: number;
   correctCount: number;
   accuracyPercentage: number;
@@ -156,17 +160,51 @@ export const EnglishTestReport: React.FC<EnglishTestReportProps> = ({
           {/* Vocabulary Bands (if available) */}
           {results.vocabularyBands && (
             <div className="border-t pt-6">
-              <h3 className="font-semibold text-gray-800 mb-4 flex items-center">
-                <span className="text-purple-600 mr-2">📊</span>
-                어휘 밴드별 분석
-              </h3>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                {Object.entries(results.vocabularyBands).map(([band, count]) => (
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold text-gray-800 flex items-center">
+                  <span className="text-purple-600 mr-2">📊</span>
+                  어휘 밴드별 분석
+                </h3>
+                <div className={`px-3 py-1 rounded-full text-sm font-medium ${
+                  results.vocabularyBands.confidence === 'High'
+                    ? 'bg-green-100 text-green-700'
+                    : 'bg-yellow-100 text-yellow-700'
+                }`}>
+                  신뢰도: {results.vocabularyBands.confidence === 'High' ? '높음' : '낮음'}
+                </div>
+              </div>
+
+              {/* Frequency Bands */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+                {Object.entries(results.vocabularyBands.bands).map(([band, stats]) => (
                   <div key={band} className="bg-gray-50 rounded-lg p-3 text-center">
                     <div className="text-sm text-gray-600 mb-1">{band}</div>
-                    <div className="text-lg font-bold text-gray-800">{count}</div>
+                    <div className="text-lg font-bold text-gray-800">{stats.percentage}%</div>
+                    <div className="text-xs text-gray-500">{stats.correct}/{stats.total} 정답</div>
                   </div>
                 ))}
+              </div>
+
+              {/* Pseudoword Accuracy */}
+              <div className="bg-blue-50 rounded-lg p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-sm font-medium text-gray-700 mb-1">
+                      가짜 단어 탐지 정확도
+                    </div>
+                    <div className="text-xs text-gray-600">
+                      과대평가 방지를 위한 검증
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-blue-700">
+                      {results.vocabularyBands.pseudowords.accuracy.toFixed(1)}%
+                    </div>
+                    <div className="text-xs text-gray-600">
+                      {results.vocabularyBands.pseudowords.correct}/{results.vocabularyBands.pseudowords.total}
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           )}
