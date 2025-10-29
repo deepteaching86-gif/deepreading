@@ -8,19 +8,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-
-interface Item {
-  id: number;
-  stem: string;
-  passage?: string;
-  options: {
-    A: string;
-    B: string;
-    C: string;
-    D: string;
-  };
-  difficulty?: number;
-}
+import { Item } from '@/api/englishTestApi';
 
 interface EnglishTestScreenProps {
   sessionId: number;

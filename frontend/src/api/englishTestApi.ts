@@ -91,7 +91,11 @@ export interface FinalResults {
   lexile_score: number | null;
   ar_level: number | null;
   vocabulary_size: number | null;
-  vocabulary_bands: Record<string, number> | null;
+  vocabulary_bands: {
+    bands: Record<string, { correct: number; total: number; percentage: number }>;
+    pseudowords: { correct: number; total: number; accuracy: number };
+    confidence: string;
+  } | null;
   total_items: number;
   correct_count: number;
   accuracy_percentage: number;
