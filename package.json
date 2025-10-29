@@ -3,10 +3,17 @@
   "private": true,
   "scripts": {
     "build": "cd backend && npm install && npm run build",
-    "vercel-build": "cd backend && npm install && npm run build"
+    "vercel-build": "cd backend && npm install && npm run build",
+    "render:update-env": "tsx scripts/update-render-env.ts"
   },
   "dependencies": {
     "@netlify/functions": "^2.8.2",
     "serverless-http": "^3.2.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.48.0",
+    "playwright": "^1.48.0",
+    "tsx": "^4.19.1",
+    "dotenv-cli": "^7.4.2"
   }
 }

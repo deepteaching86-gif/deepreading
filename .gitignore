@@ -38,3 +38,8 @@ backend/check_*.py
 # Logs
 *.log
 backend.log
+
+# Playwright
+render-error-screenshot.png
+playwright-report/
+test-results/

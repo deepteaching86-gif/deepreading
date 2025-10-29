@@ -3,7 +3,40 @@
 ## 문제 원인
 `JWT_SECRET` 환경 변수가 Render 대시보드에 설정되지 않아 로그인 시 500 에러 발생
 
-## ⚡ 긴급 해결 방법 (5분 소요)
+---
+
+## 🤖 **자동 해결 방법 (권장)** - Playwright 자동화
+
+**더 빠르고 정확한 자동화 솔루션이 있습니다!**
+
+👉 **[scripts/PLAYWRIGHT_GUIDE.md](scripts/PLAYWRIGHT_GUIDE.md)** 참조
+
+```bash
+# 1. 환경 변수 설정
+set RENDER_EMAIL=your@email.com
+set RENDER_PASSWORD=yourpassword
+
+# 2. 자동화 스크립트 실행
+npm run render:update-env
+```
+
+**자동으로 수행되는 작업**:
+- ✅ Render 로그인
+- ✅ 서비스 선택 (literacy-backend)
+- ✅ DATABASE_URL 업데이트 (pgbouncer 파라미터 포함)
+- ✅ JWT_SECRET 추가
+- ✅ NODE_ENV 설정
+- ✅ 배포 상태 확인
+
+**예상 소요 시간**: 2-3분 (수동 방법: 5분+)
+
+---
+
+## 📋 수동 해결 방법 (대안)
+
+자동화 스크립트를 사용할 수 없는 경우 아래 수동 방법을 사용하세요.
+
+### ⚡ 긴급 해결 방법 (5분 소요)
 
 ### 1단계: Render 대시보드 접속
 1. https://dashboard.render.com 접속
