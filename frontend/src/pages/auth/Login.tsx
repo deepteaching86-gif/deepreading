@@ -17,18 +17,28 @@ export default function Login() {
     setError('');
     setLoading(true);
 
+    console.log('🔐 Login attempt started...', { email });
+
     try {
+      console.log('📡 Sending login request to API...');
       const response = await axios.post('/api/v1/auth/login', {
         email,
         password,
       });
 
+      console.log('✅ Login response received:', response);
       const { user, token } = response.data.data;
+      console.log('👤 User data:', user);
+
       login(user, token);
+      console.log('✅ AuthStore updated, navigating to dashboard...');
       navigate('/dashboard');
     } catch (err: any) {
+      console.error('❌ Login error:', err);
+      console.error('❌ Error response:', err.response);
       setError(err.response?.data?.message || '로그인에 실패했습니다.');
     } finally {
+      console.log('🏁 Login process completed, resetting loading state');
       setLoading(false);
     }
   };
