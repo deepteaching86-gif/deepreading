@@ -3,7 +3,11 @@
 import { config } from 'dotenv';
 import { z } from 'zod';
 
-config();
+// Only load .env file in development (not in production/Render)
+// In production, environment variables are injected by the platform (Render Dashboard)
+if (process.env.NODE_ENV !== 'production') {
+  config();
+}
 
 const envSchema = z.object({
   // Server
