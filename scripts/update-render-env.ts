@@ -15,13 +15,13 @@ const RENDER_EMAIL = process.env.RENDER_EMAIL;
 const RENDER_PASSWORD = process.env.RENDER_PASSWORD;
 
 // Service name to update
-const SERVICE_NAME = 'literacy-backend';
+const SERVICE_NAME = 'literacy-english-test-backend';
 
 // Environment variables to add/update
 const ENV_VARS = {
-  DATABASE_URL: 'postgresql://postgres.sxnjeqqvqbhueqbwsnpj:DeepReading2025!@#$SecureDB@aws-1-ap-northeast-2.pooler.supabase.com:6543/postgres?pgbouncer=true',
-  JWT_SECRET: 'literacy-test-secret-key-2025-very-secure-and-long-enough-for-production',
-  NODE_ENV: 'production',
+  DATABASE_URL: 'postgresql://postgres.sxnjeqqvqbhueqbwsnpj:DeepReading2025!@#$SecureDB@db.sxnjeqqvqbhueqbwsnpj.supabase.co:5432/postgres',
+  GOOGLE_API_KEY: 'AIzaSyAjCALYmech9tshGKOC6xYozm-3ao6gRWo',
+  FRONTEND_URL: 'https://literacy-test.netlify.app',
 };
 
 async function updateRenderEnvironmentVariables() {
