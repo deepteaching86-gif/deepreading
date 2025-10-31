@@ -14,6 +14,6 @@ services:
       - key: FRONTEND_URL
         value: https://literacy-test.netlify.app
       - key: GOOGLE_API_KEY
-        value: AIzaSyAjCALYmech9tshGKOC6xYozm-3ao6gRWo
+        sync: false
     healthCheckPath: /health
     autoDeploy: true
