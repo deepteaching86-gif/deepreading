@@ -7,12 +7,22 @@ Version: 2.1.0 - Fixed skill_tag column name for VST implementation
 """
 
 from fastapi import APIRouter, HTTPException
-from typing import Dict
+from typing import Dict, List, Optional
+from pydantic import BaseModel
 import json
 import os
 from datetime import datetime
 
 router = APIRouter()
+
+
+# Request models for AI generation
+class GenerateItemsRequest(BaseModel):
+    stage: int  # 1, 2, or 3
+    panel: str  # routing, low, medium, high
+    count: int = 5  # Number of items to generate
+    domains: Optional[List[str]] = None  # grammar, vocabulary, reading
+    auto_insert: bool = False  # Auto-insert to database
 
 
 @router.post("/cleanup-and-insert-clean-items")
@@ -176,3 +186,120 @@ async def cleanup_and_insert_clean_items() -> Dict:
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database cleanup failed: {str(e)}")
+
+
+@router.post("/generate-items")
+async def generate_items_with_ai(request: GenerateItemsRequest) -> Dict:
+    """
+    Generate test items using Gemini AI.
+
+    Args:
+        stage: MST stage (1, 2, 3)
+        panel: Panel name (routing, low, medium, high)
+        count: Number of items to generate (default: 5)
+        domains: List of domains or None for balanced distribution
+        auto_insert: If True, automatically insert into database
+
+    Returns:
+        Generated items and insertion status
+    """
+    try:
+        from app.english_test.ai_item_generator import get_generator
+        from app.english_test.database import EnglishTestDB
+
+        # Validate input
+        if request.stage not in [1, 2, 3]:
+            raise HTTPException(status_code=400, detail="Stage must be 1, 2, or 3")
+
+        valid_panels = {
+            1: ['routing'],
+            2: ['low', 'medium', 'high'],
+            3: ['low', 'medium', 'high']
+        }
+        if request.panel not in valid_panels[request.stage]:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid panel '{request.panel}' for stage {request.stage}"
+            )
+
+        if request.count < 1 or request.count > 20:
+            raise HTTPException(status_code=400, detail="Count must be between 1 and 20")
+
+        # Generate items
+        generator = get_generator()
+        items = generator.generate_items(
+            stage=request.stage,
+            panel=request.panel,
+            count=request.count,
+            domains=request.domains
+        )
+
+        result = {
+            "status": "success",
+            "generated_count": len(items),
+            "items": items
+        }
+
+        # Auto-insert if requested
+        if request.auto_insert:
+            db = EnglishTestDB()
+            conn = db._get_connection()
+            cursor = conn.cursor()
+
+            inserted_count = 0
+            try:
+                for item in items:
+                    cursor.execute("""
+                        INSERT INTO items (
+                            stage, panel, form_id, domain, stem, options, correct_answer,
+                            skill_tag, difficulty, discrimination, guessing,
+                            passage_id, status, exposure_count, exposure_rate,
+                            frequency_band, target_word, is_pseudoword, band_size,
+                            source, created_at
+                        )
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    """, (
+                        item['stage'],
+                        item['panel'],
+                        item['form_id'],
+                        item['domain'],
+                        item['stem'],
+                        json.dumps(item['options']),
+                        item['correct_answer'],
+                        json.dumps(item.get('skill_tags', [])),
+                        item['difficulty'],
+                        item['discrimination'],
+                        item.get('guessing', 0.25),
+                        None,  # passage_id
+                        item.get('status', 'active'),
+                        item.get('exposure_count', 0),
+                        item.get('exposure_rate', 0.0),
+                        item.get('frequency_band'),
+                        item.get('target_word'),
+                        item.get('is_pseudoword', False),
+                        item.get('band_size'),
+                        item.get('source', 'ai_generated'),
+                        datetime.now()
+                    ))
+                    inserted_count += 1
+
+                conn.commit()
+                result["auto_inserted"] = True
+                result["inserted_count"] = inserted_count
+
+            except Exception as e:
+                conn.rollback()
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"Failed to insert items: {str(e)}"
+                )
+            finally:
+                cursor.close()
+                conn.close()
+
+        return result
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Item generation failed: {str(e)}")
