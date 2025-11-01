@@ -17,7 +17,7 @@ export default defineConfig(({ mode }) => {
     // Explicitly define environment variables to ensure they're available
     define: {
       'import.meta.env.VITE_API_URL': JSON.stringify(
-        env.VITE_API_URL || 'https://literacy-backend.onrender.com'
+        env.VITE_API_URL || 'https://literacy-english-test-backend.onrender.com'
       ),
     },
     server: {
