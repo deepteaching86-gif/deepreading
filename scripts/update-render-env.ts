@@ -13,6 +13,7 @@ import { chromium } from '@playwright/test';
 
 const RENDER_EMAIL = process.env.RENDER_EMAIL;
 const RENDER_PASSWORD = process.env.RENDER_PASSWORD;
+const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY;
 
 // Service name to update
 const SERVICE_NAME = 'literacy-english-test-backend';
@@ -20,14 +21,14 @@ const SERVICE_NAME = 'literacy-english-test-backend';
 // Environment variables to add/update
 const ENV_VARS = {
   DATABASE_URL: 'postgresql://postgres.sxnjeqqvqbhueqbwsnpj:DeepReading2025!@#$SecureDB@db.sxnjeqqvqbhueqbwsnpj.supabase.co:5432/postgres',
-  GOOGLE_API_KEY: 'AIzaSyCRpJirW9yNFCBykygrjX3l-t13feE30ic',
+  GOOGLE_API_KEY: GOOGLE_API_KEY || '',
   FRONTEND_URL: 'https://literacy-test.netlify.app',
 };
 
 async function updateRenderEnvironmentVariables() {
-  if (!RENDER_EMAIL || !RENDER_PASSWORD) {
-    console.error('❌ Error: RENDER_EMAIL and RENDER_PASSWORD environment variables are required');
-    console.log('Usage: RENDER_EMAIL=your@email.com RENDER_PASSWORD=yourpass npx tsx scripts/update-render-env.ts');
+  if (!RENDER_EMAIL || !RENDER_PASSWORD || !GOOGLE_API_KEY) {
+    console.error('❌ Error: RENDER_EMAIL, RENDER_PASSWORD, and GOOGLE_API_KEY environment variables are required');
+    console.log('Usage: RENDER_EMAIL=your@email.com RENDER_PASSWORD=yourpass GOOGLE_API_KEY=your-key npx tsx scripts/update-render-env.ts');
     process.exit(1);
   }
 
