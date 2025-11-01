@@ -5,7 +5,7 @@
  * Manages English adaptive test state and API interactions.
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import {
   startEnglishTest,
   submitResponse,
@@ -50,8 +50,19 @@ export const useEnglishTest = (userId: string) => {
     isSubmitting: false,
   });
 
+  // Prevent duplicate API calls (429 Too Many Requests)
+  const isStartingRef = useRef(false);
+
   // Start test
   const handleStartTest = useCallback(async () => {
+    // Prevent duplicate calls
+    if (isStartingRef.current) {
+      console.warn('Test already starting, ignoring duplicate call');
+      return;
+    }
+
+    isStartingRef.current = true;
+
     setState((prev) => ({ ...prev, stage: 'loading', error: null }));
 
     try {
@@ -73,6 +84,8 @@ export const useEnglishTest = (userId: string) => {
         stage: 'error',
         error: error.message || 'Failed to start test',
       }));
+    } finally {
+      isStartingRef.current = false;
     }
   }, [userId]);
 
@@ -150,6 +163,7 @@ export const useEnglishTest = (userId: string) => {
 
   // Reset test
   const handleReset = useCallback(() => {
+    isStartingRef.current = false;
     setState({
       stage: 'intro',
       sessionId: null,

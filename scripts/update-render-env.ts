@@ -20,7 +20,7 @@ const SERVICE_NAME = 'literacy-english-test-backend';
 // Environment variables to add/update
 const ENV_VARS = {
   DATABASE_URL: 'postgresql://postgres.sxnjeqqvqbhueqbwsnpj:DeepReading2025!@#$SecureDB@db.sxnjeqqvqbhueqbwsnpj.supabase.co:5432/postgres',
-  GOOGLE_API_KEY: 'AIzaSyAjCALYmech9tshGKOC6xYozm-3ao6gRWo',
+  GOOGLE_API_KEY: 'AIzaSyCRpJirW9yNFCBykygrjX3l-t13feE30ic',
   FRONTEND_URL: 'https://literacy-test.netlify.app',
 };
 
