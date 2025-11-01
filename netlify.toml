@@ -1,4 +1,5 @@
 # Netlify Configuration for Frontend
+# Updated: 2025-11-02 - Force rebuild with correct backend URL
 
 [build]
   base = "frontend"
