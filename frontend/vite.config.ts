@@ -7,6 +7,9 @@ export default defineConfig(({ mode }) => {
   // This ensures VITE_API_URL is always loaded correctly
   const env = loadEnv(mode, process.cwd(), '');
 
+  // Priority: process.env (from Netlify) > .env files > fallback
+  const apiUrl = process.env.VITE_API_URL || env.VITE_API_URL || 'https://literacy-english-test-backend.onrender.com';
+
   return {
     plugins: [react()],
     resolve: {
@@ -16,9 +19,7 @@ export default defineConfig(({ mode }) => {
     },
     // Explicitly define environment variables to ensure they're available
     define: {
-      'import.meta.env.VITE_API_URL': JSON.stringify(
-        env.VITE_API_URL || 'https://literacy-english-test-backend.onrender.com'
-      ),
+      'import.meta.env.VITE_API_URL': JSON.stringify(apiUrl),
     },
     server: {
       port: 5173,
