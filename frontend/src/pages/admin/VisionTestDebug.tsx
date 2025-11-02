@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGazeTracking } from '../../hooks/useGazeTracking';
+import { useFixationDetector } from '../../hooks/useFixationDetector';
 import { GazePoint } from '../../types/vision.types';
+import type { ConcentrationRawData } from '../../types/concentration.types';
 
 interface DebugMetrics {
   fps: number;
