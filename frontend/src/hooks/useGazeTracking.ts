@@ -36,6 +36,8 @@ import { getWorkerManager, OpenCVWorkerManager } from '../utils/opencvWorkerMana
 import { AdaptiveROIOptimizer } from '../utils/adaptiveROI';
 import { AdaptiveFrameSkipper } from '../utils/adaptiveFrameSkip';
 // MatPool import removed - MatPool is managed inside Worker
+// ✨ Phase 8-2: Ellipse Fitting for Precise Iris Tracking
+import { extractBothEyesIrisData, type IrisData } from '../lib/gaze/irisTracking';
 
 interface UseGazeTrackingOptions {
   enabled: boolean;
@@ -1799,20 +1801,36 @@ export const useGazeTracking = (
 
     // === 집중력 분석용 데이터 생성 ===
     if (onConcentrationData) {
-      // 동공 크기 추정 (홍채 크기 기반)
-      const leftEyeWidth = Math.abs(leftEyeOuter.x - leftEyeInner.x);
-      const rightEyeWidth = Math.abs(rightEyeOuter.x - rightEyeInner.x);
-      // const avgEyeWidth = (leftEyeWidth + rightEyeWidth) / 2; // Reserved for future use
+      // ✨ Phase 8-2: Precise pupil size using ellipse fitting
+      const irisData = extractBothEyesIrisData(
+        landmarks,
+        video.videoWidth,
+        video.videoHeight
+      );
 
-      // 홍채 중심과 눈 모서리 사이 거리로 동공 크기 근사
-      const leftIrisToOuter = Math.abs(leftIris.x - leftEyeOuter.x);
-      const leftIrisToInner = Math.abs(leftIris.x - leftEyeInner.x);
-      const rightIrisToOuter = Math.abs(rightIris.x - rightEyeOuter.x);
-      const rightIrisToInner = Math.abs(rightIris.x - rightEyeInner.x);
-
-      const leftPupilRatio = Math.min(leftIrisToOuter, leftIrisToInner) / leftEyeWidth;
-      const rightPupilRatio = Math.min(rightIrisToOuter, rightIrisToInner) / rightEyeWidth;
-      const avgPupilSize = (leftPupilRatio + rightPupilRatio) / 2;
+      // Calculate average pupil size from both eyes
+      let avgPupilSize = 0;
+      if (irisData.left && irisData.right) {
+        // Both eyes visible: average diameter
+        avgPupilSize = (irisData.left.diameter + irisData.right.diameter) / 2;
+      } else if (irisData.left) {
+        // Only left eye visible
+        avgPupilSize = irisData.left.diameter;
+      } else if (irisData.right) {
+        // Only right eye visible
+        avgPupilSize = irisData.right.diameter;
+      } else {
+        // Fallback: Use old approximation method
+        const leftEyeWidth = Math.abs(leftEyeOuter.x - leftEyeInner.x);
+        const rightEyeWidth = Math.abs(rightEyeOuter.x - rightEyeInner.x);
+        const leftIrisToOuter = Math.abs(leftIris.x - leftEyeOuter.x);
+        const leftIrisToInner = Math.abs(leftIris.x - leftEyeInner.x);
+        const rightIrisToOuter = Math.abs(rightIris.x - rightEyeOuter.x);
+        const rightIrisToInner = Math.abs(rightIris.x - rightEyeInner.x);
+        const leftPupilRatio = Math.min(leftIrisToOuter, leftIrisToInner) / leftEyeWidth;
+        const rightPupilRatio = Math.min(rightIrisToOuter, rightIrisToInner) / rightEyeWidth;
+        avgPupilSize = (leftPupilRatio + rightPupilRatio) / 2 * 10; // Scale to pixel approximation
+      }
 
       // 눈 움직임 속도 계산
       let eyeMovementVelocity = 0;
