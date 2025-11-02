@@ -1,6 +1,7 @@
-// useGazeTracking Hook v2 - MediaPipe Tasks Vision
+// useGazeTracking Hook v3 - Hybrid Gaze Tracking
 // Real-time gaze tracking using @mediapipe/tasks-vision (official MediaPipe package)
 // Now with 3D tracking support based on JEOresearch approach
+// ✨ NEW: Hybrid algorithm fusion (MediaPipe + OpenCV + 3D Model)
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { FaceLandmarker, FilesetResolver, FaceLandmarkerResult } from '@mediapipe/tasks-vision';
@@ -27,6 +28,14 @@ import {
   multiplyScalar,
   normalize
 } from '../utils/gazeTracking3D';
+import { OpenCVPupilDetector } from '../utils/opencvPupilDetector';
+import { HybridGazeEstimator, HybridGazeInput, pupilToGaze } from '../utils/hybridGazeEstimator';
+import { VerticalGazeCorrector } from '../utils/verticalGazeCorrection';
+// ✨ Phase 3: Performance Optimization Components
+import { getWorkerManager, OpenCVWorkerManager } from '../utils/opencvWorkerManager';
+import { AdaptiveROIOptimizer } from '../utils/adaptiveROI';
+import { AdaptiveFrameSkipper } from '../utils/adaptiveFrameSkip';
+// MatPool import removed - MatPool is managed inside Worker
 
 interface UseGazeTrackingOptions {
   enabled: boolean;
@@ -40,7 +49,19 @@ interface UseGazeTrackingOptions {
     timestamp: number;
   }) => void; // Raw iris offset and head pose callback (for calibration)
   onConcentrationData?: (data: ConcentrationRawData) => void; // 집중력 분석용 원시 데이터 콜백
+  onMediaPipeData?: (data: {
+    faceLandmarks: Array<{ x: number; y: number; z: number }>;
+    irisLandmarks: { left: Array<{ x: number; y: number; z: number }>; right: Array<{ x: number; y: number; z: number }> };
+    headPose: { pitch: number; yaw: number; roll: number };
+  }) => void; // ML 데이터 수집용 전체 MediaPipe 랜드마크
   use3DTracking?: boolean; // Enable 3D tracking mode (default: true - 3D only mode)
+  enableHybridMode?: boolean; // ✨ NEW: Enable hybrid gaze fusion (MediaPipe + OpenCV + 3D Model) (default: false)
+  enableVerticalCorrection?: boolean; // ✨ NEW: Enable vertical gaze correction (default: false)
+  // ✨ Phase 3: Performance Optimization Options
+  enableWebWorker?: boolean; // Enable Web Worker for background OpenCV processing (default: false)
+  enableROIOptimization?: boolean; // Enable adaptive ROI optimization (default: false)
+  enableFrameSkip?: boolean; // Enable adaptive frame skipping (default: false)
+  performanceMode?: 'performance' | 'balanced' | 'quality'; // Performance mode preset (default: 'balanced')
 }
 
 interface UseGazeTrackingReturn {
@@ -58,7 +79,17 @@ interface UseGazeTrackingReturn {
 export const useGazeTracking = (
   options: UseGazeTrackingOptions
 ): UseGazeTrackingReturn => {
-  const { enabled, onGazePoint, calibrationMatrix, onFacePosition, onRawGazeData, onConcentrationData, use3DTracking = true } = options;
+  const {
+    enabled, onGazePoint, calibrationMatrix, onFacePosition, onRawGazeData, onConcentrationData, onMediaPipeData,
+    use3DTracking = true,
+    enableHybridMode = false,
+    enableVerticalCorrection = false,
+    // Phase 3 options
+    enableWebWorker = false,
+    enableROIOptimization = false,
+    enableFrameSkip = false,
+    performanceMode = 'balanced'
+  } = options;
 
   const [isInitialized, setIsInitialized] = useState(false);
   const [isTracking, setIsTracking] = useState(false);
@@ -91,6 +122,40 @@ export const useGazeTracking = (
   const previousFaceAxesRef = useRef<FaceCoordinateSystem | null>(null);
   const is3DCalibrated = useRef(false);
   const frameCounter3D = useRef(0); // For debugging and performance control
+
+  // ✨ NEW: Hybrid Gaze Tracking System References
+  const opencvPupilDetectorRef = useRef<OpenCVPupilDetector | null>(null);
+  const hybridGazeEstimatorRef = useRef<HybridGazeEstimator>(new HybridGazeEstimator({
+    baseWeights: {
+      mediapipe: 0.6,  // 60% weight
+      opencv: 0.25,    // 25% weight
+      model3d: 0.15    // 15% weight
+    },
+    useDynamicWeighting: true,
+    minConfidence: 0.3,
+    enableMediaPipe: true,
+    enableOpenCV: enableHybridMode,  // Only enable OpenCV if hybrid mode is on
+    enable3DModel: use3DTracking
+  }));
+  const hybridModeInitialized = useRef(false);
+
+  // ✨ NEW: Vertical Gaze Correction System References
+  const verticalCorrectorRef = useRef<VerticalGazeCorrector>(new VerticalGazeCorrector({
+    pitchFactor: 0.3,
+    earFactor: 0.5,
+    nonlinearFactor: 0.2,
+    enableCorrection: enableVerticalCorrection,
+    verticalThreshold: 0.3
+  }));
+
+  // ✨ Phase 3: Performance Optimization System References
+  const workerManagerRef = useRef<OpenCVWorkerManager | null>(null);
+  const roiOptimizerRef = useRef<AdaptiveROIOptimizer>(new AdaptiveROIOptimizer());
+  const frameSkipperRef = useRef<AdaptiveFrameSkipper>(new AdaptiveFrameSkipper());
+  // matPoolRef removed - MatPool is managed inside Worker
+  const workerInitializedRef = useRef(false);
+  const prevGazeRef = useRef<{ x: number; y: number } | null>(null);
+  const prevFaceRef = useRef<{ x: number; y: number } | null>(null);
 
   // 3D mode is always enabled
   useEffect(() => {
@@ -188,6 +253,56 @@ export const useGazeTracking = (
     eyeSphereTrackerRef.current.reset();
     is3DCalibrated.current = false;
     previousFaceAxesRef.current = null;
+
+    // ✨ NEW: Initialize OpenCV Pupil Detector if hybrid mode enabled
+    if (enableHybridMode && !hybridModeInitialized.current) {
+      try {
+        console.log('🚀 Initializing OpenCV.js for hybrid mode...');
+        opencvPupilDetectorRef.current = new OpenCVPupilDetector();
+        await opencvPupilDetectorRef.current.initialize();
+        hybridModeInitialized.current = true;
+        console.log('✅ Hybrid mode initialized successfully');
+        console.log('📊 Hybrid configuration:', hybridGazeEstimatorRef.current.getConfig());
+      } catch (opencvError) {
+        console.error('❌ Failed to initialize OpenCV:', opencvError);
+        console.warn('⚠️ Falling back to MediaPipe-only mode');
+        // Update hybrid estimator to disable OpenCV
+        hybridGazeEstimatorRef.current.updateConfig({
+          enableOpenCV: false
+        });
+      }
+    }
+
+    // ✨ Phase 3: Initialize Web Worker and MatPool
+    if ((enableWebWorker || enableROIOptimization) && !workerInitializedRef.current) {
+      try {
+        console.log('🚀 Phase 3: Initializing Web Worker and MatPool...');
+
+        // Initialize Worker Manager
+        if (enableWebWorker) {
+          workerManagerRef.current = getWorkerManager();
+          await workerManagerRef.current.initialize();
+          console.log('✅ Web Worker initialized successfully');
+        }
+
+        // Initialize MatPool (requires OpenCV to be loaded)
+        if (enableWebWorker) {
+          // MatPool will be initialized inside Worker
+          console.log('✅ MatPool will be managed by Worker');
+        }
+
+        workerInitializedRef.current = true;
+        console.log('📊 Phase 3 Configuration:', {
+          webWorker: enableWebWorker,
+          roiOptimization: enableROIOptimization,
+          frameSkip: enableFrameSkip,
+          performanceMode
+        });
+      } catch (phase3Error) {
+        console.error('❌ Failed to initialize Phase 3 optimizations:', phase3Error);
+        console.warn('⚠️ Falling back to standard processing');
+      }
+    }
 
     // Check if stream already exists and is active
     if (streamRef.current && streamRef.current.active && videoRef.current) {
@@ -849,6 +964,40 @@ export const useGazeTracking = (
       });
     }
 
+    // Call onMediaPipeData for ML sample collection
+    if (onMediaPipeData && landmarks.length >= 478) {
+      // Extract iris landmarks (468-477)
+      const leftIrisLandmarks = landmarks.slice(468, 473); // Left iris: 468-472
+      const rightIrisLandmarks = landmarks.slice(473, 478); // Right iris: 473-477
+
+      // Calculate headPose from face landmarks
+      // Left eye: 33, Right eye: 263, Nose tip: 1
+      const leftEye = landmarks[33];
+      const rightEye = landmarks[263];
+      const noseTip = landmarks[1];
+
+      const eyeCenterX = (leftEye.x + rightEye.x) / 2;
+      const eyeCenterY = (leftEye.y + rightEye.y) / 2;
+
+      // Yaw (left-right rotation): nose tip offset from eye center
+      const yaw = Math.atan2(noseTip.x - eyeCenterX, 1) * (180 / Math.PI);
+
+      // Pitch (up-down rotation): nose tip offset from eye center
+      const pitch = -Math.atan2(noseTip.y - eyeCenterY, 1) * (180 / Math.PI);
+
+      // Roll (tilt): eye line angle
+      const roll = Math.atan2(rightEye.y - leftEye.y, rightEye.x - leftEye.x) * (180 / Math.PI);
+
+      onMediaPipeData({
+        faceLandmarks: landmarks.map(lm => ({ x: lm.x, y: lm.y, z: lm.z || 0 })),
+        irisLandmarks: {
+          left: leftIrisLandmarks.map(lm => ({ x: lm.x, y: lm.y, z: lm.z || 0 })),
+          right: rightIrisLandmarks.map(lm => ({ x: lm.x, y: lm.y, z: lm.z || 0 }))
+        },
+        headPose: { pitch, yaw, roll }
+      });
+    }
+
     // Convert normalized coordinates to pixel coordinates for our calculations
     const toPixelCoords = (landmark: { x: number; y: number; z: number }) => ({
       x: landmark.x * video.videoWidth,
@@ -1324,6 +1473,200 @@ export const useGazeTracking = (
     // Use filtered values for final gaze
     let finalX = filteredGaze.x;
     let finalY = filteredGaze.y;
+    let finalConfidence = gaze.confidence;
+
+    // ✨ Phase 3: Adaptive Frame Skipping
+    let shouldProcessOpenCV = true;
+    if (enableFrameSkip && frameSkipperRef.current) {
+      // Calculate gaze velocity
+      const gazeVelocity = prevGazeRef.current
+        ? Math.sqrt(
+            Math.pow(filteredGaze.x - prevGazeRef.current.x, 2) +
+            Math.pow(filteredGaze.y - prevGazeRef.current.y, 2)
+          )
+        : 0;
+
+      // Calculate face movement velocity
+      const faceMovementVelocity = prevFaceRef.current
+        ? Math.sqrt(
+            Math.pow(noseTip.x - prevFaceRef.current.x, 2) +
+            Math.pow(noseTip.y - prevFaceRef.current.y, 2)
+          )
+        : 0;
+
+      shouldProcessOpenCV = frameSkipperRef.current.shouldProcess(gazeVelocity, faceMovementVelocity);
+
+      // Update previous positions
+      prevGazeRef.current = { x: filteredGaze.x, y: filteredGaze.y };
+      prevFaceRef.current = { x: noseTip.x, y: noseTip.y };
+
+      // Log frame skip stats (throttled)
+      if (fpsCounterRef.current.frames % 120 === 0) {
+        console.log('⏭️ Frame Skip Stats:', {
+          processingRate: `${(frameSkipperRef.current.getProcessingRate() * 100).toFixed(1)}%`,
+          skipRate: `${(frameSkipperRef.current.getSkipRate() * 100).toFixed(1)}%`,
+          cpuSavings: `${frameSkipperRef.current.getEstimatedCPUSavings().toFixed(1)}%`,
+          currentInterval: frameSkipperRef.current.getCurrentInterval()
+        });
+      }
+    }
+
+    // ✨ NEW: Hybrid Gaze Fusion (MediaPipe + OpenCV + 3D Model)
+    if (enableHybridMode && shouldProcessOpenCV && (opencvPupilDetectorRef.current || workerManagerRef.current) && videoRef.current) {
+      try {
+        // Extract base eye ROIs from MediaPipe landmarks
+        const baseROIs = OpenCVPupilDetector.extractEyeROIs(
+          landmarks,
+          video.videoWidth,
+          video.videoHeight
+        );
+
+        // ✨ Phase 3: Apply ROI Optimization
+        let eyeROIs = baseROIs;
+        if (enableROIOptimization && roiOptimizerRef.current) {
+          // Calculate face movement velocity for cache decision
+          const faceMovementVelocity = prevFaceRef.current
+            ? Math.sqrt(
+                Math.pow(noseTip.x - prevFaceRef.current.x, 2) +
+                Math.pow(noseTip.y - prevFaceRef.current.y, 2)
+              )
+            : 1.0; // High velocity if no previous face
+
+          // Check if we can reuse cached ROI
+          if (roiOptimizerRef.current.shouldReuseROI(faceMovementVelocity)) {
+            const cachedROI = roiOptimizerRef.current.getCachedROI();
+            if (cachedROI) {
+              eyeROIs = cachedROI;
+            }
+          } else {
+            // Apply adaptive padding and downsampling
+            const detectionSuccess = true; // Assume success if we got here
+            const optimizedLeft = roiOptimizerRef.current.calculateOptimizedROI(
+              baseROIs.left,
+              detectionSuccess,
+              true // enableDownsample
+            );
+            const optimizedRight = roiOptimizerRef.current.calculateOptimizedROI(
+              baseROIs.right,
+              detectionSuccess,
+              true // enableDownsample
+            );
+            eyeROIs = { left: optimizedLeft, right: optimizedRight };
+
+            // Cache the optimized ROI
+            roiOptimizerRef.current.cacheROI(optimizedLeft, optimizedRight);
+          }
+        }
+
+        // ✨ Phase 3: Detect pupils using Web Worker or main thread
+        let pupilResult = null;
+        if (enableWebWorker && workerManagerRef.current?.isReady()) {
+          // Use Web Worker for background processing
+          pupilResult = await workerManagerRef.current.detectPupils(
+            videoRef.current,
+            eyeROIs
+          );
+        } else if (opencvPupilDetectorRef.current) {
+          // Fallback to main thread OpenCV
+          pupilResult = opencvPupilDetectorRef.current.detectPupils(
+            videoRef.current,
+            eyeROIs
+          );
+        }
+
+        if (pupilResult && (pupilResult.left || pupilResult.right)) {
+          // Convert pupil positions to gaze coordinates
+          const opencvGaze = pupilToGaze(
+            pupilResult.left,
+            pupilResult.right,
+            video.videoWidth,
+            video.videoHeight
+          );
+
+          if (opencvGaze) {
+            // Prepare hybrid input
+            const hybridInput: HybridGazeInput = {
+              mediapipe: {
+                x: finalX,
+                y: finalY,
+                confidence: gaze.confidence,
+                source: 'mediapipe'
+              },
+              opencv: {
+                x: opencvGaze.x,
+                y: opencvGaze.y,
+                confidence: pupilResult.confidence,
+                source: 'opencv'
+              },
+              model3d: null // 2D mode doesn't use 3D model
+            };
+
+            // Fuse estimates using hybrid estimator
+            const fusedEstimate = hybridGazeEstimatorRef.current.estimate(hybridInput);
+
+            // Use fused estimate
+            finalX = fusedEstimate.x;
+            finalY = fusedEstimate.y;
+            finalConfidence = fusedEstimate.confidence;
+
+            // Log hybrid fusion (throttled)
+            if (fpsCounterRef.current.frames % 120 === 0) {
+              console.log('🔀 Hybrid Fusion:', {
+                mediapipe: `(${filteredGaze.x.toFixed(1)}, ${filteredGaze.y.toFixed(1)})`,
+                opencv: `(${opencvGaze.x.toFixed(1)}, ${opencvGaze.y.toFixed(1)})`,
+                fused: `(${finalX.toFixed(1)}, ${finalY.toFixed(1)})`,
+                confidence: finalConfidence.toFixed(3)
+              });
+            }
+          }
+        }
+      } catch (hybridError) {
+        // Hybrid fusion failed, fall back to MediaPipe-only
+        console.warn('⚠️ Hybrid fusion failed, using MediaPipe only:', hybridError);
+      }
+    }
+
+    // ✨ NEW: Vertical Gaze Correction
+    if (enableVerticalCorrection && verticalCorrectorRef.current) {
+      try {
+        // Detect if current gaze is vertical or horizontal
+        const isVerticalGaze = verticalCorrectorRef.current.isVerticalGaze(finalX, finalY);
+
+        // Apply dynamic weights if vertical gaze detected
+        if (isVerticalGaze && enableHybridMode) {
+          const dynamicWeights = verticalCorrectorRef.current.getDynamicWeights(true);
+          hybridGazeEstimatorRef.current.updateConfig({
+            baseWeights: dynamicWeights
+          });
+        }
+
+        // Calculate head pitch (already computed earlier, but recalculate for clarity)
+        const eyesCenterY = (leftEyeCenter.y + rightEyeCenter.y) / 2;
+        const headPitch = (noseTip.y - eyesCenterY) / video.videoHeight;
+
+        // Apply vertical correction to Y coordinate
+        const normalizedY = finalY / video.videoHeight; // Convert to 0-1 range
+        const correctedY = verticalCorrectorRef.current.correctVertical(
+          normalizedY,
+          headPitch,
+          avgEAR
+        );
+        finalY = correctedY * video.videoHeight; // Convert back to pixel coordinates
+
+        // Log vertical correction (throttled)
+        if (fpsCounterRef.current.frames % 120 === 0) {
+          console.log('🔧 Vertical Correction Applied:', {
+            isVertical: isVerticalGaze,
+            originalY: normalizedY.toFixed(3),
+            correctedY: correctedY.toFixed(3),
+            headPitch: headPitch.toFixed(3),
+            avgEAR: avgEAR.toFixed(3)
+          });
+        }
+      } catch (verticalError) {
+        console.warn('⚠️ Vertical correction failed:', verticalError);
+      }
+    }
 
     // Apply legacy calibration matrix if provided (for backward compatibility)
     if (calibrationMatrix) {
@@ -1335,7 +1678,7 @@ export const useGazeTracking = (
     const gazeEstimation: GazeEstimation = {
       x: finalX,
       y: finalY,
-      confidence: gaze.confidence,
+      confidence: finalConfidence,
       landmarks: faceLandmarks
     };
 
@@ -1437,7 +1780,7 @@ export const useGazeTracking = (
 
     // Schedule next frame
     animationFrameRef.current = window.requestAnimationFrame(detectAndEstimateGaze);
-  }, [isTracking, onGazePoint, calibrationMatrix, onFacePosition, onRawGazeData, onConcentrationData]);
+  }, [isTracking, onGazePoint, calibrationMatrix, onFacePosition, onRawGazeData, onConcentrationData, onMediaPipeData]);
 
   // Start detection loop when tracking starts
   // CRITICAL: Start loop once and let it self-sustain via requestAnimationFrame
