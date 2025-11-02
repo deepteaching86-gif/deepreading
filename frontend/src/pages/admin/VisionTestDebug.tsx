@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGazeTracking } from '../../hooks/useGazeTracking';
+import { GazePoint } from '../../types/vision.types';
 
 interface DebugMetrics {
   fps: number;
@@ -59,26 +60,19 @@ export default function VisionTestDebug() {
   const {
     startTracking,
     stopTracking,
-    calibrate,
-    isCalibrated,
-    calibrationProgress,
-    error: trackingError
+    error: trackingError,
+    fps: hookFps
   } = useGazeTracking({
     enabled: isTracking,
-    onGazeUpdate: (point) => {
-      setGazePoint(point);
+    onGazePoint: (point: GazePoint) => {
+      setGazePoint({ x: point.x, y: point.y });
 
-      // Update metrics from hybrid estimator data if available
-      // This is a simplified version - in real implementation,
-      // you would extract this from useGazeTracking internals
+      // Update metrics from gaze tracking data
       setMetrics(prev => ({
         ...prev,
-        fps: Math.round(Math.random() * 10 + 50), // Placeholder
+        fps: hookFps || prev.fps,
         latency: Math.round(Math.random() * 20 + 10) // Placeholder
       }));
-    },
-    onCalibrationComplete: () => {
-      console.log('✅ Calibration completed');
     },
     use3DTracking: false,
     enableHybridMode: enableHybrid,
@@ -91,7 +85,7 @@ export default function VisionTestDebug() {
 
   const handleStartTracking = async () => {
     try {
-      await startTracking(videoRef.current!, canvasRef.current!);
+      await startTracking();
       setIsTracking(true);
     } catch (error) {
       console.error('Failed to start tracking:', error);
@@ -101,14 +95,6 @@ export default function VisionTestDebug() {
   const handleStopTracking = () => {
     stopTracking();
     setIsTracking(false);
-  };
-
-  const handleCalibrate = async () => {
-    try {
-      await calibrate();
-    } catch (error) {
-      console.error('Calibration failed:', error);
-    }
   };
 
   // Draw gaze point on canvas
@@ -171,14 +157,6 @@ export default function VisionTestDebug() {
                 ⏹️ 추적 중지
               </button>
             )}
-            {isTracking && !isCalibrated && (
-              <button
-                onClick={handleCalibrate}
-                className="px-4 py-2 bg-chart-1 text-white rounded-lg hover:bg-chart-1/90"
-              >
-                🎯 캘리브레이션
-              </button>
-            )}
           </div>
         </div>
 
@@ -187,14 +165,6 @@ export default function VisionTestDebug() {
           <div className={`px-3 py-1 rounded-full ${isTracking ? 'bg-green-500/20 text-green-500' : 'bg-muted text-muted-foreground'}`}>
             {isTracking ? '🟢 추적 중' : '⚪ 대기 중'}
           </div>
-          <div className={`px-3 py-1 rounded-full ${isCalibrated ? 'bg-blue-500/20 text-blue-500' : 'bg-muted text-muted-foreground'}`}>
-            {isCalibrated ? '🎯 캘리브레이션 완료' : '⚪ 캘리브레이션 필요'}
-          </div>
-          {calibrationProgress > 0 && calibrationProgress < 1 && (
-            <div className="px-3 py-1 rounded-full bg-yellow-500/20 text-yellow-500">
-              🔄 캘리브레이션 진행: {Math.round(calibrationProgress * 100)}%
-            </div>
-          )}
           {trackingError && (
             <div className="px-3 py-1 rounded-full bg-red-500/20 text-red-500">
               ❌ {trackingError}
