@@ -750,7 +750,7 @@ export const useGazeTracking = (
                 ctx.strokeStyle = '#ff00ff';
                 ctx.lineWidth = 2;
                 ctx.beginPath();
-                ctx.ellipse(centerX, centerY, radius, radius * irisData.left.axes.minor / irisData.left.axes.major, 0, 0, Math.PI * 2);
+                ctx.ellipse(centerX, centerY, irisData.left.majorAxis / 2, irisData.left.minorAxis / 2, irisData.left.angle, 0, Math.PI * 2);
                 ctx.stroke();
 
                 // Draw center dot
@@ -769,7 +769,7 @@ export const useGazeTracking = (
                 ctx.strokeStyle = '#00ffff';
                 ctx.lineWidth = 2;
                 ctx.beginPath();
-                ctx.ellipse(centerX, centerY, radius, radius * irisData.right.axes.minor / irisData.right.axes.major, 0, 0, Math.PI * 2);
+                ctx.ellipse(centerX, centerY, irisData.right.majorAxis / 2, irisData.right.minorAxis / 2, irisData.right.angle, 0, Math.PI * 2);
                 ctx.stroke();
 
                 // Draw center dot
