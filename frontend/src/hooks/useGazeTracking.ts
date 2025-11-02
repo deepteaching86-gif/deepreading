@@ -744,7 +744,6 @@ export const useGazeTracking = (
               if (irisData.left) {
                 const centerX = irisData.left.center.x;
                 const centerY = irisData.left.center.y;
-                const radius = irisData.left.diameter / 2;
 
                 // Draw ellipse outline
                 ctx.strokeStyle = '#ff00ff';
@@ -763,7 +762,6 @@ export const useGazeTracking = (
               if (irisData.right) {
                 const centerX = irisData.right.center.x;
                 const centerY = irisData.right.center.y;
-                const radius = irisData.right.diameter / 2;
 
                 // Draw ellipse outline
                 ctx.strokeStyle = '#00ffff';
