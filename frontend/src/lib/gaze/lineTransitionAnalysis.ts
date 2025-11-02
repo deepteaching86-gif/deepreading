@@ -12,8 +12,7 @@
 import {
   FixationPoint,
   LineTransition,
-  LineTransitionType,
-  ReadingPattern
+  LineTransitionType
 } from '@/types/gazeAnalytics';
 
 /**

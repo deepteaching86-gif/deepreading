@@ -190,8 +190,8 @@ function dotProduct(a: Point3D, b: Point3D): number {
 export function convertToScreenCoordinates(
   intersection: Point3D,
   screenPlane: ScreenPlane,
-  screenWidth: number,
-  screenHeight: number
+  _screenWidth: number,
+  _screenHeight: number
 ): { x: number; y: number } | null {
   if (!intersection) return null;
 

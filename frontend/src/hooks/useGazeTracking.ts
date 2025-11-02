@@ -37,7 +37,7 @@ import { AdaptiveROIOptimizer } from '../utils/adaptiveROI';
 import { AdaptiveFrameSkipper } from '../utils/adaptiveFrameSkip';
 // MatPool import removed - MatPool is managed inside Worker
 // ✨ Phase 8-2: Ellipse Fitting for Precise Iris Tracking
-import { extractBothEyesIrisData, type IrisData } from '../lib/gaze/irisTracking';
+import { extractBothEyesIrisData } from '../lib/gaze/irisTracking';
 
 interface UseGazeTrackingOptions {
   enabled: boolean;

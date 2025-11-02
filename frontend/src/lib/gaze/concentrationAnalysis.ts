@@ -124,7 +124,7 @@ function countRegressions(fixations: FixationPoint[]): number {
  * Count blinks from fixation gaps
  * Blink = gap >150ms between fixations
  */
-function countBlinks(fixations: FixationPoint[], totalDuration: number): number {
+function countBlinks(fixations: FixationPoint[], _totalDuration: number): number {
   let count = 0;
 
   for (let i = 1; i < fixations.length; i++) {

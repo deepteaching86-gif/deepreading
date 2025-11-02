@@ -135,7 +135,7 @@ function solveEllipseCoefficients(
   S1: number[][],
   S2: number[][],
   S3: number[][],
-  C1: number[][]
+  _C1: number[][]
 ): number[] {
   // Simplified direct least squares solution
   // Returns [A, B, C, D, E, F] coefficients
@@ -145,10 +145,10 @@ function solveEllipseCoefficients(
 
   const a1 = S1[0][0];
   const a2 = S1[0][1];
-  const a3 = S1[0][2];
+  // const a3 = S1[0][2]; // Reserved for future use
   const a4 = S1[1][1];
-  const a5 = S1[1][2];
-  const a6 = S1[2][2];
+  // const a5 = S1[1][2]; // Reserved for future use
+  // const a6 = S1[2][2]; // Reserved for future use
 
   // Simplified solution (optimized for iris fitting)
   const A = a1;
