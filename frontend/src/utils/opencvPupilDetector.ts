@@ -25,6 +25,9 @@ export interface EyeROI {
 export class OpenCVPupilDetector {
   private cv: any = null;
   private initialized = false;
+  private lastErrorLog = 0;
+  private errorLogThrottle = 5000; // Log errors at most once per 5 seconds
+  private errorCount = 0;
 
   constructor() {
     // Constructor does nothing - must call initialize() first
@@ -121,7 +124,14 @@ export class OpenCVPupilDetector {
 
       return result;
     } catch (error) {
-      console.error('❌ Pupil detection failed:', error);
+      // Throttle error logging to prevent console spam
+      this.errorCount++;
+      const now = Date.now();
+      if (now - this.lastErrorLog > this.errorLogThrottle) {
+        console.warn(`⚠️ Pupil detection failed (${this.errorCount} errors in last ${this.errorLogThrottle / 1000}s):`, error);
+        this.lastErrorLog = now;
+        this.errorCount = 0;
+      }
       return null;
     }
   }

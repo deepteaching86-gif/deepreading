@@ -302,7 +302,9 @@ export default function VisionTestDebug() {
                 )}
                 {gazePoint && (
                   <div className="absolute bottom-4 left-4 bg-black/70 text-white px-3 py-2 rounded text-sm font-mono">
-                    Gaze: ({gazePoint.x.toFixed(0)}, {gazePoint.y.toFixed(0)}) | Resolution: {videoResolution.width}x{videoResolution.height}
+                    Gaze: ({Math.round(gazePoint.x * videoResolution.width)}, {Math.round(gazePoint.y * videoResolution.height)}) |
+                    Normalized: ({gazePoint.x.toFixed(2)}, {gazePoint.y.toFixed(2)}) |
+                    Resolution: {videoResolution.width}x{videoResolution.height}
                   </div>
                 )}
               </div>
