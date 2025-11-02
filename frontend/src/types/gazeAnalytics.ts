@@ -33,11 +33,35 @@ export interface Saccade {
 }
 
 /**
+ * Line transition types for reading pattern analysis
+ */
+export enum LineTransitionType {
+  NORMAL_LINE_BREAK = 'normal_line_break',      // Natural progression to next line
+  REGRESSION = 'regression',                     // Backward movement (re-reading)
+  SKIP = 'skip',                                // Skipped line(s)
+  DEVIATION = 'deviation'                        // Unexpected jump
+}
+
+/**
+ * Transition between text lines
+ */
+export interface LineTransition {
+  type: LineTransitionType;
+  fromLine: number;             // Source line number
+  toLine: number;               // Target line number
+  fromFixation: FixationPoint;
+  toFixation: FixationPoint;
+  linesSkipped?: number;        // For SKIP type (positive = forward, negative = backward)
+  timestamp: number;
+}
+
+/**
  * Complete gaze path for a reading session
  */
 export interface GazePath {
   fixations: FixationPoint[];
   saccades: Saccade[];
+  lineTransitions: LineTransition[];  // Line-to-line movements
   totalDuration: number;        // Total reading time (ms)
   startTime: number;            // Session start timestamp
   endTime: number;              // Session end timestamp
@@ -76,6 +100,13 @@ export interface ReadingPattern {
   difficultyLevel: number;      // Estimated text difficulty (0-1)
   focusAreas: FixationPoint[];  // Most concentrated areas
   skippedRegions: { start: Point2D; end: Point2D }[]; // Skipped text
+
+  // Line transition metrics
+  normalLineBreaks: number;     // Natural line progressions
+  regressionLines: number;      // Lines re-read
+  skippedLines: number;         // Lines skipped
+  deviations: number;           // Unexpected jumps
+  lineTransitionAccuracy: number; // % of normal transitions (0-1)
 }
 
 interface Point2D {
