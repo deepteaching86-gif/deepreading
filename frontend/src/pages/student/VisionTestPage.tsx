@@ -25,6 +25,7 @@ import {
 import { ConcentrationRawData, ConcentrationScore, ConcentrationAlert } from '../../types/concentration.types';
 import { concentrationAnalyzer } from '../../utils/concentrationAnalysis';
 import { concentrationSessionManager } from '../../services/concentrationService';
+import { collectMLSample } from '../../utils/mlDataCollector';
 
 export const VisionTestPage: React.FC = () => {
   const { sessionId } = useParams<{ sessionId: string }>();
@@ -73,6 +74,13 @@ export const VisionTestPage: React.FC = () => {
     concentrationAlertsRef.current = concentrationAlerts;
   }, [concentrationAlerts]);
 
+  // ML 데이터 수집용 MediaPipe 데이터 ref
+  const latestMediaPipeDataRef = useRef<{
+    faceLandmarks: Array<{ x: number; y: number; z: number }>;
+    irisLandmarks: { left: Array<{ x: number; y: number; z: number }>; right: Array<{ x: number; y: number; z: number }> };
+    headPose: { pitch: number; yaw: number; roll: number };
+  } | null>(null);
+
   // Get user ID from auth store
   const getUserId = (): string => {
     try {
@@ -94,6 +102,13 @@ export const VisionTestPage: React.FC = () => {
     const stored = localStorage.getItem('gaze-tracking-3d-mode');
     // Default to false for better stability with 2D mode
     return stored === null ? false : stored === 'true';
+  });
+
+  // ✨ Phase 3: Performance Optimization Settings
+  const [enablePhase3, setEnablePhase3] = useState(() => {
+    const stored = localStorage.getItem('gaze-tracking-phase3-enabled');
+    // Default to false - users can opt-in for testing
+    return stored === 'true';
   });
 
   // Sensitivity control state
@@ -142,7 +157,16 @@ export const VisionTestPage: React.FC = () => {
     }
   }, []); // No dependencies - stable callback
 
-  // Gaze tracking hook with 3D mode support
+  const handleMediaPipeData = useCallback((data: {
+    faceLandmarks: Array<{ x: number; y: number; z: number }>;
+    irisLandmarks: { left: Array<{ x: number; y: number; z: number }>; right: Array<{ x: number; y: number; z: number }> };
+    headPose: { pitch: number; yaw: number; roll: number };
+  }) => {
+    // 최신 MediaPipe 데이터를 ref에 저장 (캘리브레이션 완료 시 ML 샘플 수집용)
+    latestMediaPipeDataRef.current = data;
+  }, []); // No dependencies - stable callback
+
+  // Gaze tracking hook with 3D mode support and Phase 3 optimizations
   const {
     isTracking,
     currentGaze,
@@ -156,9 +180,18 @@ export const VisionTestPage: React.FC = () => {
     onGazePoint: handleGazePoint,
     onRawGazeData: handleRawGazeData,
     onConcentrationData: handleConcentrationData,
+    onMediaPipeData: handleMediaPipeData,
     calibrationMatrix: calibrationResult?.transformMatrix,
     targetFPS: 30,
-    use3DTracking: use3DMode // Pass 3D mode setting to gaze tracking hook
+    use3DTracking: use3DMode, // Pass 3D mode setting to gaze tracking hook
+    // ✨ Phase 1+2: Enable Hybrid Mode and Vertical Correction
+    enableHybridMode: true, // MediaPipe + OpenCV + 3D fusion
+    enableVerticalCorrection: true, // Y-axis correction
+    // ✨ Phase 3: Performance Optimization Options
+    enableWebWorker: enablePhase3, // Background OpenCV processing
+    enableROIOptimization: enablePhase3, // Adaptive ROI with caching
+    enableFrameSkip: enablePhase3, // Adaptive frame skipping
+    performanceMode: 'balanced' // Balanced mode (performance vs quality)
   });
 
   // Handle gaze point from tracking
@@ -304,6 +337,40 @@ export const VisionTestPage: React.FC = () => {
       // Start concentration monitoring session
       concentrationSessionManager.startSession(response.visionSessionId);
       console.log('🎯 Concentration monitoring started');
+
+      // ML 샘플 자동 수집 (캘리브레이션 완료 직후)
+      if (latestMediaPipeDataRef.current && response.visionSessionId) {
+        try {
+          console.log('🤖 ML 샘플 수집 시작...');
+
+          // MediaPipe 데이터를 ML 수집 유틸리티 형식으로 변환
+          const mediaPipeData = {
+            faceLandmarks: latestMediaPipeDataRef.current.faceLandmarks,
+            irisLandmarks: [
+              ...latestMediaPipeDataRef.current.irisLandmarks.left,
+              ...latestMediaPipeDataRef.current.irisLandmarks.right
+            ],
+            headPose: latestMediaPipeDataRef.current.headPose
+          };
+
+          const result = await collectMLSample(
+            response.visionSessionId,
+            mediaPipeData,
+            calibration.points
+          );
+
+          if (result.success) {
+            console.log('✅ ML 샘플 수집 완료:', result.sampleId);
+          } else {
+            console.log('⚠️ ML 샘플 수집 실패:', result.error);
+          }
+        } catch (mlError: any) {
+          console.error('❌ ML 샘플 수집 중 오류:', mlError);
+          // ML 샘플 수집 실패해도 Vision Test는 계속 진행
+        }
+      } else {
+        console.log('ℹ️ ML 샘플 수집 건너뜀: MediaPipe 데이터 없음');
+      }
 
       console.log('✅ Vision session started:', response.visionSessionId);
     } catch (error: any) {
@@ -548,6 +615,28 @@ export const VisionTestPage: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-3">
+              {/* Phase 3 최적화 토글 버튼 */}
+              <button
+                onClick={() => {
+                  const newValue = !enablePhase3;
+                  setEnablePhase3(newValue);
+                  localStorage.setItem('gaze-tracking-phase3-enabled', newValue.toString());
+                  // Restart tracking to apply changes
+                  if (isTracking) {
+                    stopTracking();
+                    setTimeout(() => startTracking(), 100);
+                  }
+                }}
+                className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                  enablePhase3
+                    ? 'bg-purple-500/20 text-purple-500 hover:bg-purple-500/30'
+                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                }`}
+                title={enablePhase3 ? "Phase 3 최적화 활성화 (Worker + ROI + FrameSkip)" : "Phase 3 최적화 비활성화 (기본 모드)"}
+              >
+                ⚡ Phase3 {enablePhase3 ? 'ON' : 'OFF'}
+              </button>
+
               {/* 감도 조절 버튼 */}
               <button
                 onClick={() => setShowSensitivityControl(!showSensitivityControl)}

@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from '../../lib/axios';
+import { MLDataStats } from '../../components/admin/MLDataStats';
 
 interface VisionSessionListItem {
   id: string;
@@ -181,6 +182,11 @@ export const VisionSessions: React.FC = () => {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* ML Dataset Statistics */}
+        <div className="mb-8">
+          <MLDataStats />
         </div>
 
         {/* Sessions Table */}

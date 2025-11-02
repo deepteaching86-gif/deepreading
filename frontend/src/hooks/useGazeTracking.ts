@@ -527,32 +527,30 @@ export const useGazeTracking = (
           ctx.strokeRect(guideX, guideY, guideWidth, guideHeight);
           ctx.setLineDash([]);
 
-          // Draw guide text (반전 적용 for 거울 모드)
+          // Draw guide text (normal orientation - video is already mirrored)
           ctx.save();
-          ctx.scale(-1, 1); // 텍스트만 다시 반전 (거울 모드에서 읽기 가능하게)
           ctx.font = 'bold 16px Arial';
           ctx.fillStyle = '#22c55e';
           ctx.strokeStyle = 'black';
           ctx.lineWidth = 3;
           const guideText = '👤 여기에 얼굴 위치';
           const textMetrics = ctx.measureText(guideText);
-          const textX = -(canvas.width + textMetrics.width) / 2;
+          const textX = (canvas.width - textMetrics.width) / 2;
           ctx.strokeText(guideText, textX, guideY - 10);
           ctx.fillText(guideText, textX, guideY - 10);
           ctx.restore();
 
-          // Draw detection status (반전 적용 for 거울 모드)
+          // Draw detection status (normal orientation)
           ctx.save();
-          ctx.scale(-1, 1); // 텍스트만 다시 반전
           ctx.font = 'bold 20px Arial';
           ctx.strokeStyle = 'black';
           ctx.lineWidth = 3;
           ctx.fillStyle = result.faceLandmarks.length > 0 ? '#22c55e' : '#ef4444';
           const statusText = result.faceLandmarks.length > 0
-            ? `✅ Face: ${result.faceLandmarks.length}`
+            ? `✅ Face: ${result.faceLandmarks.length} | Landmarks: ${result.faceLandmarks[0]?.length || 0}`
             : '❌ No Face';
-          ctx.strokeText(statusText, -canvas.width + 10, 30);
-          ctx.fillText(statusText, -canvas.width + 10, 30);
+          ctx.strokeText(statusText, 10, 30);
+          ctx.fillText(statusText, 10, 30);
           ctx.restore();
 
           // If face detected, draw landmarks
@@ -718,25 +716,24 @@ export const useGazeTracking = (
               ctx.fill();
             }
 
-            // Draw status info (반전 적용 for 거울 모드)
+            // Draw status info (normal orientation - video is already mirrored)
             ctx.save();
-            ctx.scale(-1, 1); // 텍스트만 다시 반전
             ctx.font = 'bold 16px Arial';
             ctx.strokeStyle = 'black';
             ctx.lineWidth = 3;
             ctx.fillStyle = '#22c55e';
             const infoText = `Landmarks: ${landmarks.length}`;
-            ctx.strokeText(infoText, -canvas.width + 10, 60);
-            ctx.fillText(infoText, -canvas.width + 10, 60);
-            
+            ctx.strokeText(infoText, 10, 60);
+            ctx.fillText(infoText, 10, 60);
+
             // 3D tracking status
             if (use3DTracking) {
               ctx.fillStyle = '#ffff00';
               const trackingText = '🎯 3D TRACKING ACTIVE';
-              ctx.strokeText(trackingText, -canvas.width + 10, 85);
-              ctx.fillText(trackingText, -canvas.width + 10, 85);
+              ctx.strokeText(trackingText, 10, 85);
+              ctx.fillText(trackingText, 10, 85);
             }
-            
+
             ctx.restore();
             
             // Draw 3D gaze rays and coordinate axes (JEOresearch style)
@@ -873,6 +870,36 @@ export const useGazeTracking = (
                 ctx.fillText(`Screen: (${screenX}, ${screenY})`, 10, canvas.height - 20);
               }
             }
+          }
+
+          // Draw gaze position marker (red circle + yellow crosshair) for all modes
+          if (currentGaze) {
+            const screenX = currentGaze.x * canvas.width;
+            const screenY = currentGaze.y * canvas.height;
+
+            // Red circle - outer (semi-transparent)
+            ctx.fillStyle = 'rgba(255, 0, 0, 0.3)';
+            ctx.beginPath();
+            ctx.arc(screenX, screenY, 20, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Red circle - inner (solid)
+            ctx.fillStyle = 'rgba(255, 0, 0, 0.8)';
+            ctx.beginPath();
+            ctx.arc(screenX, screenY, 8, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Yellow crosshair
+            ctx.strokeStyle = 'rgba(255, 255, 0, 0.9)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            // Horizontal line
+            ctx.moveTo(screenX - 25, screenY);
+            ctx.lineTo(screenX + 25, screenY);
+            // Vertical line
+            ctx.moveTo(screenX, screenY - 25);
+            ctx.lineTo(screenX, screenY + 25);
+            ctx.stroke();
           }
         }
       }

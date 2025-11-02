@@ -356,6 +356,7 @@ model VisionTestSession {
   gazeData     VisionGazeData[]
   metrics      VisionMetrics?
   adjustments  VisionCalibrationAdjustment[]
+  mlSamples    MLTrainingSample[]
 
   @@index([sessionId])
   @@index([calibrationId])
@@ -747,4 +748,137 @@ model LexileCalibrationData {
   passage                Passage   @relation(fields: [passageId], references: [id], onDelete: Cascade)
 
   @@map("lexile_calibration_data")
+}
+
+// ===== Machine Learning Training Data (Lightweight) =====
+
+enum DatasetPurpose {
+  PUPIL_DETECTION      // 동공 검출 학습
+  GAZE_ESTIMATION      // 시선 추정 학습
+  VERTICAL_CORRECTION  // 상하 오차 보정 학습
+  CALIBRATION_OPTIMIZE // 캘리브레이션 최적화
+}
+
+enum DataQuality {
+  EXCELLENT  // 95%+ 신뢰도
+  GOOD       // 85-95%
+  FAIR       // 70-85%
+  POOR       // <70%
+}
+
+// ML 학습 샘플 (특징 벡터만 저장, 이미지 없음!)
+// 샘플당 2-5KB로 매우 경량
+model MLTrainingSample {
+  id                String       @id @default(uuid()) @db.Uuid
+  userId            String?      @map("user_id") @db.Uuid
+  visionSessionId   String?      @map("vision_session_id") @db.Uuid
+
+  // 메타데이터
+  ageGroup          String       @map("age_group") @db.VarChar(20)
+  // "GRADE_3_4" (8-10세), "GRADE_5_6" (11-12세), "GRADE_7_9" (13-15세)
+
+  gender            String?      @db.VarChar(10)
+  wearsGlasses      Boolean      @map("wears_glasses") @default(false)
+  deviceType        String       @db.VarChar(50)
+  screenResolution  String?      @db.VarChar(20)
+
+  // 특징 벡터 (이미지 대신 랜드마크만!)
+  irisLandmarks     Json         @map("iris_landmarks") @db.JsonB
+  // { leftEye: [{x, y}, ...], rightEye: [{x, y}, ...] }
+  // MediaPipe Iris 10 points per eye
+
+  faceLandmarks     Json         @map("face_landmarks") @db.JsonB
+  // 주요 68 포인트만 (478에서 압축)
+
+  headPose          Json         @map("head_pose") @db.JsonB
+  // { pitch: number, yaw: number, roll: number }
+
+  // Ground Truth (캘리브레이션 데이터)
+  calibrationPoints Json         @map("calibration_points") @db.JsonB
+  // [{ targetX, targetY, gazeX, gazeY, error }, ...]
+
+  pupilDiameters    Json?        @map("pupil_diameters") @db.JsonB
+  // { left: number, right: number } (mm)
+
+  // 품질 정보
+  quality           DataQuality
+  qualityScore      Float        @db.DoublePrecision // 0-100
+  qualityNotes      String?      @db.Text
+
+  // 데이터 출처
+  source            String       @default("VISIONTEST") @db.VarChar(50)
+  // "VISIONTEST", "EyeInfo", "GazeCapture", etc.
+
+  // 프라이버시
+  isAnonymized      Boolean      @default(true)
+  consentGiven      Boolean      @default(false)
+
+  createdAt         DateTime     @default(now()) @map("created_at")
+
+  // Relations
+  visionSession     VisionTestSession? @relation(fields: [visionSessionId], references: [id])
+
+  @@index([quality])
+  @@index([ageGroup])
+  @@index([visionSessionId])
+  @@map("ml_training_samples")
+}
+
+// ML 모델 메타데이터
+model MLModel {
+  id                String       @id @default(uuid()) @db.Uuid
+  name              String       @db.VarChar(255)
+  version           String       @db.VarChar(20)
+  purpose           DatasetPurpose
+
+  // 모델 정보
+  architecture      String       @db.VarChar(100)
+  // "MobileNetV2", "Custom CNN", "MediaPipe Fine-tuned"
+
+  framework         String       @db.VarChar(50)
+  // "TensorFlow.js", "TFLite"
+
+  // 학습 정보
+  trainingConfig    Json         @db.JsonB
+  trainingSamples   Int          // 학습에 사용된 샘플 수
+
+  // 성능 지표
+  metrics           Json         @db.JsonB
+  // { accuracy, mae, fps, modelSize }
+
+  // 모델 파일 URL
+  modelUrl          String?      @db.VarChar(500)
+  modelChecksum     String?      @db.VarChar(64)
+
+  // 상태
+  isProduction      Boolean      @default(false)
+  deployedAt        DateTime?
+
+  createdAt         DateTime     @default(now()) @map("created_at")
+  updatedAt         DateTime     @updatedAt @map("updated_at")
+
+  @@index([purpose, isProduction])
+  @@map("ml_models")
+}
+
+// ML 데이터 수집 동의 관리
+model MLDataConsent {
+  id                String       @id @default(uuid()) @db.Uuid
+  userId            String       @unique @map("user_id") @db.Uuid
+
+  consentGiven      Boolean      @default(false)
+  consentDate       DateTime?    @map("consent_date")
+  consentVersion    String?      @db.VarChar(20) // "v1.0"
+
+  // 수집 설정
+  collectFeatures   Boolean      @default(true)
+  collectAnonymous  Boolean      @default(true)
+
+  // 철회
+  revokedAt         DateTime?    @map("revoked_at")
+
+  createdAt         DateTime     @default(now()) @map("created_at")
+  updatedAt         DateTime     @updatedAt @map("updated_at")
+
+  @@map("ml_data_consents")
 }
