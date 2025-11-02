@@ -68,7 +68,7 @@ export default function VisionTestDebug() {
     canvasRef
   } = useGazeTracking({
     enabled: isTracking,
-    disableVisualization: true, // Custom debug UI handles visualization
+    disableVisualization: false, // Enable default visualization (FACE, landmarks, pupil)
     onGazePoint: (point: GazePoint) => {
       console.log('🎯 Gaze point:', point.x, point.y);
       setGazePoint({ x: point.x, y: point.y });
@@ -157,7 +157,7 @@ export default function VisionTestDebug() {
     }, 2000);
   };
 
-  // Detect video resolution and update canvas size
+  // Detect video resolution (canvas size is managed by useGazeTracking)
   useEffect(() => {
     if (!videoRef.current) return;
 
@@ -167,12 +167,6 @@ export default function VisionTestDebug() {
         const width = video.videoWidth;
         const height = video.videoHeight;
         setVideoResolution({ width, height });
-
-        // Update canvas size to match video resolution
-        if (canvasRef.current) {
-          canvasRef.current.width = width;
-          canvasRef.current.height = height;
-        }
       }
     };
 
@@ -183,7 +177,7 @@ export default function VisionTestDebug() {
       video.removeEventListener('loadedmetadata', updateResolution);
       video.removeEventListener('playing', updateResolution);
     };
-  }, [videoRef, canvasRef]);
+  }, [videoRef]);
 
   // Update FPS from useGazeTracking
   useEffect(() => {
@@ -207,70 +201,8 @@ export default function VisionTestDebug() {
     }
   }, [isTracking, enablePhase3]);
 
-  // Draw gaze point on canvas (with proper mirroring)
-  useEffect(() => {
-    if (!canvasRef.current || !gazePoint) return;
-
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    // Save context state
-    ctx.save();
-
-    // Clear canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // Apply horizontal flip to match video mirroring
-    ctx.translate(canvas.width, 0);
-    ctx.scale(-1, 1);
-
-    // Draw gaze point (red circle with crosshair)
-    const mirroredX = canvas.width - gazePoint.x;
-
-    // Outer circle (semi-transparent)
-    ctx.fillStyle = 'rgba(255, 0, 0, 0.3)';
-    ctx.beginPath();
-    ctx.arc(mirroredX, gazePoint.y, 20, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Inner circle (solid)
-    ctx.fillStyle = 'rgba(255, 0, 0, 0.8)';
-    ctx.beginPath();
-    ctx.arc(mirroredX, gazePoint.y, 8, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Crosshair
-    ctx.strokeStyle = 'rgba(255, 255, 0, 0.9)';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(mirroredX - 25, gazePoint.y);
-    ctx.lineTo(mirroredX + 25, gazePoint.y);
-    ctx.moveTo(mirroredX, gazePoint.y - 25);
-    ctx.lineTo(mirroredX, gazePoint.y + 25);
-    ctx.stroke();
-
-    // Draw face bounding box if available
-    if (metrics.phase1.facePosition) {
-      const face = metrics.phase1.facePosition;
-      const mirroredFaceX = canvas.width - (face.x + face.width);
-
-      ctx.strokeStyle = 'rgba(0, 255, 0, 0.6)';
-      ctx.lineWidth = 2;
-      ctx.strokeRect(mirroredFaceX, face.y, face.width, face.height);
-
-      // Draw face position label (with reverse transform for text)
-      ctx.save();
-      ctx.setTransform(1, 0, 0, 1, 0, 0); // Reset transform for text
-      ctx.fillStyle = 'rgba(0, 255, 0, 0.8)';
-      ctx.font = '14px monospace';
-      ctx.fillText('Face', face.x + 5, face.y - 5);
-      ctx.restore();
-    }
-
-    // Restore context state
-    ctx.restore();
-  }, [gazePoint, metrics.phase1.facePosition, canvasRef]);
+  // NOTE: Canvas visualization is handled by useGazeTracking (disableVisualization: false)
+  // Custom overlay drawing would be added here if disableVisualization: true
 
   return (
     <div className="min-h-screen bg-background">
