@@ -969,9 +969,9 @@ export const useGazeTracking = (
         }
       }
 
-      // Log every 120 frames (2 seconds)
-      if (fpsCounterRef.current.frames % 120 === 0) {
-        console.log('👤 No face detected');
+      // 🔍 CRITICAL DEBUG: Log every 30 frames for faster feedback
+      if (fpsCounterRef.current.frames % 30 === 0) {
+        console.warn('👤 ❌ NO FACE DETECTED - currentGaze will be NULL');
         console.log('💡 Lighting:', analysisText, `(${Math.round(brightness)}/255)`);
       }
 
@@ -980,9 +980,9 @@ export const useGazeTracking = (
       return;
     }
 
-    // Log face detection success less frequently
+    // 🔍 CRITICAL DEBUG: Log face detection success
     if (fpsCounterRef.current.frames % 30 === 0) {
-      console.log('✅ Face detected with', result.faceLandmarks[0].length, 'landmarks');
+      console.log('✅ Face detected:', result.faceLandmarks[0].length, 'landmarks');
     }
 
     const landmarks = result.faceLandmarks[0];
@@ -1321,17 +1321,23 @@ export const useGazeTracking = (
     );
     const avgEAR = (leftEAR + rightEAR) / 2;
 
-    // Log only when EAR is below threshold
-    if (avgEAR < 0.12) {
-      console.log('👁️ Eyes closed or occluded - EAR:', avgEAR.toFixed(3));
+    // 🔍 CRITICAL DEBUG: Always log EAR for diagnosis
+    if (fpsCounterRef.current.frames % 30 === 0) {
+      console.log('👁️ EAR Monitoring:', {
+        avgEAR: avgEAR.toFixed(3),
+        leftEAR: leftEAR.toFixed(3),
+        rightEAR: rightEAR.toFixed(3),
+        threshold: 0.08,
+        willBlock: avgEAR < 0.08
+      });
     }
 
-    // Lowered threshold from 0.18 to 0.12 to allow tracking when looking up
-    // When eyes look up, upper eyelid covers more iris, reducing EAR
-    const EAR_THRESHOLD = 0.12;
+    // Lowered threshold from 0.18 → 0.12 → 0.08 to allow more eye movements
+    // When eyes look up/down, eyelid coverage changes EAR significantly
+    const EAR_THRESHOLD = 0.08;
 
     if (avgEAR < EAR_THRESHOLD) {
-      console.warn('👓 Eyes closed or occluded');
+      console.warn('👓 Eyes closed or occluded - EAR:', avgEAR.toFixed(3), '< threshold', EAR_THRESHOLD);
       setCurrentGaze(null);
       animationFrameRef.current = window.requestAnimationFrame(detectAndEstimateGaze);
       return;
