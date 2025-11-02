@@ -1340,6 +1340,57 @@ export const useGazeTracking = (
               dataCallback: onRawGazeData ? 'active' : 'none'
             });
           }
+
+          // ✨ Phase 8: Call onConcentrationData for pupil tracking in 3D mode
+          if (onConcentrationData) {
+            // Extract iris data using ellipse fitting
+            const irisData = extractBothEyesIrisData(landmarks, video.videoWidth, video.videoHeight);
+
+            // Calculate average pupil size from both eyes
+            let avgPupilSize = 0;
+            if (irisData.left && irisData.right) {
+              avgPupilSize = (irisData.left.diameter + irisData.right.diameter) / 2;
+            } else if (irisData.left) {
+              avgPupilSize = irisData.left.diameter;
+            } else if (irisData.right) {
+              avgPupilSize = irisData.right.diameter;
+            }
+
+            // Calculate eye movement velocity
+            let eyeMovementVelocity = 0;
+            if (lastGazeRef.current) {
+              const dx = clampedGaze.x - lastGazeRef.current.x;
+              const dy = clampedGaze.y - lastGazeRef.current.y;
+              const dt = (Date.now() - lastGazeRef.current.timestamp) / 1000;
+              const distance = Math.sqrt(dx * dx + dy * dy);
+              eyeMovementVelocity = dt > 0 ? distance / dt : 0;
+            }
+
+            // Calculate EAR (Eye Aspect Ratio) - approximate for 3D mode
+            const avgEAR = 0.3; // Placeholder - 3D mode doesn't calculate EAR
+
+            // Extract head pose
+            const noseTip3D = toPixelCoords(landmarks[1]);
+            const leftEye3D = toPixelCoords(landmarks[33]);
+            const rightEye3D = toPixelCoords(landmarks[263]);
+            const eyesCenterX = (leftEye3D.x + rightEye3D.x) / 2;
+            const eyesCenterY = (leftEye3D.y + rightEye3D.y) / 2;
+            const headYaw = (noseTip3D.x - eyesCenterX) / video.videoWidth;
+            const headPitch = (noseTip3D.y - eyesCenterY) / video.videoHeight;
+            const headRoll = Math.atan2(rightEye3D.y - leftEye3D.y, rightEye3D.x - leftEye3D.x);
+
+            const concentrationRawData: ConcentrationRawData = {
+              pupilSize: avgPupilSize,
+              eyeAspectRatio: avgEAR,
+              gazeVector: { x: clampedGaze.x, y: clampedGaze.y },
+              eyeMovementVelocity,
+              headPose: { yaw: headYaw, pitch: headPitch, roll: headRoll },
+              fixationPoint: null, // 3D mode doesn't detect fixations here
+              timestamp: Date.now()
+            };
+
+            onConcentrationData(concentrationRawData);
+          }
         }
 
         // Increment frame counter for 3D mode debugging
