@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGazeTracking } from '../../hooks/useGazeTracking';
 import { GazePoint } from '../../types/vision.types';
@@ -52,16 +52,15 @@ export default function VisionTestDebug() {
   const [enableHybrid, setEnableHybrid] = useState(true);
   const [enableVerticalCorrection, setEnableVerticalCorrection] = useState(true);
   const [enablePhase3, setEnablePhase3] = useState(false);
-
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
   const [gazePoint, setGazePoint] = useState<{ x: number; y: number } | null>(null);
 
   const {
     startTracking,
     stopTracking,
     error: trackingError,
-    fps: hookFps
+    fps: hookFps,
+    videoRef: hookVideoRef,
+    canvasRef: hookCanvasRef
   } = useGazeTracking({
     enabled: isTracking,
     onGazePoint: (point: GazePoint) => {
@@ -73,14 +72,7 @@ export default function VisionTestDebug() {
         fps: hookFps || prev.fps,
         latency: Math.round(Math.random() * 20 + 10) // Placeholder
       }));
-    },
-    use3DTracking: false,
-    enableHybridMode: enableHybrid,
-    enableVerticalCorrection: enableVerticalCorrection,
-    enableWebWorker: enablePhase3,
-    enableROIOptimization: enablePhase3,
-    enableFrameSkip: enablePhase3,
-    performanceMode: 'balanced'
+    }
   });
 
   const handleStartTracking = async () => {
@@ -99,9 +91,9 @@ export default function VisionTestDebug() {
 
   // Draw gaze point on canvas
   useEffect(() => {
-    if (!canvasRef.current || !gazePoint) return;
+    if (!hookCanvasRef.current || !gazePoint) return;
 
-    const canvas = canvasRef.current;
+    const canvas = hookCanvasRef.current;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
@@ -123,7 +115,7 @@ export default function VisionTestDebug() {
     ctx.moveTo(gazePoint.x, gazePoint.y - 20);
     ctx.lineTo(gazePoint.x, gazePoint.y + 20);
     ctx.stroke();
-  }, [gazePoint]);
+  }, [gazePoint, hookCanvasRef]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -183,7 +175,7 @@ export default function VisionTestDebug() {
 
               <div className="relative bg-black rounded-lg overflow-hidden" style={{ aspectRatio: '16/9' }}>
                 <video
-                  ref={videoRef}
+                  ref={hookVideoRef}
                   autoPlay
                   playsInline
                   muted
@@ -191,7 +183,7 @@ export default function VisionTestDebug() {
                   style={{ display: showVideo ? 'block' : 'none' }}
                 />
                 <canvas
-                  ref={canvasRef}
+                  ref={hookCanvasRef}
                   width={1280}
                   height={720}
                   className="absolute top-0 left-0 w-full h-full"
