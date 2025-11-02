@@ -2098,9 +2098,9 @@ function estimateGazeFromLandmarks(
   const headCompensatedY = (depthCorrectedY * baseSensitivityY);
 
   // === FINAL GAZE COORDINATES ===
-  // Horizontal: Center at 0.5, FLIP for correct left-right mapping
+  // Horizontal: Center at 0.5, direct mapping (no flip needed with correct iris offset)
   const rawX = 0.5 + (headCompensatedX * 1.0);  // Reduced multiplier for stable 2D tracking
-  const x = 1.0 - rawX;  // FLIP: Mirror horizontally (left ↔ right)
+  const x = rawX;  // ✅ FIXED: No flip - iris offset already provides correct direction
 
   // Vertical: Use depth-corrected Y (iris + head pitch combined)
   //   depthCorrectedY combines iris position with head pitch influence
