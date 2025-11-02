@@ -718,6 +718,68 @@ export const useGazeTracking = (
               ctx.fill();
             }
 
+            // ✨ Phase 8: Draw IRIS landmarks (5 points per eye)
+            if (landmarks.length > 477) {
+              // Left iris landmarks (468-472)
+              ctx.fillStyle = '#ff00ff'; // Magenta for left iris
+              for (let i = 468; i <= 472; i++) {
+                const point = toCanvasCoords(landmarks[i]);
+                ctx.beginPath();
+                ctx.arc(point.x, point.y, 3, 0, 2 * Math.PI);
+                ctx.fill();
+              }
+
+              // Right iris landmarks (473-477)
+              ctx.fillStyle = '#00ffff'; // Cyan for right iris
+              for (let i = 473; i <= 477; i++) {
+                const point = toCanvasCoords(landmarks[i]);
+                ctx.beginPath();
+                ctx.arc(point.x, point.y, 3, 0, 2 * Math.PI);
+                ctx.fill();
+              }
+
+              // Draw iris center circles (from ellipse fitting)
+              const irisData = extractBothEyesIrisData(landmarks, video.videoWidth, video.videoHeight);
+
+              if (irisData.left) {
+                const centerX = irisData.left.center.x;
+                const centerY = irisData.left.center.y;
+                const radius = irisData.left.diameter / 2;
+
+                // Draw ellipse outline
+                ctx.strokeStyle = '#ff00ff';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.ellipse(centerX, centerY, radius, radius * irisData.left.axes.minor / irisData.left.axes.major, 0, 0, Math.PI * 2);
+                ctx.stroke();
+
+                // Draw center dot
+                ctx.fillStyle = '#ff00ff';
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, 2, 0, Math.PI * 2);
+                ctx.fill();
+              }
+
+              if (irisData.right) {
+                const centerX = irisData.right.center.x;
+                const centerY = irisData.right.center.y;
+                const radius = irisData.right.diameter / 2;
+
+                // Draw ellipse outline
+                ctx.strokeStyle = '#00ffff';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.ellipse(centerX, centerY, radius, radius * irisData.right.axes.minor / irisData.right.axes.major, 0, 0, Math.PI * 2);
+                ctx.stroke();
+
+                // Draw center dot
+                ctx.fillStyle = '#00ffff';
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, 2, 0, Math.PI * 2);
+                ctx.fill();
+              }
+            }
+
             // Draw status info (normal orientation - video is already mirrored)
             ctx.save();
             ctx.font = 'bold 16px Arial';
