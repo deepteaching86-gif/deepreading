@@ -30,6 +30,7 @@ import { VisionTestPage } from './pages/student/VisionTestPage';
 import { VisionTestReport } from './pages/student/VisionTestReport';
 import { VisionSessions } from './pages/admin/VisionSessions';
 import { VisionSessionDetail } from './pages/admin/VisionSessionDetail';
+import VisionTestDebug from './pages/admin/VisionTestDebug';
 
 // English Adaptive Test
 import EnglishTestPage from './pages/test/EnglishTestPage';
@@ -203,6 +204,14 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['admin']}>
                 <VisionSessionDetail />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/vision-debug"
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <VisionTestDebug />
               </ProtectedRoute>
             }
           />
