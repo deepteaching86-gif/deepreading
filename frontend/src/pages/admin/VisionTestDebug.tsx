@@ -116,6 +116,15 @@ export default function VisionTestDebug() {
       setMetrics(prev => ({
         ...prev,
         latency: Math.round(Date.now() - point.timestamp),
+        phase1: {
+          ...prev.phase1,
+          // ✅ FIX: Update 3D Model data in 3D tracking mode
+          model3d: {
+            x: point.x * videoResolution.width,
+            y: point.y * videoResolution.height,
+            confidence: point.confidence
+          }
+        },
         phase2: {
           ...prev.phase2,
           verticalCorrectionActive: enableVerticalCorrection,

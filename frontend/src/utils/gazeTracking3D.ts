@@ -531,18 +531,30 @@ export function computeMonitorIntersection(
 
 /**
  * Convert 3D intersection point to normalized screen coordinates
+ * ✨ FIXED: Correct axis orientation and center recognition
  */
 export function intersectionToScreenCoords(
   intersection: Point3D,
   monitor: VirtualMonitor
 ): { x: number; y: number } {
   const relative = subtractPoints(intersection, monitor.center);
-  
+
   // Normalize to [0, 1] range
-  return {
-    x: relative.x / monitor.width + 0.5,
-    y: relative.y / monitor.height + 0.5
-  };
+  // ✅ FIX 1: Invert X axis for webcam mirror effect (left looks left)
+  // ✅ FIX 2: Invert Y axis (up is up, not down)
+  let x = 0.5 - (relative.x / monitor.width);  // Inverted X
+  let y = 0.5 - (relative.y / monitor.height); // Inverted Y
+
+  // ✅ FIX 3: Center dead zone for precise center recognition (0.45-0.55 → 0.5)
+  const CENTER_DEAD_ZONE = 0.05;  // 5% tolerance
+  if (Math.abs(x - 0.5) < CENTER_DEAD_ZONE) {
+    x = 0.5;
+  }
+  if (Math.abs(y - 0.5) < CENTER_DEAD_ZONE) {
+    y = 0.5;
+  }
+
+  return { x, y };
 }
 
 // ============================================================================
