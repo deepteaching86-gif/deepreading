@@ -71,8 +71,7 @@ export default function VisionTestDebug() {
   const {
     processGazePoint,
     currentFixation,
-    fixations,
-    saccades
+    fixations
   } = useFixationDetector({
     fixationThreshold: 0.03,
     minFixationDuration: 100,
