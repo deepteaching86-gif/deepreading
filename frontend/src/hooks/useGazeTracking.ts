@@ -1751,6 +1751,7 @@ export const useGazeTracking = (
 
     // 🔍 Critical Debug: Final gaze values before rendering
     if (fpsCounterRef.current.frames % 30 === 0) {
+      const canvas = canvasRef.current;
       console.log('🎯 FINAL Gaze Values (setCurrentGaze):', {
         finalX: finalX.toFixed(3),
         finalY: finalY.toFixed(3),
