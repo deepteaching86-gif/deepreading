@@ -877,6 +877,19 @@ export const useGazeTracking = (
             const screenX = currentGaze.x * canvas.width;
             const screenY = currentGaze.y * canvas.height;
 
+            // 🔍 Debug gaze marker rendering
+            if (fpsCounterRef.current.frames % 30 === 0) {
+              console.log('🎨 Drawing Gaze Marker:', {
+                currentGazeX: currentGaze.x.toFixed(3),
+                currentGazeY: currentGaze.y.toFixed(3),
+                screenX: screenX.toFixed(0),
+                screenY: screenY.toFixed(0),
+                canvasWidth: canvas.width,
+                canvasHeight: canvas.height,
+                isVisible: screenX >= 0 && screenX <= canvas.width && screenY >= 0 && screenY <= canvas.height
+              });
+            }
+
             // Red circle - outer (semi-transparent)
             ctx.fillStyle = 'rgba(255, 0, 0, 0.3)';
             ctx.beginPath();
@@ -900,6 +913,11 @@ export const useGazeTracking = (
             ctx.moveTo(screenX, screenY - 25);
             ctx.lineTo(screenX, screenY + 25);
             ctx.stroke();
+          } else {
+            // 🔍 Debug when currentGaze is null
+            if (fpsCounterRef.current.frames % 60 === 0) {
+              console.warn('⚠️ currentGaze is NULL - gaze marker not rendering');
+            }
           }
         }
       }
@@ -1356,15 +1374,22 @@ export const useGazeTracking = (
         };
         
         usingIrisLandmarks = true;
-        
+
         // Debug log occasionally
         if (fpsCounterRef.current.frames % 30 === 0) {
           console.log('🎯 JEOresearch: Using actual iris landmarks', {
             leftIris: `(${leftIris.x.toFixed(3)}, ${leftIris.y.toFixed(3)})`,
             rightIris: `(${rightIris.x.toFixed(3)}, ${rightIris.y.toFixed(3)})`,
-            landmarkCount: landmarks.length
+            landmarkCount: landmarks.length,
+            mode: 'MediaPipe-Iris'
           });
         }
+      } else {
+        console.warn('⚠️ MediaPipe iris landmarks not available', {
+          landmarkCount: landmarks.length,
+          hasLeftIris: landmarks.length > LEFT_IRIS_CENTER,
+          hasRightIris: landmarks.length > RIGHT_IRIS_CENTER
+        });
       }
     }
     
@@ -1442,6 +1467,19 @@ export const useGazeTracking = (
       video.videoHeight,
       onRawGazeData
     );
+
+    // 🔍 Debug raw gaze calculation
+    if (fpsCounterRef.current.frames % 30 === 0) {
+      console.log('📍 Raw Gaze Estimation:', {
+        rawX: gaze.x.toFixed(3),
+        rawY: gaze.y.toFixed(3),
+        leftIrisX: faceLandmarks.leftIris.x.toFixed(3),
+        rightIrisX: faceLandmarks.rightIris.x.toFixed(3),
+        leftEyeX: faceLandmarks.leftEye.x.toFixed(3),
+        rightEyeX: faceLandmarks.rightEye.x.toFixed(3),
+        usingIrisLandmarks
+      });
+    }
 
     // Clamp gaze values to valid screen range (0.0 ~ 1.0) BEFORE filtering
     const clampedGaze = {
@@ -1711,15 +1749,24 @@ export const useGazeTracking = (
       landmarks: faceLandmarks
     };
 
-    setCurrentGaze(gazeEstimation);
-    // Log gaze updates only occasionally
-    if (fpsCounterRef.current.frames % 60 === 0) {
-      console.log('🎯 Gaze updated:', {
-        x: finalX.toFixed(2),
-        y: finalY.toFixed(2),
-        confidence: gaze.confidence
+    // 🔍 Critical Debug: Final gaze values before rendering
+    if (fpsCounterRef.current.frames % 30 === 0) {
+      console.log('🎯 FINAL Gaze Values (setCurrentGaze):', {
+        finalX: finalX.toFixed(3),
+        finalY: finalY.toFixed(3),
+        filteredX: filteredGaze.x.toFixed(3),
+        filteredY: filteredGaze.y.toFixed(3),
+        rawX: gaze.x.toFixed(3),
+        rawY: gaze.y.toFixed(3),
+        canvasWidth: canvas?.width || 'N/A',
+        canvasHeight: canvas?.height || 'N/A',
+        screenX: canvas ? (finalX * canvas.width).toFixed(0) : 'N/A',
+        screenY: canvas ? (finalY * canvas.height).toFixed(0) : 'N/A',
+        confidence: finalConfidence
       });
     }
+
+    setCurrentGaze(gazeEstimation);
 
     // Classify gaze type
     const gazeType = classifyGazeType(
