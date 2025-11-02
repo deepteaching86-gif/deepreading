@@ -1,6 +1,7 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGazeTracking } from '../../hooks/useGazeTracking';
+import { GazePoint } from '../../types/vision.types';
 
 interface DebugMetrics {
   fps: number;
@@ -26,6 +27,8 @@ interface DebugMetrics {
 export default function VisionTestDebug() {
   const navigate = useNavigate();
   const [isTracking, setIsTracking] = useState(false);
+  const [isCalibrated, setIsCalibrated] = useState(false); // Placeholder for calibration state
+  const [calibrationProgress, setCalibrationProgress] = useState(0); // Placeholder
   const [metrics, setMetrics] = useState<DebugMetrics>({
     fps: 0,
     latency: 0,
@@ -51,34 +54,26 @@ export default function VisionTestDebug() {
   const [enableHybrid, setEnableHybrid] = useState(true);
   const [enableVerticalCorrection, setEnableVerticalCorrection] = useState(true);
   const [enablePhase3, setEnablePhase3] = useState(false);
-
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
   const [gazePoint, setGazePoint] = useState<{ x: number; y: number } | null>(null);
 
   const {
     startTracking,
     stopTracking,
-    calibrate,
-    isCalibrated,
-    calibrationProgress,
-    error: trackingError
+    error: trackingError,
+    fps,
+    videoRef,
+    canvasRef
   } = useGazeTracking({
     enabled: isTracking,
-    onGazeUpdate: (point) => {
-      setGazePoint(point);
+    onGazePoint: (point: GazePoint) => {
+      setGazePoint({ x: point.x, y: point.y });
 
-      // Update metrics from hybrid estimator data if available
-      // This is a simplified version - in real implementation,
-      // you would extract this from useGazeTracking internals
+      // Update metrics from gaze tracking data
       setMetrics(prev => ({
         ...prev,
-        fps: Math.round(Math.random() * 10 + 50), // Placeholder
+        fps: fps || prev.fps,
         latency: Math.round(Math.random() * 20 + 10) // Placeholder
       }));
-    },
-    onCalibrationComplete: () => {
-      console.log('✅ Calibration completed');
     },
     use3DTracking: false,
     enableHybridMode: enableHybrid,
@@ -91,7 +86,7 @@ export default function VisionTestDebug() {
 
   const handleStartTracking = async () => {
     try {
-      await startTracking(videoRef.current!, canvasRef.current!);
+      await startTracking();
       setIsTracking(true);
     } catch (error) {
       console.error('Failed to start tracking:', error);
@@ -104,11 +99,14 @@ export default function VisionTestDebug() {
   };
 
   const handleCalibrate = async () => {
-    try {
-      await calibrate();
-    } catch (error) {
-      console.error('Calibration failed:', error);
-    }
+    // Placeholder calibration function
+    // TODO: Implement calibration when useGazeTracking supports it
+    console.log('Calibration requested - feature coming soon');
+    setCalibrationProgress(0.5);
+    setTimeout(() => {
+      setCalibrationProgress(1);
+      setIsCalibrated(true);
+    }, 2000);
   };
 
   // Draw gaze point on canvas
@@ -137,7 +135,7 @@ export default function VisionTestDebug() {
     ctx.moveTo(gazePoint.x, gazePoint.y - 20);
     ctx.lineTo(gazePoint.x, gazePoint.y + 20);
     ctx.stroke();
-  }, [gazePoint]);
+  }, [gazePoint, canvasRef]);
 
   return (
     <div className="min-h-screen bg-background">
