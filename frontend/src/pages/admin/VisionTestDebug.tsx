@@ -170,7 +170,7 @@ export default function VisionTestDebug() {
         }
       }));
     },
-    use3DTracking: false,
+    use3DTracking: true, // ✅ CRITICAL FIX: Enable JEOresearch 3D tracking for X coordinate fix
     enableHybridMode: enableHybrid,
     enableVerticalCorrection: enableVerticalCorrection,
     enableWebWorker: enablePhase3,
