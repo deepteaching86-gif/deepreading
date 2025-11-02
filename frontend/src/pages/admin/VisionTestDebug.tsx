@@ -68,13 +68,14 @@ export default function VisionTestDebug() {
     canvasRef
   } = useGazeTracking({
     enabled: isTracking,
+    disableVisualization: true, // Custom debug UI handles visualization
     onGazePoint: (point: GazePoint) => {
+      console.log('🎯 Gaze point:', point.x, point.y);
       setGazePoint({ x: point.x, y: point.y });
 
       // Update metrics
       setMetrics(prev => ({
         ...prev,
-        fps: fps || prev.fps,
         latency: Math.round(Date.now() - point.timestamp),
         phase2: {
           ...prev.phase2,
@@ -183,6 +184,13 @@ export default function VisionTestDebug() {
       video.removeEventListener('playing', updateResolution);
     };
   }, [videoRef, canvasRef]);
+
+  // Update FPS from useGazeTracking
+  useEffect(() => {
+    if (fps > 0) {
+      setMetrics(prev => ({ ...prev, fps }));
+    }
+  }, [fps]);
 
   // Update Phase 3 metrics
   useEffect(() => {

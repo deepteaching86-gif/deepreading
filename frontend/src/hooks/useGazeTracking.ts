@@ -62,6 +62,7 @@ interface UseGazeTrackingOptions {
   enableROIOptimization?: boolean; // Enable adaptive ROI optimization (default: false)
   enableFrameSkip?: boolean; // Enable adaptive frame skipping (default: false)
   performanceMode?: 'performance' | 'balanced' | 'quality'; // Performance mode preset (default: 'balanced')
+  disableVisualization?: boolean; // ✨ DEBUG: Disable automatic canvas visualization (default: false)
 }
 
 interface UseGazeTrackingReturn {
@@ -88,7 +89,8 @@ export const useGazeTracking = (
     enableWebWorker = false,
     enableROIOptimization = false,
     enableFrameSkip = false,
-    performanceMode = 'balanced'
+    performanceMode = 'balanced',
+    disableVisualization = false
   } = options;
 
   const [isInitialized, setIsInitialized] = useState(false);
@@ -497,8 +499,8 @@ export const useGazeTracking = (
         });
       }
 
-      // Draw visualization on canvas
-      if (canvasRef.current) {
+      // Draw visualization on canvas (skip if disabled)
+      if (canvasRef.current && !disableVisualization) {
         const canvas = canvasRef.current;
         const ctx = canvas.getContext('2d', { willReadFrequently: true });
         if (ctx) {
