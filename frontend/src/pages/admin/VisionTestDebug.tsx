@@ -61,6 +61,35 @@ export default function VisionTestDebug() {
   const [gazePoint, setGazePoint] = useState<{ x: number; y: number } | null>(null);
   const [videoResolution, setVideoResolution] = useState({ width: 1280, height: 720 });
 
+  // Phase 8: Gaze Analytics State
+  const [pupilDiameter, setPupilDiameter] = useState<number>(0);
+  const [fixationCount, setFixationCount] = useState(0);
+  const [saccadeCount, setSaccadeCount] = useState(0);
+  const [avgSaccadeVelocity, setAvgSaccadeVelocity] = useState(0);
+
+  // Phase 8: Fixation Detector
+  const {
+    processGazePoint,
+    currentFixation,
+    fixations,
+    saccades
+  } = useFixationDetector({
+    fixationThreshold: 0.03,
+    minFixationDuration: 100,
+    onFixation: (fixation) => {
+      console.log('✨ Fixation detected:', fixation);
+      setFixationCount(prev => prev + 1);
+    },
+    onSaccade: (saccade) => {
+      console.log('⚡ Saccade detected:', saccade);
+      setSaccadeCount(prev => prev + 1);
+      setAvgSaccadeVelocity(prev => {
+        const count = saccadeCount + 1;
+        return ((prev * saccadeCount) + saccade.velocity) / count;
+      });
+    }
+  });
+
   const {
     startTracking,
     stopTracking,
@@ -75,6 +104,15 @@ export default function VisionTestDebug() {
       console.log('🎯 Gaze point:', point.x, point.y);
       setGazePoint({ x: point.x, y: point.y });
 
+      // Phase 8: Process gaze point for fixation detection
+      processGazePoint({
+        x: point.x,
+        y: point.y,
+        timestamp: point.timestamp,
+        pupilDiameter: pupilDiameter,
+        confidence: 1.0
+      });
+
       // Update metrics
       setMetrics(prev => ({
         ...prev,
@@ -85,6 +123,12 @@ export default function VisionTestDebug() {
           correctedGaze: enableVerticalCorrection ? { x: point.x, y: point.y } : null
         }
       }));
+    },
+    onConcentrationData: (data: ConcentrationRawData) => {
+      // Phase 8: Update pupil diameter from ellipse fitting
+      if (data.pupilSize && data.pupilSize > 0) {
+        setPupilDiameter(data.pupilSize);
+      }
     },
     onMediaPipeData: (data) => {
       // MediaPipe gaze estimation (simplified from landmarks)
@@ -481,6 +525,63 @@ export default function VisionTestDebug() {
                   <div className="text-xs text-muted-foreground mb-2">Cache Hit Rate</div>
                   <div className="text-lg font-semibold text-foreground">
                     {metrics.phase3.cacheHitRate.toFixed(1)}%
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Phase 8: Gaze Analytics (NEW) */}
+            <div className="bg-card rounded-lg border border-border p-6">
+              <h2 className="text-lg font-semibold mb-4 text-foreground flex items-center">
+                <span>✨ Phase 8: Gaze Analytics (Pupil + Fixations)</span>
+              </h2>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-muted/50 rounded-lg p-4">
+                  <div className="text-xs text-muted-foreground mb-2">Pupil Diameter</div>
+                  <div className="text-lg font-semibold text-foreground">
+                    {pupilDiameter > 0 ? pupilDiameter.toFixed(2) + ' px' : '데이터 없음'}
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    (Ellipse Fitting)
+                  </div>
+                </div>
+
+                <div className="bg-muted/50 rounded-lg p-4">
+                  <div className="text-xs text-muted-foreground mb-2">Current Fixation</div>
+                  {currentFixation ? (
+                    <div className="space-y-1">
+                      <div className="text-sm font-mono">
+                        ({currentFixation.x.toFixed(2)}, {currentFixation.y.toFixed(2)})
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {currentFixation.duration.toFixed(0)}ms
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-sm text-muted-foreground">Moving</div>
+                  )}
+                </div>
+
+                <div className="bg-muted/50 rounded-lg p-4">
+                  <div className="text-xs text-muted-foreground mb-2">Fixation Count</div>
+                  <div className="text-lg font-semibold text-foreground">
+                    {fixationCount}
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    Total: {fixations.length}
+                  </div>
+                </div>
+
+                <div className="bg-muted/50 rounded-lg p-4">
+                  <div className="text-xs text-muted-foreground mb-2">Saccade Stats</div>
+                  <div className="space-y-1">
+                    <div className="text-sm font-mono">
+                      Count: {saccadeCount}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      Avg Vel: {avgSaccadeVelocity.toFixed(4)}
+                    </div>
                   </div>
                 </div>
               </div>
