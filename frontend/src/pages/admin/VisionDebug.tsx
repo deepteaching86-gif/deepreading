@@ -124,12 +124,13 @@ const VisionDebug: React.FC = () => {
 
   const formatTimestamp = (timestamp: number) => {
     const date = new Date(timestamp);
-    return date.toLocaleTimeString('ko-KR', {
+    const timeString = date.toLocaleTimeString('ko-KR', {
       hour: '2-digit',
       minute: '2-digit',
       second: '2-digit',
-      fractionalSecondDigits: 3,
     });
+    const ms = date.getMilliseconds().toString().padStart(3, '0');
+    return `${timeString}.${ms}`;
   };
 
   return (
@@ -229,8 +230,14 @@ const VisionDebug: React.FC = () => {
                 <div>
                   <p className="text-gray-500">Head Pose</p>
                   <p className="font-mono text-gray-800">
-                    P: {currentGaze.head_pose.pitch.toFixed(1)}°, Y: {currentGaze.head_pose.yaw.toFixed(1)}°, R:{' '}
-                    {currentGaze.head_pose.roll.toFixed(1)}°
+                    {currentGaze.head_pose ? (
+                      <>
+                        P: {currentGaze.head_pose.pitch.toFixed(1)}°, Y: {currentGaze.head_pose.yaw.toFixed(1)}°, R:{' '}
+                        {currentGaze.head_pose.roll.toFixed(1)}°
+                      </>
+                    ) : (
+                      'N/A'
+                    )}
                   </p>
                 </div>
                 <div>
