@@ -454,36 +454,6 @@ export default function AdminDashboard() {
               </div>
             </Link>
 
-            <Link
-              to="/admin/vision-sessions"
-              className="bg-card rounded-lg shadow-sm p-6 border border-border hover:border-primary transition-colors"
-            >
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                  <span className="text-2xl">👁️</span>
-                </div>
-                <div>
-                  <h3 className="font-semibold text-foreground">Vision TEST 관리</h3>
-                  <p className="text-sm text-muted-foreground">시선 추적 테스트 세션 및 분석</p>
-                </div>
-              </div>
-            </Link>
-
-            <Link
-              to="/admin/vision-debug"
-              className="bg-card rounded-lg shadow-sm p-6 border border-border hover:border-primary transition-colors"
-            >
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-                  <span className="text-2xl">🔬</span>
-                </div>
-                <div>
-                  <h3 className="font-semibold text-foreground">Vision TEST 디버그</h3>
-                  <p className="text-sm text-muted-foreground">시선 추적 실시간 테스트 및 디버깅</p>
-                </div>
-              </div>
-            </Link>
-
             <button
               onClick={fetchData}
               className="bg-card rounded-lg shadow-sm p-6 border border-border hover:border-primary transition-colors text-left"
