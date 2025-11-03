@@ -34,6 +34,9 @@ backend/*-vision-*.js
 backend/*-vision-*.sql
 backend/drop-*.js
 backend/remove-*.sql
+update-*.js
+*-db-*.js
+*-password*.js
 
 # IDE
 .vscode/
