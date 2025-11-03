@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { VisionWebSocketClient, VisionAPI, GazeData } from '../../services/visionWebSocket';
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
+// Python Vision Backend URL (Render.com)
+const BACKEND_URL = 'https://literacy-english-test-backend.onrender.com';
 
 interface VisionSession {
   id: string;
