@@ -17,7 +17,17 @@ load_dotenv()
 from app.english_test.router import router as english_test_router
 from app.english_test.admin_routes import router as admin_router
 from app.ai.router import router as ai_router
-from app.vision.router import router as vision_router
+
+# Try to import Vision router (optional - requires MediaPipe/OpenCV)
+vision_router = None
+vision_available = False
+try:
+    from app.vision.router import router as vision_router
+    vision_available = True
+    print("✅ Vision tracking module loaded successfully")
+except Exception as e:
+    print(f"⚠️  Vision tracking module not available: {e}")
+    print("   (MediaPipe/OpenCV dependencies may be missing)")
 
 # Create FastAPI app
 app = FastAPI(
@@ -39,7 +49,10 @@ app.add_middleware(
 app.include_router(english_test_router, prefix="/api/english-test", tags=["English Test"])
 app.include_router(admin_router, prefix="/api/admin/english-test", tags=["Admin English Test"])
 app.include_router(ai_router, prefix="/api/admin/ai", tags=["Admin AI"])
-app.include_router(vision_router, prefix="/api/vision", tags=["Vision Tracking"])
+
+# Include Vision router if available
+if vision_available and vision_router:
+    app.include_router(vision_router, prefix="/api/vision", tags=["Vision Tracking"])
 
 # Root endpoint
 @app.get("/")
