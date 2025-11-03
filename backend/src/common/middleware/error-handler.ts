@@ -5,7 +5,6 @@ import { Prisma } from '@prisma/client';
 import { ZodError } from 'zod';
 import { logger } from '../../config/logger';
 import { env } from '../../config/env';
-import { VisionTestError } from '../../types/vision.types';
 
 export class AppError extends Error {
   constructor(
@@ -44,13 +43,6 @@ export function errorHandler(
   if (error instanceof AppError) {
     statusCode = error.statusCode;
     message = error.message;
-  }
-
-  // Vision TEST Error
-  else if (error instanceof VisionTestError) {
-    statusCode = error.statusCode;
-    message = error.message;
-    errors = error.details ? [{ code: error.code, details: error.details }] : undefined;
   }
 
   // Prisma errors
