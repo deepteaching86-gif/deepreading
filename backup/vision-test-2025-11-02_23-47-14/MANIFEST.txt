@@ -1,0 +1,64 @@
+# Vision Test Backup Manifest
+Backup Date: 2025-11-02 23:47:14
+Backup Location: backup/vision-test-2025-11-02_23-47-14/
+
+## Files Included:
+
+### Pages (Admin) - 3 files
+- VisionSessionDetail.tsx
+- VisionSessions.tsx
+- VisionTestDebug.tsx
+
+### Pages (Student) - 2 files
+- VisionTestPage.tsx
+- VisionTestReport.tsx
+
+### Hooks - 5 files
+- useGazeTracking.ts
+- useGazeTracking.old.ts
+- useGazeTracking.v2.ts
+- useGazeTracking.2d.backup.ts
+- useFixationDetector.ts
+
+### Utils - 6 files
+- gazeTracking3D.ts
+- gazeCalibration.ts
+- gazeRefinement.ts
+- hybridGazeEstimator.ts
+- verticalGazeCorrection.ts
+- calibrationUtils.ts
+
+### Components (Vision) - 7 files
+- GazeReplayPlayer.tsx
+- GazeReplayViewer.tsx
+- CalibrationScreen.tsx
+- CalibrationScreen.tsx.backup
+- CalibrationScreenNew.tsx
+- CalibrationScreenSimple.tsx
+- calibration/Stage3CornerCalibration.tsx
+
+### Components (Gaze) - 1 file
+- GazePathVisualizer.tsx
+
+### Services - 1 file
+- vision.service.ts
+
+### Types - 3 files
+- vision.types.ts
+- gazeAnalytics.ts
+- calibration.ts
+
+### Lib - 1 file
+- gaze/gazeVectorProjection.ts
+
+## Total Files: 29
+
+## Notes:
+- All vision test related files have been backed up
+- This backup was created before complete redesign
+- 비전테스트 전체 재설계 전 백업
+
+## Last Critical Fix (2fed5992):
+- 방향 반대 문제 해결 (gazeTracking3D.ts)
+- 중앙 인식 개선 (5% dead zone)
+- Phase 1 3D Model 데이터 표시 수정

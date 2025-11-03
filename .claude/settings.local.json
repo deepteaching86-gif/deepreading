@@ -154,7 +154,10 @@
       "Bash(do echo:*)",
       "Bash(DATABASE_URL=\"postgresql://postgres.sxnjeqqvqbhueqbwsnpj:DeepReading2025%21%40%23%24SecureDB@db.sxnjeqqvqbhueqbwsnpj.supabase.co:5432/postgres\" npx prisma migrate dev:*)",
       "Bash(del \"src\\controllers\\ml\\ml-data.controller.ts\")",
-      "Bash(npm test:*)"
+      "Bash(npm test:*)",
+      "Bash(for commit in babf4540 3812f839 8d25f21d 7c63810c f9ecc6e7)",
+      "Bash(git show:*)",
+      "Bash(DATABASE_URL=\"postgresql://postgres.sxnjeqqvqbhueqbwsnpj:DeepReading2025!@#$SecureDB@aws-1-ap-northeast-2.pooler.supabase.com:5432/postgres\" psql:*)"
     ],
     "deny": [],
     "ask": []

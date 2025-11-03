@@ -25,13 +25,6 @@ import TeacherDashboard from './pages/teacher/TeacherDashboard';
 import DetailedReportEnhanced from './pages/DetailedReportEnhanced';
 import Unauthorized from './pages/Unauthorized';
 
-// Vision TEST Pages
-import { VisionTestPage } from './pages/student/VisionTestPage';
-import { VisionTestReport } from './pages/student/VisionTestReport';
-import { VisionSessions } from './pages/admin/VisionSessions';
-import { VisionSessionDetail } from './pages/admin/VisionSessionDetail';
-import VisionTestDebug from './pages/admin/VisionTestDebug';
-
 // English Adaptive Test
 import EnglishTestPage from './pages/test/EnglishTestPage';
 
@@ -92,24 +85,6 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['student', 'admin', 'parent', 'teacher']}>
                 <TestResultEnhanced />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* Vision TEST Routes */}
-          <Route
-            path="/student/vision/test/:sessionId"
-            element={
-              <ProtectedRoute allowedRoles={['student']}>
-                <VisionTestPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/student/vision/result/:sessionId"
-            element={
-              <ProtectedRoute allowedRoles={['student', 'admin', 'parent', 'teacher']}>
-                <VisionTestReport />
               </ProtectedRoute>
             }
           />
@@ -188,30 +163,6 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['admin']}>
                 <AdminUserManagement />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/vision-sessions"
-            element={
-              <ProtectedRoute allowedRoles={['admin']}>
-                <VisionSessions />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/vision-session/:sessionId"
-            element={
-              <ProtectedRoute allowedRoles={['admin']}>
-                <VisionSessionDetail />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/vision-debug"
-            element={
-              <ProtectedRoute allowedRoles={['admin']}>
-                <VisionTestDebug />
               </ProtectedRoute>
             }
           />

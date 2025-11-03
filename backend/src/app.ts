@@ -138,7 +138,6 @@ import parentsRoutes from './routes/parents/parents.routes';
 import teachersRoutes from './routes/teachers/teachers.routes';
 import reportRoutes from './routes/report.routes';
 import migrationRoutes from './routes/migration.routes';
-import visionRoutes from './routes/vision.routes';
 import mlRoutes from './routes/ml-routes';
 import englishTestProxyRoutes from './routes/english-test-proxy.routes';
 
@@ -158,7 +157,6 @@ app.use(`/api/${env.API_VERSION}/sessions`, sessionsRoutes);
 app.use(`/api/${env.API_VERSION}/students`, studentsRoutes);
 app.use(`/api/${env.API_VERSION}/parents`, parentsRoutes);
 app.use(`/api/${env.API_VERSION}/teachers`, teachersRoutes);
-app.use(`/api/${env.API_VERSION}/vision`, visionRoutes);
 app.use(`/api/${env.API_VERSION}/ml`, mlRoutes);
 
 // English Test Proxy - Forward to Python backend (no version prefix)
