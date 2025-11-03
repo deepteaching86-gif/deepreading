@@ -29,6 +29,12 @@ frontend/.env
 backend/test_*.py
 backend/check_*.py
 
+# Database migration and utility scripts (may contain credentials)
+backend/*-vision-*.js
+backend/*-vision-*.sql
+backend/drop-*.js
+backend/remove-*.sql
+
 # IDE
 .vscode/
 .idea/
