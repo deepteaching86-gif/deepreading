@@ -50,6 +50,8 @@ class VisionWebSocketHandler:
                 "timestamp": 1234567890
             }
         """
+        websocket = self.active_connections.get(session_id)
+
         try:
             # Base64 디코딩
             img_data = base64.b64decode(frame_data['image'].split(',')[1])
@@ -57,6 +59,12 @@ class VisionWebSocketHandler:
             frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
             if frame is None:
+                print(f"[{session_id}] Frame decode failed")
+                if websocket:
+                    await websocket.send_json({
+                        "type": "error",
+                        "message": "Frame decode failed"
+                    })
                 return
 
             # 시선 추적
@@ -83,7 +91,6 @@ class VisionWebSocketHandler:
                     "timestamp": frame_data['timestamp']
                 }
 
-                websocket = self.active_connections.get(session_id)
                 if websocket:
                     await websocket.send_json(response)
 
@@ -93,9 +100,24 @@ class VisionWebSocketHandler:
                 # 100개마다 DB 저장
                 if len(self.gaze_buffer[session_id]) >= 100:
                     await self._flush_buffer(session_id)
+            else:
+                # Tracking 실패 - 클라이언트에 알림
+                print(f"[{session_id}] Tracking failed - no face detected or tracking error")
+                if websocket:
+                    await websocket.send_json({
+                        "type": "warning",
+                        "message": "No face detected - please position your face in front of camera"
+                    })
 
         except Exception as e:
-            print(f"Error processing frame: {e}")
+            print(f"[{session_id}] Error processing frame: {e}")
+            import traceback
+            traceback.print_exc()
+            if websocket:
+                await websocket.send_json({
+                    "type": "error",
+                    "message": f"Frame processing error: {str(e)}"
+                })
 
     async def _flush_buffer(self, session_id: str):
         """버퍼의 시선 데이터를 DB에 저장"""

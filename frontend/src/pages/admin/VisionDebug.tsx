@@ -72,6 +72,10 @@ const VisionDebug: React.FC = () => {
         setGazeHistory((prev) => [...prev.slice(-99), data]); // Keep last 100 points
       });
 
+      wsClient.onError((error: string) => {
+        addLog('error', error);
+      });
+
       // Start video capture
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { width: 640, height: 480 },

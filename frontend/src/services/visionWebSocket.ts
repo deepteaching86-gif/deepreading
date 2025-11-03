@@ -62,12 +62,27 @@ export class VisionWebSocketClient {
 
         this.ws.onmessage = (event) => {
           try {
-            const data: GazeData = JSON.parse(event.data);
-            if (this.onGazeCallback) {
-              this.onGazeCallback(data);
+            const message = JSON.parse(event.data);
+
+            // Handle different message types
+            if (message.type === 'gaze_data') {
+              const data: GazeData = message;
+              if (this.onGazeCallback) {
+                this.onGazeCallback(data);
+              }
+            } else if (message.type === 'error') {
+              console.error('Vision tracking error:', message.message);
+              if (this.onErrorCallback) {
+                this.onErrorCallback(message.message);
+              }
+            } else if (message.type === 'warning') {
+              console.warn('Vision tracking warning:', message.message);
+              if (this.onErrorCallback) {
+                this.onErrorCallback(`Warning: ${message.message}`);
+              }
             }
           } catch (error) {
-            console.error('Failed to parse gaze data:', error);
+            console.error('Failed to parse WebSocket message:', error);
           }
         };
 
