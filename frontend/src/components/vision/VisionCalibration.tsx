@@ -149,7 +149,6 @@ const VisionCalibration: React.FC<VisionCalibrationProps> = ({
     });
 
     const avgError = errors.reduce((sum, e) => sum + e, 0) / errors.length;
-    const maxError = Math.max(...errors);
 
     // Accuracy: 1.0 (perfect) to 0.0 (worst)
     // Assume 50px error = 0.95 accuracy, 100px = 0.5 accuracy
