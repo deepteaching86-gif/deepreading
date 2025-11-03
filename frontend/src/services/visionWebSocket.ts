@@ -22,6 +22,7 @@ export interface GazeData {
     roll: number;
   };
   confidence: number;
+  debugImage?: string;  // Base64 디버그 시각화 이미지
 }
 
 export interface CalibrationPoint {
@@ -66,7 +67,16 @@ export class VisionWebSocketClient {
 
             // Handle different message types
             if (message.type === 'gaze_data') {
-              const data: GazeData = message;
+              const data: GazeData = {
+                x: message.x,
+                y: message.y,
+                timestamp: message.timestamp,
+                pupil_left: message.pupilLeft || message.pupil_left,
+                pupil_right: message.pupilRight || message.pupil_right,
+                head_pose: message.headPose || message.head_pose,
+                confidence: message.confidence,
+                debugImage: message.debugImage
+              };
               if (this.onGazeCallback) {
                 this.onGazeCallback(data);
               }
