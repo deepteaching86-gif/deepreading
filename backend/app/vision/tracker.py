@@ -1,0 +1,167 @@
+"""
+통합 Vision 추적 엔진
+동공 검출 + 3D 헤드 포즈 → 화면 좌표 시선 계산
+"""
+import cv2
+import numpy as np
+from typing import Optional, Dict, Tuple
+from .pupil_detector import OrloskyPupilDetector
+from .head_pose import HeadPoseEstimator
+
+class VisionTracker:
+    """통합 시선 추적 엔진"""
+
+    def __init__(self):
+        self.pupil_detector = OrloskyPupilDetector()
+        self.head_pose_estimator = HeadPoseEstimator()
+
+    def track(self, frame: np.ndarray) -> Optional[Dict]:
+        """
+        프레임에서 시선 추적
+
+        Returns:
+            {
+                "gaze_vector": (vx, vy, vz),
+                "pupil_left": {"center": (x, y), "radius": r},
+                "pupil_right": {"center": (x, y), "radius": r},
+                "head_pose": {"pitch": ..., "yaw": ..., "roll": ...},
+                "confidence": 0.0-1.0
+            }
+        """
+        # 1. 헤드 포즈 추정
+        head_pose = self.head_pose_estimator.estimate(frame)
+        if not head_pose:
+            return None
+
+        # 2. 눈 영역 추출 (MediaPipe 랜드마크 기반)
+        left_eye_region = self._extract_eye_region(frame, 'left', head_pose)
+        right_eye_region = self._extract_eye_region(frame, 'right', head_pose)
+
+        # 3. 동공 검출
+        pupil_left = None
+        pupil_right = None
+
+        if left_eye_region is not None:
+            pupil_left = self.pupil_detector.detect(left_eye_region)
+
+        if right_eye_region is not None:
+            pupil_right = self.pupil_detector.detect(right_eye_region)
+
+        if not pupil_left and not pupil_right:
+            return None
+
+        # 4. 3D 시선 벡터 계산
+        gaze_vector = self._calculate_gaze_vector(
+            pupil_left, pupil_right, head_pose
+        )
+
+        # 5. 신뢰도 계산
+        confidence = self._calculate_confidence(pupil_left, pupil_right, head_pose)
+
+        return {
+            "gaze_vector": gaze_vector.tolist() if gaze_vector is not None else [0, 0, -1],
+            "pupil_left": pupil_left,
+            "pupil_right": pupil_right,
+            "head_pose": head_pose,
+            "confidence": confidence
+        }
+
+    def _extract_eye_region(
+        self, frame: np.ndarray, side: str, head_pose: Dict
+    ) -> Optional[np.ndarray]:
+        """
+        프레임에서 눈 영역 추출
+        TODO: MediaPipe 랜드마크 사용하여 정확한 영역 추출
+        현재는 간단한 휴리스틱 사용
+        """
+        h, w = frame.shape[:2]
+
+        if side == 'left':
+            # 왼쪽 눈 영역 (화면 기준 오른쪽)
+            x1, y1 = int(w * 0.6), int(h * 0.35)
+            x2, y2 = int(w * 0.85), int(h * 0.55)
+        else:
+            # 오른쪽 눈 영역 (화면 기준 왼쪽)
+            x1, y1 = int(w * 0.15), int(h * 0.35)
+            x2, y2 = int(w * 0.4), int(h * 0.55)
+
+        return frame[y1:y2, x1:x2]
+
+    def _calculate_gaze_vector(
+        self,
+        pupil_left: Optional[Dict],
+        pupil_right: Optional[Dict],
+        head_pose: Dict
+    ) -> Optional[np.ndarray]:
+        """
+        동공 위치 + 헤드 포즈 → 3D 시선 벡터
+        JEO의 gaze ray computation 방식
+        """
+        # 기본 시선 벡터 (정면)
+        base_vector = np.array([0, 0, -1])
+
+        # 헤드 회전 매트릭스 적용
+        rotation_matrix = np.array(head_pose['rotation_matrix'])
+
+        # 회전된 시선 벡터
+        gaze_vector = rotation_matrix @ base_vector
+
+        # TODO: 동공 위치 기반 미세 조정 추가
+        # 현재는 헤드 포즈만 사용
+
+        return gaze_vector
+
+    def _calculate_confidence(
+        self,
+        pupil_left: Optional[Dict],
+        pupil_right: Optional[Dict],
+        head_pose: Dict
+    ) -> float:
+        """종합 신뢰도 계산"""
+        confidences = []
+
+        if pupil_left:
+            confidences.append(pupil_left.get('confidence', 0))
+
+        if pupil_right:
+            confidences.append(pupil_right.get('confidence', 0))
+
+        if not confidences:
+            return 0.0
+
+        return sum(confidences) / len(confidences)
+
+    def map_to_screen(
+        self,
+        gaze_vector: np.ndarray,
+        head_translation: list,
+        screen_width: int,
+        screen_height: int
+    ) -> Tuple[int, int]:
+        """
+        3D 시선 벡터를 화면 2D 좌표로 투영
+        JEO의 ray-plane intersection
+        """
+        tx, ty, tz = head_translation
+        vx, vy, vz = gaze_vector
+
+        # 화면 평면 (Z = 0)과 시선 벡터의 교차점 계산
+        if abs(vz) < 0.001:  # 거의 평행
+            return (screen_width // 2, screen_height // 2)
+
+        # t = -tz / vz
+        t = -tz / vz
+
+        # 교차점
+        px = tx + t * vx
+        py = ty + t * vy
+
+        # 픽셀 좌표로 변환
+        screen_x = int(px + screen_width / 2)
+        screen_y = int(-py + screen_height / 2)  # Y축 반전
+
+        # 화면 범위 클리핑
+        screen_x = max(0, min(screen_width - 1, screen_x))
+        screen_y = max(0, min(screen_height - 1, screen_y))
+
+        return (screen_x, screen_y)

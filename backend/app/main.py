@@ -17,6 +17,7 @@ load_dotenv()
 from app.english_test.router import router as english_test_router
 from app.english_test.admin_routes import router as admin_router
 from app.ai.router import router as ai_router
+from app.vision.router import router as vision_router
 
 # Create FastAPI app
 app = FastAPI(
@@ -38,6 +39,7 @@ app.add_middleware(
 app.include_router(english_test_router, prefix="/api/english-test", tags=["English Test"])
 app.include_router(admin_router, prefix="/api/admin/english-test", tags=["Admin English Test"])
 app.include_router(ai_router, prefix="/api/admin/ai", tags=["Admin AI"])
+app.include_router(vision_router, prefix="/api/vision", tags=["Vision Tracking"])
 
 # Root endpoint
 @app.get("/")
