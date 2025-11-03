@@ -2,10 +2,10 @@
 Vision 추적 API 라우터
 """
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
-from typing import Dict
+from typing import Dict, List
 import json
 from .websocket import vision_ws_handler
-from .database import create_vision_session, save_calibration
+from .database import create_vision_session, save_calibration, get_all_vision_sessions
 from .models import CreateVisionSessionRequest, VisionSessionResponse, CalibrationRequest
 
 router = APIRouter()
@@ -19,6 +19,12 @@ async def start_vision_session(request: CreateVisionSessionRequest):
         device_info=request.device_info
     )
     return session
+
+@router.get("/sessions")
+async def get_vision_sessions():
+    """모든 Vision 세션 조회"""
+    sessions = await get_all_vision_sessions()
+    return {"sessions": sessions}
 
 @router.websocket("/ws/{session_id}")
 async def vision_tracking_websocket(websocket: WebSocket, session_id: str):
