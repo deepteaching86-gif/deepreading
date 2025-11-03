@@ -29,6 +29,7 @@ const VisionDebug: React.FC = () => {
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [wsClient] = useState(() => new VisionWebSocketClient(BACKEND_URL));
   const [visionAPI] = useState(() => new VisionAPI(BACKEND_URL));
+  const [debugImage, setDebugImage] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -70,6 +71,11 @@ const VisionDebug: React.FC = () => {
       wsClient.onGaze((data: GazeData) => {
         setCurrentGaze(data);
         setGazeHistory((prev) => [...prev.slice(-99), data]); // Keep last 100 points
+
+        // 디버그 이미지 업데이트
+        if (data.debugImage) {
+          setDebugImage(data.debugImage);
+        }
       });
 
       wsClient.onError((error: string) => {
@@ -265,23 +271,37 @@ const VisionDebug: React.FC = () => {
             )}
           </div>
 
-          {/* Video Feed */}
+          {/* Video Feed with Debug Visualization */}
           <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">Camera Feed</h2>
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">Camera Feed - Debug Visualization</h2>
             <div className="bg-gray-900 rounded-lg overflow-hidden" style={{ height: '400px' }}>
-              <video
-                ref={videoRef}
-                className="w-full h-full object-contain"
-                autoPlay
-                playsInline
-                muted
-              />
+              {debugImage ? (
+                <img
+                  src={debugImage}
+                  className="w-full h-full object-contain"
+                  alt="Debug visualization with face landmarks, pupils, and head pose"
+                />
+              ) : (
+                <video
+                  ref={videoRef}
+                  className="w-full h-full object-contain"
+                  autoPlay
+                  playsInline
+                  muted
+                />
+              )}
               <canvas ref={canvasRef} className="hidden" />
             </div>
             {isConnected && (
               <div className="mt-4 text-sm text-gray-600">
                 <p>📹 Capturing at 10 FPS</p>
                 <p>📊 Total frames captured: {gazeHistory.length}</p>
+                {debugImage && (
+                  <div className="mt-2 p-2 bg-blue-50 rounded">
+                    <p className="text-blue-700 font-semibold">✅ Debug Visualization Active</p>
+                    <p className="text-xs text-blue-600">Green: MediaPipe landmarks | Red: Pupils | White: Head pose info</p>
+                  </div>
+                )}
               </div>
             )}
           </div>

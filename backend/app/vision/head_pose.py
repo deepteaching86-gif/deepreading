@@ -23,6 +23,9 @@ class HeadPoseEstimator:
         self.camera_matrix = None
         self.dist_coeffs = np.zeros((4, 1))
 
+        # 디버그용: 마지막 얼굴 랜드마크 저장
+        self.last_face_landmarks = None
+
     def estimate(self, frame: np.ndarray) -> Optional[Dict]:
         """
         프레임에서 헤드 포즈 추정
@@ -40,10 +43,12 @@ class HeadPoseEstimator:
         results = self.face_mesh.process(rgb_frame)
 
         if not results.multi_face_landmarks:
+            self.last_face_landmarks = None
             return None
 
         # 첫 번째 얼굴 사용
         face_landmarks = results.multi_face_landmarks[0]
+        self.last_face_landmarks = face_landmarks  # 디버그용 저장
 
         # 카메라 매트릭스 초기화 (처음 한번)
         h, w = frame.shape[:2]
@@ -115,3 +120,7 @@ class HeadPoseEstimator:
     def _get_landmark_coords(self, landmark, width: int, height: int) -> Tuple[float, float]:
         """MediaPipe 랜드마크를 픽셀 좌표로 변환"""
         return (landmark.x * width, landmark.y * height)
+
+    def get_last_landmarks(self):
+        """디버그용: 마지막으로 감지된 얼굴 랜드마크 반환"""
+        return self.last_face_landmarks

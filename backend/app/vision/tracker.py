@@ -165,3 +165,97 @@ class VisionTracker:
         screen_y = max(0, min(screen_height - 1, screen_y))
 
         return (screen_x, screen_y)
+
+    def draw_debug_overlay(self, frame: np.ndarray, result: Optional[Dict]) -> np.ndarray:
+        """
+        디버그 시각화 오버레이 그리기
+        - MediaPipe 얼굴 랜드마크 (초록색 점)
+        - 동공 위치 (빨간 원)
+        - Head pose 정보 (텍스트)
+        """
+        debug_frame = frame.copy()
+        h, w = frame.shape[:2]
+
+        if not result:
+            # 얼굴 미감지 메시지
+            cv2.putText(
+                debug_frame,
+                "NO FACE DETECTED",
+                (w // 4, h // 2),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                1.0,
+                (0, 0, 255),
+                2
+            )
+            return debug_frame
+
+        # MediaPipe 얼굴 랜드마크 그리기
+        head_pose_data = self.head_pose_estimator.get_last_landmarks()
+        if head_pose_data:
+            for landmark in head_pose_data.landmark:
+                x = int(landmark.x * w)
+                y = int(landmark.y * h)
+                cv2.circle(debug_frame, (x, y), 1, (0, 255, 0), -1)
+
+        # 동공 위치 그리기
+        if result.get('pupil_left'):
+            pupil = result['pupil_left']
+            if 'center' in pupil:
+                # 왼쪽 눈 영역 오프셋 계산
+                offset_x = int(w * 0.6)
+                offset_y = int(h * 0.35)
+                center_x = int(pupil['center'][0]) + offset_x
+                center_y = int(pupil['center'][1]) + offset_y
+                radius = int(pupil.get('radius', 5))
+                cv2.circle(debug_frame, (center_x, center_y), radius, (0, 0, 255), 2)
+                cv2.putText(
+                    debug_frame,
+                    "L",
+                    (center_x - 10, center_y - 10),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.5,
+                    (0, 0, 255),
+                    1
+                )
+
+        if result.get('pupil_right'):
+            pupil = result['pupil_right']
+            if 'center' in pupil:
+                # 오른쪽 눈 영역 오프셋 계산
+                offset_x = int(w * 0.15)
+                offset_y = int(h * 0.35)
+                center_x = int(pupil['center'][0]) + offset_x
+                center_y = int(pupil['center'][1]) + offset_y
+                radius = int(pupil.get('radius', 5))
+                cv2.circle(debug_frame, (center_x, center_y), radius, (0, 0, 255), 2)
+                cv2.putText(
+                    debug_frame,
+                    "R",
+                    (center_x + 10, center_y - 10),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.5,
+                    (0, 0, 255),
+                    1
+                )
+
+        # Head pose 정보 표시
+        if result.get('head_pose'):
+            pose = result['head_pose']
+            info_text = [
+                f"Pitch: {pose['pitch']:.1f}deg",
+                f"Yaw: {pose['yaw']:.1f}deg",
+                f"Roll: {pose['roll']:.1f}deg",
+                f"Confidence: {result['confidence']*100:.1f}%"
+            ]
+            for i, text in enumerate(info_text):
+                cv2.putText(
+                    debug_frame,
+                    text,
+                    (10, 30 + i * 30),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.6,
+                    (255, 255, 255),
+                    2
+                )
+
+        return debug_frame
