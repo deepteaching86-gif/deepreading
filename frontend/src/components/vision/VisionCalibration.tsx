@@ -57,12 +57,21 @@ const VisionCalibration: React.FC<VisionCalibrationProps> = ({
   const initializeWebcam = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { width: 640, height: 480 },
+        video: {
+          width: { ideal: 1280, max: 1920 },
+          height: { ideal: 720, max: 1080 },
+          facingMode: 'user',
+        },
       });
 
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         await videoRef.current.play();
+
+        // Log detected camera resolution
+        const videoTrack = stream.getVideoTracks()[0];
+        const settings = videoTrack.getSettings();
+        console.log(`📹 Camera resolution: ${settings.width}x${settings.height} (adaptive)`);
 
         // Start sending frames to backend
         captureAndSendFrames();
@@ -85,10 +94,23 @@ const VisionCalibration: React.FC<VisionCalibrationProps> = ({
     const sendFrame = () => {
       if (!wsClient.isConnected()) return;
 
+      // Update canvas size to match video dimensions
+      if (video.videoWidth > 0 && video.videoHeight > 0) {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+      }
+
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
       const imageData = canvas.toDataURL('image/jpeg', 0.8);
 
-      wsClient.sendFrame(imageData, window.innerWidth, window.innerHeight);
+      // Send frame WITH frame dimensions for resolution-independent tracking
+      wsClient.sendFrame(
+        imageData,
+        window.innerWidth,
+        window.innerHeight,
+        video.videoWidth,
+        video.videoHeight
+      );
 
       requestAnimationFrame(sendFrame);
     };
