@@ -92,24 +92,36 @@ const VisionDebug: React.FC = () => {
 
   const startFrameCapture = () => {
     const captureFrame = () => {
-      if (!videoRef.current || !canvasRef.current || !isConnected) return;
+      if (!videoRef.current || !canvasRef.current) {
+        console.log('⚠️ Video or canvas ref not ready');
+        return;
+      }
+
+      // WebSocket 연결 상태를 직접 확인
+      if (!wsClient.isConnected()) {
+        console.log('⚠️ WebSocket not connected, skipping frame');
+        setTimeout(captureFrame, 100);
+        return;
+      }
 
       const canvas = canvasRef.current;
       const video = videoRef.current;
       const ctx = canvas.getContext('2d');
 
-      if (ctx) {
+      if (ctx && video.videoWidth > 0 && video.videoHeight > 0) {
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
         ctx.drawImage(video, 0, 0);
 
         const imageData = canvas.toDataURL('image/jpeg', 0.8);
         wsClient.sendFrame(imageData, window.innerWidth, window.innerHeight);
+        console.log('📤 Frame sent to backend');
       }
 
       setTimeout(captureFrame, 100); // 10 FPS
     };
 
+    console.log('🎬 Starting frame capture loop');
     captureFrame();
   };
 
