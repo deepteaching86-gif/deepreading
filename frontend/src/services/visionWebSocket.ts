@@ -150,9 +150,15 @@ export class VisionWebSocketClient {
   }
 
   /**
-   * Send video frame to backend for tracking
+   * Send video frame to backend for tracking (with adaptive resolution support)
    */
-  sendFrame(imageData: string, screenWidth: number, screenHeight: number): void {
+  sendFrame(
+    imageData: string,
+    screenWidth: number,
+    screenHeight: number,
+    frameWidth: number,
+    frameHeight: number
+  ): void {
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
       console.warn('WebSocket not connected');
       return;
@@ -163,6 +169,8 @@ export class VisionWebSocketClient {
       timestamp: Date.now(),
       screenWidth,
       screenHeight,
+      frameWidth,   // Actual camera frame resolution
+      frameHeight,  // Enables resolution-independent gaze tracking
     };
 
     this.ws.send(JSON.stringify(frameData));

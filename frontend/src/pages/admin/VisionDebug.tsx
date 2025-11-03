@@ -82,13 +82,24 @@ const VisionDebug: React.FC = () => {
         addLog('error', error);
       });
 
-      // Start video capture
+      // Start video capture with adaptive resolution (use camera's native capabilities)
+      // Instead of forcing 640x480, let the browser choose optimal resolution
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { width: 640, height: 480 },
+        video: {
+          width: { ideal: 1280, max: 1920 },  // Prefer HD but adapt to camera capabilities
+          height: { ideal: 720, max: 1080 },
+          facingMode: 'user',  // Front-facing camera for gaze tracking
+        },
       });
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         videoRef.current.play();
+
+        // Log detected camera resolution
+        const videoTrack = stream.getVideoTracks()[0];
+        const settings = videoTrack.getSettings();
+        addLog('info', `📹 Camera resolution: ${settings.width}x${settings.height} (adaptive)`);
+
         startFrameCapture();
       }
     } catch (error) {
@@ -120,7 +131,14 @@ const VisionDebug: React.FC = () => {
         ctx.drawImage(video, 0, 0);
 
         const imageData = canvas.toDataURL('image/jpeg', 0.8);
-        wsClient.sendFrame(imageData, window.innerWidth, window.innerHeight);
+        // Send frame WITH frame dimensions for resolution-independent tracking
+        wsClient.sendFrame(
+          imageData,
+          window.innerWidth,
+          window.innerHeight,
+          video.videoWidth,   // frameWidth
+          video.videoHeight   // frameHeight
+        );
         console.log('📤 Frame sent to backend');
       }
 

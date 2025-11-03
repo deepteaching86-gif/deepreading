@@ -39,7 +39,7 @@ class VisionWebSocketHandler:
         frame_data: Dict
     ):
         """
-        프레임 수신 및 시선 추적 처리
+        프레임 수신 및 시선 추적 처리 (Adaptive Resolution 지원)
 
         Args:
             session_id: 세션 ID
@@ -47,10 +47,24 @@ class VisionWebSocketHandler:
                 "image": "data:image/jpeg;base64,...",
                 "screenWidth": 1920,
                 "screenHeight": 1080,
+                "frameWidth": 1280,  # 카메라 프레임 해상도 (adaptive)
+                "frameHeight": 720,   # 카메라 프레임 해상도 (adaptive)
                 "timestamp": 1234567890
             }
         """
         websocket = self.active_connections.get(session_id)
+
+        # 프레임 해상도 정보 추출 (기본값: 화면 해상도 사용)
+        frame_width = frame_data.get('frameWidth', frame_data['screenWidth'])
+        frame_height = frame_data.get('frameHeight', frame_data['screenHeight'])
+
+        # 첫 프레임에서 해상도 로깅
+        if session_id not in getattr(self, '_logged_resolutions', set()):
+            if not hasattr(self, '_logged_resolutions'):
+                self._logged_resolutions = set()
+            print(f"[{session_id}] 📹 Camera resolution: {frame_width}x{frame_height} (adaptive)")
+            print(f"[{session_id}] 🖥️  Screen resolution: {frame_data['screenWidth']}x{frame_data['screenHeight']}")
+            self._logged_resolutions.add(session_id)
 
         try:
             # Base64 디코딩
