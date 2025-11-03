@@ -15,8 +15,8 @@ class HeadPoseEstimator:
         self.face_mesh = self.mp_face_mesh.FaceMesh(
             max_num_faces=1,
             refine_landmarks=True,
-            min_detection_confidence=0.5,
-            min_tracking_confidence=0.5
+            min_detection_confidence=0.3,  # 낮춘 임계값으로 더 쉽게 감지
+            min_tracking_confidence=0.3
         )
 
         # 카메라 매트릭스 (기본값, 나중에 캘리브레이션으로 개선)

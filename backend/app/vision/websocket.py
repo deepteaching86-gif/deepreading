@@ -67,8 +67,15 @@ class VisionWebSocketHandler:
                     })
                 return
 
-            # 시선 추적
+            # 시선 추적 (디버그 이미지 포함)
             result = self.tracker.track(frame)
+
+            # 디버그 시각화 이미지 생성
+            debug_frame = self.tracker.draw_debug_overlay(frame, result)
+
+            # 디버그 이미지를 Base64로 인코딩
+            _, buffer = cv2.imencode('.jpg', debug_frame)
+            debug_image = base64.b64encode(buffer).decode('utf-8')
 
             if result:
                 # 화면 좌표로 변환
@@ -88,7 +95,8 @@ class VisionWebSocketHandler:
                     "pupilLeft": result.get('pupil_left'),
                     "pupilRight": result.get('pupil_right'),
                     "headPose": result['head_pose'],
-                    "timestamp": frame_data['timestamp']
+                    "timestamp": frame_data['timestamp'],
+                    "debugImage": f"data:image/jpeg;base64,{debug_image}"  # 디버그 시각화 이미지
                 }
 
                 if websocket:
@@ -101,12 +109,13 @@ class VisionWebSocketHandler:
                 if len(self.gaze_buffer[session_id]) >= 100:
                     await self._flush_buffer(session_id)
             else:
-                # Tracking 실패 - 클라이언트에 알림
+                # Tracking 실패 - debugImage와 함께 경고 전송
                 print(f"[{session_id}] Tracking failed - no face detected or tracking error")
                 if websocket:
                     await websocket.send_json({
                         "type": "warning",
-                        "message": "No face detected - please position your face in front of camera"
+                        "message": "No face detected - please position your face in front of camera",
+                        "debugImage": f"data:image/jpeg;base64,{debug_image}"  # "NO FACE DETECTED" 오버레이 포함
                     })
 
         except Exception as e:
