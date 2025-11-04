@@ -160,7 +160,8 @@
       "Bash(DATABASE_URL=\"postgresql://postgres.sxnjeqqvqbhueqbwsnpj:DeepReading2025!@#$SecureDB@aws-1-ap-northeast-2.pooler.supabase.com:5432/postgres\" psql:*)",
       "Bash(rd /s /q backendsrccontrollersvision)",
       "Bash(rd /s /q backendsrcservicesvision)",
-      "Bash(git log:*)"
+      "Bash(git log:*)",
+      "Bash(시선이 화면 어디에 가있는지를 정확하게 마커로 보여주는 정밀함도 중요해\"\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")"
     ],
     "deny": [],
     "ask": []

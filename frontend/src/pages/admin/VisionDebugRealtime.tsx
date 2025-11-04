@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { FaceMesh } from '@mediapipe/face_mesh';
-import { Camera } from '@mediapipe/camera_utils';
+import { FaceLandmarker, FilesetResolver } from '@mediapipe/tasks-vision';
 
 /**
  * 🎯 JEO-Style Real-Time Eye Tracking using MediaPipe Face Mesh
@@ -71,15 +70,19 @@ const VisionDebugRealtime: React.FC = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const overlayCanvasRef = useRef<HTMLCanvasElement>(null);
-  const faceMeshRef = useRef<FaceMesh | null>(null);
-  const cameraRef = useRef<Camera | null>(null);
+  const faceLandmarkerRef = useRef<FaceLandmarker | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const animationFrameRef = useRef<number | null>(null);
   const lastFrameTimeRef = useRef<number>(0);
   const frameCountRef = useRef<number>(0);
 
   useEffect(() => {
     return () => {
-      if (cameraRef.current) {
-        cameraRef.current.stop();
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
       }
     };
   }, []);
@@ -333,37 +336,32 @@ Head: P=${headPose?.pitch.toFixed(1)}° Y=${headPose?.yaw.toFixed(1)}° R=${head
     };
   };
 
-  const onResults = (results: any) => {
-    if (!canvasRef.current || !overlayCanvasRef.current) return;
+  // Process results and update visualization
+  const processResults = (results: any) => {
+    if (!results || !results.faceLandmarks || results.faceLandmarks.length === 0) {
+      setFaceDetected(false);
+      return;
+    }
 
-    const video = videoRef.current;
-    const canvas = canvasRef.current;
-    const overlayCanvas = overlayCanvasRef.current;
+    setFaceDetected(true);
+    const landmarks = results.faceLandmarks[0];
 
-    if (!video) return;
+    // Calculate JEO gaze
+    const gazePoint = calculateJEOGaze(landmarks);
+    if (gazePoint) {
+      setCurrentGaze(gazePoint);
+      setGazeHistory((prev) => [...prev.slice(-29), gazePoint]);
+    }
 
-    // Update canvas sizes
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    overlayCanvas.width = video.videoWidth;
-    overlayCanvas.height = video.videoHeight;
+    // Draw visualization
+    if (overlayCanvasRef.current && videoRef.current) {
+      const overlayCanvas = overlayCanvasRef.current;
+      const overlayCtx = overlayCanvas.getContext('2d');
+      if (!overlayCtx) return;
 
-    const ctx = canvas.getContext('2d')!;
-    const overlayCtx = overlayCanvas.getContext('2d')!;
-
-    // Draw video frame
-    ctx.save();
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    ctx.restore();
-
-    // Clear overlay
-    overlayCtx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
-
-    // Check if face detected
-    if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
-      setFaceDetected(true);
-      const landmarks = results.multiFaceLandmarks[0];
+      overlayCanvas.width = videoRef.current.videoWidth;
+      overlayCanvas.height = videoRef.current.videoHeight;
+      overlayCtx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
 
       // Draw eye contours (blue)
       overlayCtx.strokeStyle = '#0000ff';
@@ -393,46 +391,19 @@ Head: P=${headPose?.pitch.toFixed(1)}° Y=${headPose?.yaw.toFixed(1)}° R=${head
       overlayCtx.closePath();
       overlayCtx.stroke();
 
-      // Draw iris points (red)
+      // Draw iris landmarks (red)
       overlayCtx.fillStyle = '#ff0000';
-      LANDMARKS.leftIris.forEach((idx) => {
+      [...LANDMARKS.leftIris, ...LANDMARKS.rightIris].forEach((idx) => {
         const point = landmarks[idx];
+        const x = point.x * overlayCanvas.width;
+        const y = point.y * overlayCanvas.height;
         overlayCtx.beginPath();
-        overlayCtx.arc(
-          point.x * overlayCanvas.width,
-          point.y * overlayCanvas.height,
-          3,
-          0,
-          2 * Math.PI
-        );
+        overlayCtx.arc(x, y, 3, 0, 2 * Math.PI);
         overlayCtx.fill();
       });
-
-      LANDMARKS.rightIris.forEach((idx) => {
-        const point = landmarks[idx];
-        overlayCtx.beginPath();
-        overlayCtx.arc(
-          point.x * overlayCanvas.width,
-          point.y * overlayCanvas.height,
-          3,
-          0,
-          2 * Math.PI
-        );
-        overlayCtx.fill();
-      });
-
-      // Calculate JEO gaze
-      const gazePoint = calculateJEOGaze(landmarks);
-
-      if (gazePoint) {
-        setCurrentGaze(gazePoint);
-        setGazeHistory((prev) => [...prev.slice(-99), gazePoint]);
-      }
-    } else {
-      setFaceDetected(false);
     }
 
-    // Calculate FPS
+    // Update FPS
     const now = performance.now();
     frameCountRef.current++;
     if (now - lastFrameTimeRef.current >= 1000) {
@@ -442,43 +413,75 @@ Head: P=${headPose?.pitch.toFixed(1)}° Y=${headPose?.yaw.toFixed(1)}° R=${head
     }
   };
 
+  // Main prediction loop
+  const predict = async () => {
+    if (!faceLandmarkerRef.current || !videoRef.current) return;
+
+    try {
+      const results = faceLandmarkerRef.current.detectForVideo(videoRef.current, Date.now());
+      processResults(results);
+    } catch (error) {
+      console.error('❌ Prediction error:', error);
+    }
+
+    animationFrameRef.current = requestAnimationFrame(predict);
+  };
+
   const startTracking = async () => {
     try {
-      // Initialize MediaPipe Face Mesh
-      const faceMesh = new FaceMesh({
-        locateFile: (file) => {
-          return `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`;
-        },
-      });
+      console.log('🔧 Initializing MediaPipe Vision...');
 
-      faceMesh.setOptions({
-        maxNumFaces: 1,
-        refineLandmarks: true, // CRITICAL: Enable iris tracking
-        minDetectionConfidence: 0.5,
+      // Initialize MediaPipe Vision Tasks
+      const vision = await FilesetResolver.forVisionTasks(
+        'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.22/wasm'
+      );
+
+      console.log('🔧 Creating Face Landmarker...');
+
+      // Create Face Landmarker with NEW API
+      // NOTE: face_landmarker model includes 478 landmarks (468 face + 10 iris) by default
+      const faceLandmarker = await FaceLandmarker.createFromOptions(vision, {
+        baseOptions: {
+          modelAssetPath:
+            'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task',
+          delegate: 'GPU',
+        },
+        runningMode: 'VIDEO',
+        numFaces: 1,
+        minFaceDetectionConfidence: 0.5,
+        minFacePresenceConfidence: 0.5,
         minTrackingConfidence: 0.5,
+        outputFaceBlendshapes: false,
+        outputFacialTransformationMatrixes: false,
       });
 
-      faceMesh.onResults(onResults);
-      faceMeshRef.current = faceMesh;
+      faceLandmarkerRef.current = faceLandmarker;
 
-      // Get camera stream
-      if (!videoRef.current) return;
+      console.log('📹 Requesting camera access...');
 
-      const camera = new Camera(videoRef.current, {
-        onFrame: async () => {
-          if (faceMeshRef.current && videoRef.current) {
-            await faceMeshRef.current.send({ image: videoRef.current });
-          }
+      // Get camera stream using modern getUserMedia
+      if (!videoRef.current) {
+        throw new Error('Video element not ready');
+      }
+
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+          facingMode: 'user',
         },
-        width: 1280,
-        height: 720,
       });
 
-      await camera.start();
-      cameraRef.current = camera;
+      videoRef.current.srcObject = stream;
+      streamRef.current = stream;
+      await videoRef.current.play();
+
       setIsRunning(true);
 
-      console.log('✅ JEO real-time eye tracking started');
+      console.log('✅ JEO real-time eye tracking started with NEW MediaPipe API');
+
+      // Start prediction loop
+      animationFrameRef.current = requestAnimationFrame(predict);
     } catch (error) {
       console.error('❌ Failed to start tracking:', error);
       alert('카메라 접근 권한이 필요합니다. 브라우저 설정에서 카메라를 허용해주세요.');
@@ -486,15 +489,30 @@ Head: P=${headPose?.pitch.toFixed(1)}° Y=${headPose?.yaw.toFixed(1)}° R=${head
   };
 
   const stopTracking = () => {
-    if (cameraRef.current) {
-      cameraRef.current.stop();
-      cameraRef.current = null;
+    // Cancel animation frame loop
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
     }
+
+    // Stop media stream
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+    }
+
+    // Clean up video element
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+
+    // Reset state
     setIsRunning(false);
     setFaceDetected(false);
     setCurrentGaze(null);
     setGazeHistory([]);
     setDebugInfo('');
+
     console.log('⏹️ Tracking stopped');
   };
 
