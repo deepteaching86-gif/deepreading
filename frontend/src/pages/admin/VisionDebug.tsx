@@ -84,8 +84,16 @@ const VisionDebug: React.FC = () => {
       });
 
       // Register error callback
+      // ⚠️ WARNING: Do NOT call addLog for warnings - it triggers React re-render
+      // which makes videoRef/canvasRef temporarily null, breaking frame capture!
       wsClient.onError((error: string) => {
-        addLog('error', error);
+        // Only add to log if it's a critical error (not a warning)
+        if (!error.startsWith('Warning:')) {
+          addLog('error', error);
+        } else {
+          // For warnings, just console.warn to avoid re-render
+          console.warn('Vision tracking:', error);
+        }
       });
 
       // Start camera with adaptive resolution

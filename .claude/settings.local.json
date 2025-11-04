@@ -159,7 +159,8 @@
       "Bash(git show:*)",
       "Bash(DATABASE_URL=\"postgresql://postgres.sxnjeqqvqbhueqbwsnpj:DeepReading2025!@#$SecureDB@aws-1-ap-northeast-2.pooler.supabase.com:5432/postgres\" psql:*)",
       "Bash(rd /s /q backendsrccontrollersvision)",
-      "Bash(rd /s /q backendsrcservicesvision)"
+      "Bash(rd /s /q backendsrcservicesvision)",
+      "Bash(git log:*)"
     ],
     "deny": [],
     "ask": []
