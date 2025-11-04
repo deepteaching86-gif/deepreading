@@ -88,18 +88,11 @@ export class VisionWebSocketClient {
             } else if (message.type === 'warning') {
               console.warn('Vision tracking warning:', message.message);
 
-              // warning에도 debugImage가 포함될 수 있음 (예: "NO FACE DETECTED" 시각화)
-              if (message.debugImage && this.onGazeCallback) {
-                const placeholderData: GazeData = {
-                  x: 0,
-                  y: 0,
-                  timestamp: Date.now(),
-                  confidence: 0,
-                  debugImage: message.debugImage
-                };
-                this.onGazeCallback(placeholderData);
-              }
+              // ⚠️ IMPORTANT: Do NOT call onGazeCallback for warnings
+              // Calling onGazeCallback triggers React re-render which can temporarily
+              // make videoRef/canvasRef inaccessible, breaking frame capture loop
 
+              // Only report warning through error callback to avoid re-render
               if (this.onErrorCallback) {
                 this.onErrorCallback(`Warning: ${message.message}`);
               }
