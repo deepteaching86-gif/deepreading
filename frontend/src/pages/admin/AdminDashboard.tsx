@@ -469,6 +469,21 @@ export default function AdminDashboard() {
               </div>
             </Link>
 
+            <Link
+              to="/admin/vision-realtime"
+              className="bg-card rounded-lg shadow-sm p-6 border border-border hover:border-primary transition-colors"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                  <span className="text-2xl">🚀</span>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-foreground">실시간 Eye Tracking (브라우저)</h3>
+                  <p className="text-sm text-muted-foreground">MediaPipe 60fps 로컬 처리</p>
+                </div>
+              </div>
+            </Link>
+
             <button
               onClick={fetchData}
               className="bg-card rounded-lg shadow-sm p-6 border border-border hover:border-primary transition-colors text-left"
