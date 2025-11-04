@@ -109,15 +109,17 @@ const VisionDebug: React.FC = () => {
 
   const startFrameCapture = () => {
     const captureFrame = () => {
+      // ✅ FIX: Always reschedule next frame to prevent loop from breaking
       if (!videoRef.current || !canvasRef.current) {
-        console.log('⚠️ Video or canvas ref not ready');
+        console.log('⚠️ Video or canvas ref not ready, retrying...');
+        setTimeout(captureFrame, 33); // Retry quickly
         return;
       }
 
       // WebSocket 연결 상태를 직접 확인
       if (!wsClient.isConnected()) {
         console.log('⚠️ WebSocket not connected, skipping frame');
-        setTimeout(captureFrame, 100);
+        setTimeout(captureFrame, 33); // Keep loop alive
         return;
       }
 
@@ -142,10 +144,11 @@ const VisionDebug: React.FC = () => {
         console.log('📤 Frame sent to backend');
       }
 
-      setTimeout(captureFrame, 100); // 10 FPS
+      // ✅ PERFORMANCE: 33ms = ~30 FPS (improved from 10 FPS)
+      setTimeout(captureFrame, 33);
     };
 
-    console.log('🎬 Starting frame capture loop');
+    console.log('🎬 Starting frame capture loop at ~30 FPS');
     captureFrame();
   };
 

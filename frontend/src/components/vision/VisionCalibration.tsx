@@ -86,13 +86,24 @@ const VisionCalibration: React.FC<VisionCalibrationProps> = ({
     const canvas = canvasRef.current;
     const video = videoRef.current;
 
-    if (!canvas || !video) return;
+    // ✅ FIX: Don't break the loop on early return
+    if (!canvas || !video) {
+      setTimeout(captureAndSendFrames, 33);
+      return;
+    }
 
     const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    if (!ctx) {
+      setTimeout(captureAndSendFrames, 33);
+      return;
+    }
 
     const sendFrame = () => {
-      if (!wsClient.isConnected()) return;
+      // ✅ FIX: Keep loop alive even when disconnected
+      if (!wsClient.isConnected()) {
+        setTimeout(sendFrame, 33);
+        return;
+      }
 
       // Update canvas size to match video dimensions
       if (video.videoWidth > 0 && video.videoHeight > 0) {
@@ -112,7 +123,8 @@ const VisionCalibration: React.FC<VisionCalibrationProps> = ({
         video.videoHeight
       );
 
-      requestAnimationFrame(sendFrame);
+      // ✅ PERFORMANCE: 33ms = ~30 FPS (improved from requestAnimationFrame)
+      setTimeout(sendFrame, 33);
     };
 
     sendFrame();
