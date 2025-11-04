@@ -32,6 +32,12 @@ const VisionDebug: React.FC = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
+  // ⚡ PERFORMANCE FIX: Use refs for hot path data to avoid React re-renders during frame capture
+  const gazeDataRef = useRef<GazeData | null>(null);
+  const gazeHistoryRef = useRef<GazeData[]>([]);
+  const lastUIUpdateRef = useRef<number>(0);
+  const animationFrameRef = useRef<number | null>(null);
+
   const addLog = (level: 'info' | 'warning' | 'error', message: string) => {
     setLogs((prev) => [
       { timestamp: Date.now(), level, message },
@@ -73,13 +79,24 @@ const VisionDebug: React.FC = () => {
       addLog('info', '✅ WebSocket connected successfully');
 
       // Register gaze data callback
+      // ⚡ PERFORMANCE FIX: Use refs for hot path + throttled UI updates (no re-renders during frame capture!)
       wsClient.onGaze((data: GazeData) => {
-        setCurrentGaze(data);
-        setGazeHistory((prev) => [...prev.slice(-99), data]); // Keep last 100 points
+        // Store in refs (NO re-render!)
+        gazeDataRef.current = data;
+        gazeHistoryRef.current = [...gazeHistoryRef.current.slice(-99), data];
 
-        // Update debug image if available
-        if (data.debugImage) {
-          setDebugImage(data.debugImage);
+        // Throttle UI updates to 10fps (100ms) to avoid breaking frame capture
+        const now = Date.now();
+        if (now - lastUIUpdateRef.current >= 100) {
+          lastUIUpdateRef.current = now;
+
+          // Only NOW update React state for UI display
+          setCurrentGaze(data);
+          setGazeHistory([...gazeHistoryRef.current]);
+
+          if (data.debugImage) {
+            setDebugImage(data.debugImage);
+          }
         }
       });
 
@@ -116,7 +133,7 @@ const VisionDebug: React.FC = () => {
         addLog('info', `📹 Camera resolution: ${settings.width}x${settings.height} (adaptive)`);
 
         // Start frame capture loop
-        addLog('info', '🎬 Starting frame capture at ~30 FPS');
+        addLog('info', '🎬 Starting frame capture with requestAnimationFrame (~60 FPS capability)');
         startFrameCapture();
       }
     } catch (error) {
@@ -134,20 +151,34 @@ const VisionDebug: React.FC = () => {
   };
 
   const startFrameCapture = () => {
+    let lastFrameTime = 0;
+    const TARGET_FPS = 30; // Backend processing limit (30fps)
+    const FRAME_INTERVAL = 1000 / TARGET_FPS; // ~33ms between frames
     let retryCount = 0;
-    const MAX_RETRIES = 900; // 30 seconds at 33ms intervals
+    const MAX_RETRIES = 60 * TARGET_FPS; // 60 seconds at TARGET_FPS
 
-    const captureFrame = () => {
-      // Check if refs exist
+    const captureFrame = (currentTime: number) => {
+      // ⚡ FPS THROTTLING: Only capture at TARGET_FPS for backend processing
+      const deltaTime = currentTime - lastFrameTime;
+
+      if (deltaTime < FRAME_INTERVAL) {
+        // Skip this frame, too soon
+        animationFrameRef.current = requestAnimationFrame(captureFrame);
+        return;
+      }
+
+      // Update last frame time (accounting for drift)
+      lastFrameTime = currentTime - (deltaTime % FRAME_INTERVAL);
+
+      // Check if refs exist (FAST CHECK - refs don't trigger re-render!)
       if (!videoRef.current || !canvasRef.current) {
         retryCount++;
         if (retryCount > MAX_RETRIES) {
-          console.error('❌ Video/canvas refs not ready after 30 seconds - stopping capture');
+          console.error('❌ Video/canvas refs not ready after 60 seconds - stopping capture');
           addLog('error', '❌ Camera stream lost - please restart debug session');
           return; // Stop the loop
         }
-        console.log('⚠️ Video or canvas ref not ready, retrying...', retryCount);
-        setTimeout(captureFrame, 33);
+        animationFrameRef.current = requestAnimationFrame(captureFrame);
         return;
       }
 
@@ -166,8 +197,7 @@ const VisionDebug: React.FC = () => {
             addLog('error', '❌ Camera stream disconnected - please restart');
             return; // Stop the loop
           }
-          console.log('⚠️ Camera stream not live, retrying...', videoTrack?.readyState);
-          setTimeout(captureFrame, 33);
+          animationFrameRef.current = requestAnimationFrame(captureFrame);
           return;
         }
       }
@@ -176,16 +206,11 @@ const VisionDebug: React.FC = () => {
       if (video.readyState < 2 || video.videoWidth === 0 || video.videoHeight === 0) {
         retryCount++;
         if (retryCount > MAX_RETRIES) {
-          console.error('❌ Video not ready after 30 seconds - stopping capture');
+          console.error('❌ Video not ready after 60 seconds - stopping capture');
           addLog('error', '❌ Video loading failed - please restart');
           return; // Stop the loop
         }
-        console.log('⚠️ Video not ready, retrying...', {
-          readyState: video.readyState,
-          width: video.videoWidth,
-          height: video.videoHeight
-        });
-        setTimeout(captureFrame, 33);
+        animationFrameRef.current = requestAnimationFrame(captureFrame);
         return;
       }
 
@@ -194,8 +219,7 @@ const VisionDebug: React.FC = () => {
 
       // WebSocket check
       if (!wsClient.isConnected()) {
-        console.log('⚠️ WebSocket not connected, skipping frame');
-        setTimeout(captureFrame, 33);
+        animationFrameRef.current = requestAnimationFrame(captureFrame);
         return;
       }
 
@@ -214,22 +238,33 @@ const VisionDebug: React.FC = () => {
           video.videoWidth,
           video.videoHeight
         );
-        console.log('📤 Frame sent to backend');
       }
 
-      // ✅ PERFORMANCE: 33ms = ~30 FPS
-      setTimeout(captureFrame, 33);
+      // ⚡ PERFORMANCE: requestAnimationFrame runs at monitor refresh rate (~60fps)
+      // but we throttle to 30fps for backend processing using deltaTime check above
+      animationFrameRef.current = requestAnimationFrame(captureFrame);
     };
 
-    console.log('🎬 Starting frame capture loop at ~30 FPS');
-    captureFrame();
+    console.log(`🎬 Starting frame capture loop: requestAnimationFrame throttled to ${TARGET_FPS} FPS`);
+    animationFrameRef.current = requestAnimationFrame(captureFrame);
   };
 
   const stopDebugSession = () => {
+    // Cancel animation frame loop
+    if (animationFrameRef.current !== null) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
+    }
+
     wsClient.disconnect();
     setIsConnected(false);
     setCurrentGaze(null);
     setGazeHistory([]);
+
+    // Clear refs
+    gazeDataRef.current = null;
+    gazeHistoryRef.current = [];
+
     addLog('info', 'Debug session stopped');
 
     if (videoRef.current && videoRef.current.srcObject) {
@@ -388,8 +423,9 @@ const VisionDebug: React.FC = () => {
             </div>
             {isConnected && (
               <div className="mt-4 text-sm text-gray-600">
-                <p>📹 Capturing at 10 FPS</p>
+                <p>⚡ Frame capture: requestAnimationFrame throttled to 30 FPS</p>
                 <p>📊 Total frames captured: {gazeHistory.length}</p>
+                <p>🎨 UI updates: throttled to 10 FPS (no re-render lag!)</p>
                 {debugImage && (
                   <div className="mt-2 p-2 bg-blue-50 rounded">
                     <p className="text-blue-700 font-semibold">✅ Debug Visualization Active</p>
