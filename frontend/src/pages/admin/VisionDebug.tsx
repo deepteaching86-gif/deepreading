@@ -60,50 +60,69 @@ const VisionDebug: React.FC = () => {
 
   const startDebugSession = async () => {
     try {
-      const sessionId = await visionAPI.startSession('admin-debug', 'debug-template');
-      setSelectedSession(sessionId);
-      addLog('info', `Created debug session: ${sessionId}`);
+      addLog('info', '🚀 Starting Vision Debug session...');
 
+      // Generate unique session ID for debug mode
+      const sessionId = `debug-${Date.now()}`;
+      setSelectedSession(sessionId);
+      addLog('info', `📝 Session ID: ${sessionId}`);
+
+      // Connect to WebSocket
+      addLog('info', '🔌 Connecting to Vision WebSocket...');
       await wsClient.connect(sessionId);
       setIsConnected(true);
-      addLog('info', 'WebSocket connected');
+      addLog('info', '✅ WebSocket connected successfully');
 
+      // Register gaze data callback
       wsClient.onGaze((data: GazeData) => {
         setCurrentGaze(data);
         setGazeHistory((prev) => [...prev.slice(-99), data]); // Keep last 100 points
 
-        // 디버그 이미지 업데이트
+        // Update debug image if available
         if (data.debugImage) {
           setDebugImage(data.debugImage);
         }
       });
 
+      // Register error callback
       wsClient.onError((error: string) => {
         addLog('error', error);
       });
 
-      // Start video capture with adaptive resolution (use camera's native capabilities)
-      // Instead of forcing 640x480, let the browser choose optimal resolution
+      // Start camera with adaptive resolution
+      addLog('info', '📸 Requesting camera access...');
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
-          width: { ideal: 1280, max: 1920 },  // Prefer HD but adapt to camera capabilities
+          width: { ideal: 1280, max: 1920 },
           height: { ideal: 720, max: 1080 },
-          facingMode: 'user',  // Front-facing camera for gaze tracking
+          facingMode: 'user',
         },
       });
+
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        videoRef.current.play();
+        await videoRef.current.play();
 
         // Log detected camera resolution
         const videoTrack = stream.getVideoTracks()[0];
         const settings = videoTrack.getSettings();
         addLog('info', `📹 Camera resolution: ${settings.width}x${settings.height} (adaptive)`);
 
+        // Start frame capture loop
+        addLog('info', '🎬 Starting frame capture at ~30 FPS');
         startFrameCapture();
       }
     } catch (error) {
-      addLog('error', `Failed to start debug session: ${error}`);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      addLog('error', `❌ Failed to start debug session: ${errorMessage}`);
+      console.error('Vision Debug session error:', error);
+
+      // User-friendly error messages
+      if (errorMessage.includes('Permission denied') || errorMessage.includes('NotAllowedError')) {
+        addLog('error', '🚫 Camera permission denied. Please allow camera access and try again.');
+      } else if (errorMessage.includes('NotFoundError')) {
+        addLog('error', '📷 No camera found. Please connect a webcam and try again.');
+      }
     }
   };
 
