@@ -127,43 +127,90 @@ const VisionDebug: React.FC = () => {
   };
 
   const startFrameCapture = () => {
+    let retryCount = 0;
+    const MAX_RETRIES = 900; // 30 seconds at 33ms intervals
+
     const captureFrame = () => {
-      // ✅ FIX: Always reschedule next frame to prevent loop from breaking
+      // Check if refs exist
       if (!videoRef.current || !canvasRef.current) {
-        console.log('⚠️ Video or canvas ref not ready, retrying...');
-        setTimeout(captureFrame, 33); // Retry quickly
+        retryCount++;
+        if (retryCount > MAX_RETRIES) {
+          console.error('❌ Video/canvas refs not ready after 30 seconds - stopping capture');
+          addLog('error', '❌ Camera stream lost - please restart debug session');
+          return; // Stop the loop
+        }
+        console.log('⚠️ Video or canvas ref not ready, retrying...', retryCount);
+        setTimeout(captureFrame, 33);
         return;
       }
 
-      // WebSocket 연결 상태를 직접 확인
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+
+      // Check if video stream is active
+      if (video.srcObject) {
+        const stream = video.srcObject as MediaStream;
+        const videoTrack = stream.getVideoTracks()[0];
+
+        if (!videoTrack || videoTrack.readyState !== 'live') {
+          retryCount++;
+          if (retryCount > MAX_RETRIES) {
+            console.error('❌ Camera stream ended - stopping capture');
+            addLog('error', '❌ Camera stream disconnected - please restart');
+            return; // Stop the loop
+          }
+          console.log('⚠️ Camera stream not live, retrying...', videoTrack?.readyState);
+          setTimeout(captureFrame, 33);
+          return;
+        }
+      }
+
+      // Check if video is loaded and ready
+      if (video.readyState < 2 || video.videoWidth === 0 || video.videoHeight === 0) {
+        retryCount++;
+        if (retryCount > MAX_RETRIES) {
+          console.error('❌ Video not ready after 30 seconds - stopping capture');
+          addLog('error', '❌ Video loading failed - please restart');
+          return; // Stop the loop
+        }
+        console.log('⚠️ Video not ready, retrying...', {
+          readyState: video.readyState,
+          width: video.videoWidth,
+          height: video.videoHeight
+        });
+        setTimeout(captureFrame, 33);
+        return;
+      }
+
+      // Reset retry count on success
+      retryCount = 0;
+
+      // WebSocket check
       if (!wsClient.isConnected()) {
         console.log('⚠️ WebSocket not connected, skipping frame');
-        setTimeout(captureFrame, 33); // Keep loop alive
+        setTimeout(captureFrame, 33);
         return;
       }
 
-      const canvas = canvasRef.current;
-      const video = videoRef.current;
+      // Capture and send frame
       const ctx = canvas.getContext('2d');
-
-      if (ctx && video.videoWidth > 0 && video.videoHeight > 0) {
+      if (ctx) {
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
         ctx.drawImage(video, 0, 0);
 
         const imageData = canvas.toDataURL('image/jpeg', 0.8);
-        // Send frame WITH frame dimensions for resolution-independent tracking
         wsClient.sendFrame(
           imageData,
           window.innerWidth,
           window.innerHeight,
-          video.videoWidth,   // frameWidth
-          video.videoHeight   // frameHeight
+          video.videoWidth,
+          video.videoHeight
         );
         console.log('📤 Frame sent to backend');
       }
 
-      // ✅ PERFORMANCE: 33ms = ~30 FPS (improved from 10 FPS)
+      // ✅ PERFORMANCE: 33ms = ~30 FPS
       setTimeout(captureFrame, 33);
     };
 
