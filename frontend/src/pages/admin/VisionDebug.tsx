@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { VisionWebSocketClient, VisionAPI, GazeData } from '../../services/visionWebSocket';
+import { VisionWebSocketClient, GazeData } from '../../services/visionWebSocket';
 
 // Python Vision Backend URL (Render.com)
 const BACKEND_URL = 'https://literacy-english-test-backend.onrender.com';
@@ -28,7 +28,6 @@ const VisionDebug: React.FC = () => {
   const [gazeHistory, setGazeHistory] = useState<GazeData[]>([]);
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [wsClient] = useState(() => new VisionWebSocketClient(BACKEND_URL));
-  const [visionAPI] = useState(() => new VisionAPI(BACKEND_URL));
   const [debugImage, setDebugImage] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
