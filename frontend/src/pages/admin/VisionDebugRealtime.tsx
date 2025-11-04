@@ -431,10 +431,8 @@ Head: P=${headPose?.pitch.toFixed(1)}° Y=${headPose?.yaw.toFixed(1)}° R=${head
     try {
       console.log('🔧 Initializing MediaPipe Vision...');
 
-      // Initialize MediaPipe Vision Tasks
-      const vision = await FilesetResolver.forVisionTasks(
-        'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.22/wasm'
-      );
+      // Initialize MediaPipe Vision Tasks with LOCAL WASM files
+      const vision = await FilesetResolver.forVisionTasks('/wasm');
 
       console.log('🔧 Creating Face Landmarker...');
 
@@ -478,13 +476,37 @@ Head: P=${headPose?.pitch.toFixed(1)}° Y=${headPose?.yaw.toFixed(1)}° R=${head
 
       setIsRunning(true);
 
-      console.log('✅ JEO real-time eye tracking started with NEW MediaPipe API');
+      console.log('✅ JEO real-time eye tracking started with LOCAL WASM files');
 
       // Start prediction loop
       animationFrameRef.current = requestAnimationFrame(predict);
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Failed to start tracking:', error);
-      alert('카메라 접근 권한이 필요합니다. 브라우저 설정에서 카메라를 허용해주세요.');
+
+      // Better error messages based on error type
+      let errorMessage = 'JEO 시선 추적을 시작할 수 없습니다.\n\n';
+
+      if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+        errorMessage +=
+          '원인: 카메라 접근 권한이 거부되었습니다.\n해결: 브라우저 설정에서 카메라를 허용해주세요.';
+      } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
+        errorMessage += '원인: 카메라를 찾을 수 없습니다.\n해결: 카메라가 연결되어 있는지 확인해주세요.';
+      } else if (error.name === 'NotReadableError' || error.name === 'TrackStartError') {
+        errorMessage +=
+          '원인: 카메라가 다른 프로그램에서 사용 중입니다.\n해결: 다른 프로그램을 종료하고 다시 시도해주세요.';
+      } else if (error.message && error.message.includes('WASM')) {
+        errorMessage +=
+          '원인: MediaPipe WASM 파일 로딩 실패\n해결: 페이지를 새로고침(F5)해주세요.\n\n기술 정보: ' +
+          error.message;
+      } else if (error.message && error.message.includes('model')) {
+        errorMessage +=
+          '원인: AI 모델 로딩 실패\n해결: 인터넷 연결을 확인하고 다시 시도해주세요.\n\n기술 정보: ' +
+          error.message;
+      } else {
+        errorMessage += `원인: ${error.message || '알 수 없는 오류'}\n해결: 페이지를 새로고침하고 다시 시도해주세요.`;
+      }
+
+      alert(errorMessage);
     }
   };
 
