@@ -119,6 +119,7 @@ const VisionDebugRealtime: React.FC = () => {
   const [_calibrationSamples, setCalibrationSamples] = useState<{ x: number; y: number }[]>([]);
   const [calibrationData, setCalibrationData] = useState<CalibrationData | null>(null);
   const [calibrationMessage, setCalibrationMessage] = useState<string>('');
+  const [showVideoOverlay, setShowVideoOverlay] = useState(true);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -1050,6 +1051,12 @@ Head: P=${headPose?.pitch.toFixed(1)}° Y=${headPose?.yaw.toFixed(1)}° R=${head
                       Clear
                     </button>
                   )}
+                  <button
+                    onClick={() => setShowVideoOverlay(!showVideoOverlay)}
+                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition text-sm"
+                  >
+                    {showVideoOverlay ? '📹 Hide Video' : '📹 Show Video'}
+                  </button>
                 </>
               )}
             </div>
@@ -1140,7 +1147,7 @@ Head: P=${headPose?.pitch.toFixed(1)}° Y=${headPose?.yaw.toFixed(1)}° R=${head
               )}
 
               {/* ✅ CAMERA POPUP WITH LANDMARKS (Top-Right) */}
-              {isRunning && (
+              {isRunning && showVideoOverlay && (
                 <div className="absolute top-4 right-4 z-30 bg-black rounded-lg shadow-2xl border-4 border-blue-500 overflow-hidden">
                   <div className="bg-blue-600 px-3 py-1 text-xs text-white font-semibold">
                     📹 Live Camera + JEO Landmark Overlay
