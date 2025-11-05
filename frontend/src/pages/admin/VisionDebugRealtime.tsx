@@ -75,17 +75,33 @@ const SAMPLES_PER_POINT = 30; // Collect 30 frames per calibration point (~1 sec
 
 // MediaPipe Face Mesh landmark indices
 const LANDMARKS = {
-  // Left eye contour (8 points for precise center calculation)
+  // Left eye contour (8 points for visualization only)
   leftEyeContour: [33, 133, 160, 159, 158, 157, 173, 246],
   // Right eye contour
   rightEyeContour: [362, 263, 387, 386, 385, 384, 398, 466],
+
+  // 🎯 STABLE LANDMARKS for eye sphere center (JEO recommendation)
+  // These landmarks are anchored to facial bone structure and remain stable during head rotation
+  leftEyeInnerCorner: 133,   // Medial canthus (stable anchor point)
+  leftEyeOuterCorner: 33,    // Lateral canthus (stable anchor point)
+  leftEyeTop: 159,           // Upper eyelid center
+  leftEyeBottom: 145,        // Lower eyelid center
+
+  rightEyeInnerCorner: 362,  // Medial canthus (stable anchor point)
+  rightEyeOuterCorner: 263,  // Lateral canthus (stable anchor point)
+  rightEyeTop: 386,          // Upper eyelid center
+  rightEyeBottom: 374,       // Lower eyelid center
+
+  noseBridge: 168,           // Nose bridge top (reference for depth)
+
   // Iris landmarks (5 points each, MediaPipe refine_landmarks=true)
   leftIris: [468, 469, 470, 471, 472],
   rightIris: [473, 474, 475, 476, 477],
+
   // Face orientation reference points
   noseTip: 1,
   chinBottom: 152,
-  leftEyeCorner: 33,
+  leftEyeCorner: 33,   // Kept for backward compatibility
   rightEyeCorner: 263,
 };
 
@@ -228,8 +244,50 @@ const VisionDebugRealtime: React.FC = () => {
   };
 
   /**
-   * Calculate 3D eye center from eye contour landmarks
+   * 🎯 JEO STABLE LANDMARKS: Calculate eye sphere center from stable facial anchors
+   *
+   * Uses bone-anchored landmarks (eye corners, eyelid centers) instead of dynamic eye contour.
+   * This provides more stable eye center position during head rotation and eye movements.
+   *
+   * Reference: "eye spheres will use stable landmarks" (JEO recommendation)
+   */
+  const calculateStableEyeCenter3D = (
+    landmarks: any[],
+    innerCorner: number,
+    outerCorner: number,
+    topLid: number,
+    bottomLid: number
+  ): Vector3D | null => {
+    if (!landmarks || landmarks.length === 0) return null;
+
+    // Get stable anchor points (bone-anchored, minimal movement during expressions)
+    const inner = landmarks[innerCorner];   // Medial canthus (inner eye corner)
+    const outer = landmarks[outerCorner];   // Lateral canthus (outer eye corner)
+    const top = landmarks[topLid];          // Upper eyelid center
+    const bottom = landmarks[bottomLid];    // Lower eyelid center
+
+    if (!inner || !outer || !top || !bottom) return null;
+
+    // Horizontal center: midpoint between stable inner and outer corners
+    const centerX = (inner.x + outer.x) / 2;
+
+    // Vertical center: midpoint between top and bottom eyelid centers
+    const centerY = (top.y + bottom.y) / 2;
+
+    // Depth: average z-coordinate of all four stable anchor points
+    const centerZ = (inner.z + outer.z + top.z + bottom.z) / 4;
+
+    return {
+      x: centerX,
+      y: centerY,
+      z: centerZ,
+    };
+  };
+
+  /**
+   * Calculate 3D eye center from eye contour landmarks (LEGACY - for visualization only)
    * JEO: Uses all eye contour points for accurate center
+   * NOTE: Now replaced by calculateStableEyeCenter3D for actual gaze calculation
    */
   const calculateEyeCenter3D = (landmarks: any[], indices: number[]): Vector3D | null => {
     if (!landmarks || landmarks.length === 0) return null;
@@ -407,9 +465,22 @@ const VisionDebugRealtime: React.FC = () => {
   const calculateJEOGaze = (landmarks: any[]): GazePoint | null => {
     if (!landmarks || landmarks.length < 478) return null;
 
-    // 1. Calculate eye centers (from contour landmarks)
-    const leftEyeCenter = calculateEyeCenter3D(landmarks, LANDMARKS.leftEyeContour);
-    const rightEyeCenter = calculateEyeCenter3D(landmarks, LANDMARKS.rightEyeContour);
+    // 1. 🎯 Calculate STABLE eye centers (from bone-anchored landmarks)
+    // Using stable facial landmarks instead of dynamic eye contour for more robust tracking
+    const leftEyeCenter = calculateStableEyeCenter3D(
+      landmarks,
+      LANDMARKS.leftEyeInnerCorner,
+      LANDMARKS.leftEyeOuterCorner,
+      LANDMARKS.leftEyeTop,
+      LANDMARKS.leftEyeBottom
+    );
+    const rightEyeCenter = calculateStableEyeCenter3D(
+      landmarks,
+      LANDMARKS.rightEyeInnerCorner,
+      LANDMARKS.rightEyeOuterCorner,
+      LANDMARKS.rightEyeTop,
+      LANDMARKS.rightEyeBottom
+    );
 
     if (!leftEyeCenter || !rightEyeCenter) return null;
 
