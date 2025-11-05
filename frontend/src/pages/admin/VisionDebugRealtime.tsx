@@ -30,6 +30,19 @@ interface Vector3D {
   z: number;
 }
 
+interface CalibrationData {
+  offsetX: number;
+  offsetY: number;
+  scaleX: number;
+  scaleY: number;
+  accuracy: number;
+}
+
+interface CalibrationPoint {
+  x: number; // 0-1 normalized
+  y: number; // 0-1 normalized
+}
+
 // JEO 3D Eye Model (mm units, face-center coordinate system)
 const EYE_MODEL = {
   // Eye ball centers in face coordinate system
@@ -42,6 +55,23 @@ const EYE_MODEL = {
   screenWidthMM: 400.0,   // mm (typical 15-17" monitor)
   screenHeightMM: 300.0,
 };
+
+// 9-Point Calibration Grid (normalized 0-1 coordinates)
+// For future enhancement: full 9-point calibration
+// @ts-ignore - Reserved for future 9-point calibration implementation
+const CALIBRATION_POINTS: CalibrationPoint[] = [
+  { x: 0.1, y: 0.1 },   // Top-left
+  { x: 0.5, y: 0.1 },   // Top-center
+  { x: 0.9, y: 0.1 },   // Top-right
+  { x: 0.1, y: 0.5 },   // Middle-left
+  { x: 0.5, y: 0.5 },   // Center
+  { x: 0.9, y: 0.5 },   // Middle-right
+  { x: 0.1, y: 0.9 },   // Bottom-left
+  { x: 0.5, y: 0.9 },   // Bottom-center
+  { x: 0.9, y: 0.9 },   // Bottom-right
+];
+
+const SAMPLES_PER_POINT = 30; // Collect 30 frames per calibration point (~1 second at 30fps)
 
 // MediaPipe Face Mesh landmark indices
 const LANDMARKS = {
@@ -67,6 +97,13 @@ const VisionDebugRealtime: React.FC = () => {
   const [faceDetected, setFaceDetected] = useState(false);
   const [debugInfo, setDebugInfo] = useState<string>('');
 
+  // 🎯 Calibration State
+  const [isCalibrating, setIsCalibrating] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [_calibrationSamples, setCalibrationSamples] = useState<{ x: number; y: number }[]>([]);
+  const [calibrationData, setCalibrationData] = useState<CalibrationData | null>(null);
+  const [calibrationMessage, setCalibrationMessage] = useState<string>('');
+
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const overlayCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -77,6 +114,18 @@ const VisionDebugRealtime: React.FC = () => {
   const frameCountRef = useRef<number>(0);
 
   useEffect(() => {
+    // Load calibration from localStorage on mount
+    const savedCalibration = localStorage.getItem('jeo_calibration');
+    if (savedCalibration) {
+      try {
+        const calibData = JSON.parse(savedCalibration);
+        setCalibrationData(calibData);
+        console.log('✅ Loaded calibration:', calibData);
+      } catch (e) {
+        console.warn('Failed to load calibration:', e);
+      }
+    }
+
     return () => {
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
@@ -86,6 +135,97 @@ const VisionDebugRealtime: React.FC = () => {
       }
     };
   }, []);
+
+  /**
+   * 🎯 START CALIBRATION: Collect gaze samples at screen center
+   * JEO Step 6: "calibrate screen center"
+   */
+  const startCalibration = () => {
+    if (!isRunning || !faceDetected) {
+      alert('먼저 JEO Tracking을 시작하고 얼굴이 인식된 후 캘리브레이션을 진행하세요.');
+      return;
+    }
+
+    setIsCalibrating(true);
+    setCalibrationSamples([]);
+    setCalibrationMessage('화면 중앙의 🎯 를 30초간 응시하세요...');
+    console.log('🎯 Starting 1-point screen center calibration...');
+  };
+
+  /**
+   * 🎯 CALCULATE CALIBRATION: Compute offset from center-point samples
+   */
+  const calculateCalibration = (samples: { x: number; y: number }[]) => {
+    if (samples.length === 0) {
+      console.error('No calibration samples collected!');
+      return null;
+    }
+
+    // Calculate average gaze point from samples
+    const avgGazeX = samples.reduce((sum, s) => sum + s.x, 0) / samples.length;
+    const avgGazeY = samples.reduce((sum, s) => sum + s.y, 0) / samples.length;
+
+    // Target is screen center
+    const targetX = window.innerWidth / 2;
+    const targetY = window.innerHeight / 2;
+
+    // Calculate offset: how much to shift gaze to match target
+    const offsetX = targetX - avgGazeX;
+    const offsetY = targetY - avgGazeY;
+
+    // Calculate accuracy (average error distance)
+    const errors = samples.map((s) => {
+      const dx = (s.x + offsetX) - targetX;
+      const dy = (s.y + offsetY) - targetY;
+      return Math.sqrt(dx * dx + dy * dy);
+    });
+    const accuracy = errors.reduce((sum, e) => sum + e, 0) / errors.length;
+
+    const calibData: CalibrationData = {
+      offsetX,
+      offsetY,
+      scaleX: 1.0, // Not used in 1-point calibration
+      scaleY: 1.0,
+      accuracy,
+    };
+
+    console.log('✅ Calibration complete:', calibData);
+    return calibData;
+  };
+
+  /**
+   * 🎯 APPLY CALIBRATION: Transform raw gaze with offset
+   */
+  const applyCalibration = (rawX: number, rawY: number): { x: number; y: number } => {
+    if (!calibrationData) return { x: rawX, y: rawY };
+
+    return {
+      x: rawX + calibrationData.offsetX,
+      y: rawY + calibrationData.offsetY,
+    };
+  };
+
+  /**
+   * 🎯 SAVE CALIBRATION: Persist to localStorage
+   */
+  const saveCalibration = (calibData: CalibrationData) => {
+    try {
+      localStorage.setItem('jeo_calibration', JSON.stringify(calibData));
+      console.log('💾 Calibration saved to localStorage');
+    } catch (e) {
+      console.error('Failed to save calibration:', e);
+    }
+  };
+
+  /**
+   * 🎯 CLEAR CALIBRATION: Remove calibration data
+   */
+  const clearCalibration = () => {
+    setCalibrationData(null);
+    localStorage.removeItem('jeo_calibration');
+    setCalibrationMessage('');
+    console.log('🗑️ Calibration cleared');
+  };
 
   /**
    * Calculate 3D eye center from eye contour landmarks
@@ -369,16 +509,47 @@ Head: P=${headPose?.pitch.toFixed(1)}° Y=${headPose?.yaw.toFixed(1)}° R=${head
     // Calculate JEO gaze
     const rawGazePoint = calculateJEOGaze(landmarks);
     if (rawGazePoint) {
-      // Apply smoothing to reduce jitter
-      const smoothedPoint = smoothGazePoint({ x: rawGazePoint.x, y: rawGazePoint.y });
-      const finalGaze = {
-        ...rawGazePoint,
-        x: smoothedPoint.x,
-        y: smoothedPoint.y,
-      };
+      // 🎯 CALIBRATION MODE: Collect samples at screen center
+      if (isCalibrating) {
+        setCalibrationSamples((prev) => {
+          const newSamples = [...prev, { x: rawGazePoint.x, y: rawGazePoint.y }];
 
-      setCurrentGaze(finalGaze);
-      setGazeHistory((prev) => [...prev.slice(-29), finalGaze]);
+          // Check if we have enough samples
+          if (newSamples.length >= SAMPLES_PER_POINT) {
+            // Calculate calibration from collected samples
+            const calibData = calculateCalibration(newSamples);
+            if (calibData) {
+              setCalibrationData(calibData);
+              saveCalibration(calibData);
+              setCalibrationMessage(`✅ 캘리브레이션 완료! 정확도: ${calibData.accuracy.toFixed(1)}px`);
+            }
+            setIsCalibrating(false);
+            return [];
+          }
+
+          // Update progress message
+          setCalibrationMessage(`화면 중앙 응시 중... ${newSamples.length}/${SAMPLES_PER_POINT}`);
+          return newSamples;
+        });
+
+        // During calibration, don't apply calibration yet - show raw gaze
+        const smoothedPoint = smoothGazePoint({ x: rawGazePoint.x, y: rawGazePoint.y });
+        const finalGaze = { ...rawGazePoint, x: smoothedPoint.x, y: smoothedPoint.y };
+        setCurrentGaze(finalGaze);
+        setGazeHistory((prev) => [...prev.slice(-29), finalGaze]);
+      } else {
+        // 🎯 NORMAL MODE: Apply calibration and smoothing
+        const calibratedPoint = applyCalibration(rawGazePoint.x, rawGazePoint.y);
+        const smoothedPoint = smoothGazePoint(calibratedPoint);
+        const finalGaze = {
+          ...rawGazePoint,
+          x: smoothedPoint.x,
+          y: smoothedPoint.y,
+        };
+
+        setCurrentGaze(finalGaze);
+        setGazeHistory((prev) => [...prev.slice(-29), finalGaze]);
+      }
     }
 
     // ✅ FIX 1: Draw VIDEO FRAME on main canvas
@@ -612,6 +783,16 @@ Head: P=${headPose?.pitch.toFixed(1)}° Y=${headPose?.yaw.toFixed(1)}° R=${head
                 Status: {isRunning ? '🟢 Running' : '🔴 Stopped'} | FPS: {fps} | Face:{' '}
                 {faceDetected ? '✅ Detected' : '❌ Not Detected'}
               </p>
+              {calibrationData && (
+                <p className="text-xs text-green-600 mt-1">
+                  🎯 Calibrated (Offset: {calibrationData.offsetX.toFixed(0)}px, {calibrationData.offsetY.toFixed(0)}px | Accuracy: {calibrationData.accuracy.toFixed(1)}px)
+                </p>
+              )}
+              {calibrationMessage && (
+                <p className="text-sm text-blue-600 mt-1 font-semibold">
+                  {calibrationMessage}
+                </p>
+              )}
             </div>
             <div className="flex gap-3">
               {!isRunning ? (
@@ -622,12 +803,29 @@ Head: P=${headPose?.pitch.toFixed(1)}° Y=${headPose?.yaw.toFixed(1)}° R=${head
                   Start JEO Tracking
                 </button>
               ) : (
-                <button
-                  onClick={stopTracking}
-                  className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
-                >
-                  Stop Tracking
-                </button>
+                <>
+                  <button
+                    onClick={stopTracking}
+                    className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+                  >
+                    Stop Tracking
+                  </button>
+                  <button
+                    onClick={startCalibration}
+                    disabled={isCalibrating}
+                    className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  >
+                    {isCalibrating ? '🎯 Calibrating...' : '🎯 Calibrate'}
+                  </button>
+                  {calibrationData && (
+                    <button
+                      onClick={clearCalibration}
+                      className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition text-sm"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </>
               )}
             </div>
           </div>
@@ -678,6 +876,29 @@ Head: P=${headPose?.pitch.toFixed(1)}° Y=${headPose?.yaw.toFixed(1)}° R=${head
                   ))}
                 </>
               )}
+
+              {/* 🎯 CALIBRATION TARGET: Large pulsing target at screen center */}
+              {isCalibrating && (
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-30">
+                  <div className="relative">
+                    {/* Outer pulsing ring */}
+                    <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 border-4 border-red-500 rounded-full animate-ping opacity-75" />
+                    {/* Middle ring */}
+                    <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 border-4 border-red-600 rounded-full" />
+                    {/* Center target */}
+                    <div className="relative w-16 h-16">
+                      <div className="absolute left-1/2 top-0 w-1 h-full bg-red-600 transform -translate-x-1/2" />
+                      <div className="absolute top-1/2 left-0 h-1 w-full bg-red-600 transform -translate-y-1/2" />
+                      <div className="absolute left-1/2 top-1/2 w-8 h-8 border-4 border-red-600 rounded-full bg-white transform -translate-x-1/2 -translate-y-1/2 shadow-2xl" />
+                    </div>
+                    {/* Text instruction */}
+                    <div className="absolute left-1/2 top-full mt-8 -translate-x-1/2 bg-red-600 text-white px-6 py-3 rounded-lg shadow-2xl font-bold text-xl whitespace-nowrap">
+                      🎯 이 중앙 타겟을 응시하세요
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {!isRunning && (
                 <div className="absolute inset-0 flex items-center justify-center text-gray-400 text-lg">
                   🎯 Click "Start JEO Tracking" to begin eye tracking
