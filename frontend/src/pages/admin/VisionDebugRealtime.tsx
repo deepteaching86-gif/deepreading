@@ -392,7 +392,7 @@ const VisionDebugRealtime: React.FC = () => {
     const mmToPixelY = screenHeight / EYE_MODEL.screenHeightMM;
 
     const screenX = screenWidth / 2 + xMM * mmToPixelX * depthFactor;
-    const screenY = screenHeight / 2 - yMM * mmToPixelY * depthFactor; // Y inverted
+    const screenY = screenHeight / 2 + yMM * mmToPixelY * depthFactor; // Y coordinate (screen Y increases downward)
 
     // Clamp to screen bounds
     return {
@@ -914,13 +914,13 @@ Head: P=${headPose?.pitch.toFixed(1)}° Y=${headPose?.yaw.toFixed(1)}° R=${head
                 </div>
               )}
 
-              {/* ✅ SMALL CAMERA POPUP (Top-Right) */}
+              {/* ✅ CAMERA POPUP WITH LANDMARKS (Top-Right) */}
               {isRunning && (
                 <div className="absolute top-4 right-4 z-30 bg-black rounded-lg shadow-2xl border-4 border-blue-500 overflow-hidden">
                   <div className="bg-blue-600 px-3 py-1 text-xs text-white font-semibold">
-                    📹 Live Camera + JEO Overlay
+                    📹 Live Camera + JEO Landmark Overlay
                   </div>
-                  <div className="relative" style={{ width: '320px', height: '240px' }}>
+                  <div className="relative" style={{ width: '480px', height: '360px' }}>
 
                     {/* Canvas for video rendering */}
                     <canvas
