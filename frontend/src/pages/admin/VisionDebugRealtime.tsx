@@ -336,6 +336,26 @@ Head: P=${headPose?.pitch.toFixed(1)}° Y=${headPose?.yaw.toFixed(1)}° R=${head
     };
   };
 
+  // Gaze smoothing with exponential moving average
+  const smoothedGazeRef = useRef<{ x: number; y: number } | null>(null);
+  const SMOOTHING_FACTOR = 0.3; // Lower = more smoothing (0.1-0.5 recommended)
+
+  const smoothGazePoint = (newPoint: { x: number; y: number }): { x: number; y: number } => {
+    if (!smoothedGazeRef.current) {
+      smoothedGazeRef.current = newPoint;
+      return newPoint;
+    }
+
+    // Exponential moving average for smooth gaze tracking
+    const smoothed = {
+      x: smoothedGazeRef.current.x * (1 - SMOOTHING_FACTOR) + newPoint.x * SMOOTHING_FACTOR,
+      y: smoothedGazeRef.current.y * (1 - SMOOTHING_FACTOR) + newPoint.y * SMOOTHING_FACTOR,
+    };
+
+    smoothedGazeRef.current = smoothed;
+    return smoothed;
+  };
+
   // Process results and update visualization
   const processResults = (results: any) => {
     if (!results || !results.faceLandmarks || results.faceLandmarks.length === 0) {
@@ -347,13 +367,33 @@ Head: P=${headPose?.pitch.toFixed(1)}° Y=${headPose?.yaw.toFixed(1)}° R=${head
     const landmarks = results.faceLandmarks[0];
 
     // Calculate JEO gaze
-    const gazePoint = calculateJEOGaze(landmarks);
-    if (gazePoint) {
-      setCurrentGaze(gazePoint);
-      setGazeHistory((prev) => [...prev.slice(-29), gazePoint]);
+    const rawGazePoint = calculateJEOGaze(landmarks);
+    if (rawGazePoint) {
+      // Apply smoothing to reduce jitter
+      const smoothedPoint = smoothGazePoint({ x: rawGazePoint.x, y: rawGazePoint.y });
+      const finalGaze = {
+        ...rawGazePoint,
+        x: smoothedPoint.x,
+        y: smoothedPoint.y,
+      };
+
+      setCurrentGaze(finalGaze);
+      setGazeHistory((prev) => [...prev.slice(-29), finalGaze]);
     }
 
-    // Draw visualization
+    // ✅ FIX 1: Draw VIDEO FRAME on main canvas
+    if (canvasRef.current && videoRef.current) {
+      const canvas = canvasRef.current;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        canvas.width = videoRef.current.videoWidth;
+        canvas.height = videoRef.current.videoHeight;
+        // Draw the actual video frame
+        ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+      }
+    }
+
+    // ✅ FIX 2: Draw JEO landmarks on overlay canvas
     if (overlayCanvasRef.current && videoRef.current) {
       const overlayCanvas = overlayCanvasRef.current;
       const overlayCtx = overlayCanvas.getContext('2d');
@@ -401,6 +441,21 @@ Head: P=${headPose?.pitch.toFixed(1)}° Y=${headPose?.yaw.toFixed(1)}° R=${head
         overlayCtx.arc(x, y, 3, 0, 2 * Math.PI);
         overlayCtx.fill();
       });
+
+      // Draw eye centers (green)
+      const leftEyeCenter = calculateEyeCenter3D(landmarks, LANDMARKS.leftEyeContour);
+      const rightEyeCenter = calculateEyeCenter3D(landmarks, LANDMARKS.rightEyeContour);
+
+      if (leftEyeCenter && rightEyeCenter) {
+        overlayCtx.fillStyle = '#00ff00';
+        [leftEyeCenter, rightEyeCenter].forEach((center) => {
+          const x = center.x * overlayCanvas.width;
+          const y = center.y * overlayCanvas.height;
+          overlayCtx.beginPath();
+          overlayCtx.arc(x, y, 5, 0, 2 * Math.PI);
+          overlayCtx.fill();
+        });
+      }
     }
 
     // Update FPS
@@ -578,74 +633,34 @@ Head: P=${headPose?.pitch.toFixed(1)}° Y=${headPose?.yaw.toFixed(1)}° R=${head
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Live Video Feed with Eye Tracking Overlay */}
+        {/* ✅ NEW LAYOUT: Large Heatmap + Small Camera Popup */}
+        <div className="relative">
+          {/* MAIN: Full-Width Gaze Heatmap (BIG) */}
           <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">Live Camera + JEO Overlay</h2>
-            <div className="relative bg-gray-900 rounded-lg overflow-hidden" style={{ height: '500px' }}>
-              {/* Hidden video element for MediaPipe */}
-              <video
-                ref={videoRef}
-                className="hidden"
-                autoPlay
-                playsInline
-                muted
-              />
-
-              {/* Canvas for video rendering */}
-              <canvas
-                ref={canvasRef}
-                className="absolute inset-0 w-full h-full object-contain"
-              />
-
-              {/* Canvas for tracking overlay */}
-              <canvas
-                ref={overlayCanvasRef}
-                className="absolute inset-0 w-full h-full object-contain pointer-events-none"
-              />
-
-              {!isRunning && (
-                <div className="absolute inset-0 flex items-center justify-center text-white text-center">
-                  <div>
-                    <p className="text-lg mb-2">Click "Start JEO Tracking" to begin</p>
-                    <p className="text-sm text-gray-400">3D Eye Model + Ray-Plane Intersection</p>
-                  </div>
-                </div>
-              )}
-            </div>
-            <div className="mt-4 text-sm text-gray-600 space-y-1">
-              <p>⚡ Running at {fps} FPS</p>
-              <p>🔵 Blue: Eye contours | 🔴 Red: Iris landmarks</p>
-              <p>📊 Total gaze points: {gazeHistory.length}</p>
-              {debugInfo && (
-                <pre className="mt-2 p-2 bg-gray-100 rounded text-xs font-mono whitespace-pre-wrap">
-                  {debugInfo}
-                </pre>
-              )}
-            </div>
-          </div>
-
-          {/* Gaze Visualization with Precision Marker */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">Gaze Heatmap (JEO)</h2>
-            <div className="relative bg-gray-100 rounded-lg overflow-hidden" style={{ height: '500px' }}>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">
+              🎯 Gaze Heatmap (JEO Algorithm - Smoothed)
+            </h2>
+            <div
+              className="relative bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg overflow-hidden"
+              style={{ height: '70vh', minHeight: '600px' }}
+            >
               {currentGaze && (
                 <>
                   {/* Current gaze point - RED CROSSHAIR for precision */}
                   <div
-                    className="absolute pointer-events-none"
+                    className="absolute pointer-events-none z-20"
                     style={{
                       left: `${(currentGaze.x / window.innerWidth) * 100}%`,
                       top: `${(currentGaze.y / window.innerHeight) * 100}%`,
                       transform: 'translate(-50%, -50%)',
-                      transition: 'left 0.05s, top 0.05s',
+                      transition: 'left 0.1s ease-out, top 0.1s ease-out',
                     }}
                   >
                     {/* Crosshair */}
-                    <div className="relative w-8 h-8">
+                    <div className="relative w-12 h-12">
                       <div className="absolute left-1/2 top-0 w-0.5 h-full bg-red-500 transform -translate-x-1/2" />
                       <div className="absolute top-1/2 left-0 h-0.5 w-full bg-red-500 transform -translate-y-1/2" />
-                      <div className="absolute left-1/2 top-1/2 w-3 h-3 border-2 border-red-500 rounded-full bg-white transform -translate-x-1/2 -translate-y-1/2" />
+                      <div className="absolute left-1/2 top-1/2 w-4 h-4 border-2 border-red-500 rounded-full bg-white transform -translate-x-1/2 -translate-y-1/2 shadow-lg" />
                     </div>
                   </div>
                   {/* Gaze trail */}
@@ -664,23 +679,79 @@ Head: P=${headPose?.pitch.toFixed(1)}° Y=${headPose?.yaw.toFixed(1)}° R=${head
                 </>
               )}
               {!isRunning && (
-                <div className="absolute inset-0 flex items-center justify-center text-gray-400">
-                  Start tracking to visualize JEO gaze patterns
+                <div className="absolute inset-0 flex items-center justify-center text-gray-400 text-lg">
+                  🎯 Click "Start JEO Tracking" to begin eye tracking
+                </div>
+              )}
+
+              {/* ✅ SMALL CAMERA POPUP (Top-Right) */}
+              {isRunning && (
+                <div className="absolute top-4 right-4 z-30 bg-black rounded-lg shadow-2xl border-4 border-blue-500 overflow-hidden">
+                  <div className="bg-blue-600 px-3 py-1 text-xs text-white font-semibold">
+                    📹 Live Camera + JEO Overlay
+                  </div>
+                  <div className="relative" style={{ width: '320px', height: '240px' }}>
+                    {/* Hidden video element for MediaPipe */}
+                    <video
+                      ref={videoRef}
+                      className="hidden"
+                      autoPlay
+                      playsInline
+                      muted
+                    />
+
+                    {/* Canvas for video rendering */}
+                    <canvas
+                      ref={canvasRef}
+                      className="absolute inset-0 w-full h-full object-contain"
+                    />
+
+                    {/* Canvas for tracking overlay */}
+                    <canvas
+                      ref={overlayCanvasRef}
+                      className="absolute inset-0 w-full h-full object-contain pointer-events-none"
+                    />
+
+                    {/* FPS indicator */}
+                    <div className="absolute top-2 left-2 bg-black bg-opacity-70 px-2 py-1 rounded text-xs text-white font-mono">
+                      {fps} FPS | {faceDetected ? '✅ Face' : '❌ No Face'}
+                    </div>
+                  </div>
+                  <div className="bg-gray-900 px-3 py-1 text-xs text-white space-y-0.5">
+                    <p>🔵 Blue: Eye contours | 🔴 Red: Iris</p>
+                    <p>🟢 Green: Eye centers | {gazeHistory.length} points tracked</p>
+                  </div>
                 </div>
               )}
             </div>
+
+            {/* Gaze Stats Below Heatmap */}
             {currentGaze && (
-              <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
+              <div className="mt-4 grid grid-cols-3 gap-4 text-sm">
                 <div>
-                  <p className="text-gray-500">Gaze Position (JEO)</p>
-                  <p className="font-mono text-gray-800">
+                  <p className="text-gray-500 font-semibold">Gaze Position (Smoothed)</p>
+                  <p className="font-mono text-gray-800 text-lg">
                     X: {currentGaze.x.toFixed(0)}px, Y: {currentGaze.y.toFixed(0)}px
                   </p>
                 </div>
                 <div>
-                  <p className="text-gray-500">Confidence</p>
-                  <p className="font-mono text-gray-800">{(currentGaze.confidence * 100).toFixed(1)}%</p>
+                  <p className="text-gray-500 font-semibold">Confidence</p>
+                  <p className="font-mono text-gray-800 text-lg">{(currentGaze.confidence * 100).toFixed(1)}%</p>
                 </div>
+                <div>
+                  <p className="text-gray-500 font-semibold">Performance</p>
+                  <p className="font-mono text-gray-800 text-lg">{fps} FPS | {gazeHistory.length}/30 hist</p>
+                </div>
+              </div>
+            )}
+
+            {/* Debug Info */}
+            {debugInfo && (
+              <div className="mt-4">
+                <p className="text-sm font-semibold text-gray-700 mb-2">🔬 JEO Debug Info</p>
+                <pre className="p-3 bg-gray-100 rounded text-xs font-mono whitespace-pre-wrap text-gray-700">
+                  {debugInfo}
+                </pre>
               </div>
             )}
           </div>
