@@ -899,6 +899,15 @@ Head: P=${headPose?.pitch.toFixed(1)}° Y=${headPose?.yaw.toFixed(1)}° R=${head
                 </div>
               )}
 
+              {/* 🎥 ALWAYS-PRESENT VIDEO ELEMENT (fixes "Video element not ready" bug) */}
+              <video
+                ref={videoRef}
+                className="hidden"
+                autoPlay
+                playsInline
+                muted
+              />
+
               {!isRunning && (
                 <div className="absolute inset-0 flex items-center justify-center text-gray-400 text-lg">
                   🎯 Click "Start JEO Tracking" to begin eye tracking
@@ -912,14 +921,6 @@ Head: P=${headPose?.pitch.toFixed(1)}° Y=${headPose?.yaw.toFixed(1)}° R=${head
                     📹 Live Camera + JEO Overlay
                   </div>
                   <div className="relative" style={{ width: '320px', height: '240px' }}>
-                    {/* Hidden video element for MediaPipe */}
-                    <video
-                      ref={videoRef}
-                      className="hidden"
-                      autoPlay
-                      playsInline
-                      muted
-                    />
 
                     {/* Canvas for video rendering */}
                     <canvas
