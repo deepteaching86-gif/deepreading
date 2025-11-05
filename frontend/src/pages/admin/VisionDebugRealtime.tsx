@@ -564,7 +564,7 @@ Head: P=${headPose?.pitch.toFixed(1)}° Y=${headPose?.yaw.toFixed(1)}° R=${head
       }
     }
 
-    // ✅ FIX 2: Draw JEO landmarks on overlay canvas
+    // ✅ JEO-FAITHFUL VISUALIZATION: Complete landmark overlay matching original research
     if (overlayCanvasRef.current && videoRef.current) {
       const overlayCanvas = overlayCanvasRef.current;
       const overlayCtx = overlayCanvas.getContext('2d');
@@ -574,11 +574,24 @@ Head: P=${headPose?.pitch.toFixed(1)}° Y=${headPose?.yaw.toFixed(1)}° R=${head
       overlayCanvas.height = videoRef.current.videoHeight;
       overlayCtx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
 
-      // Draw eye contours (blue)
-      overlayCtx.strokeStyle = '#0000ff';
-      overlayCtx.lineWidth = 2;
+      // 1. Draw ALL 468 face mesh landmarks (JEO: white dots)
+      overlayCtx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+      for (let i = 0; i < Math.min(468, landmarks.length); i++) {
+        const point = landmarks[i];
+        if (point) {
+          const x = point.x * overlayCanvas.width;
+          const y = point.y * overlayCanvas.height;
+          overlayCtx.beginPath();
+          overlayCtx.arc(x, y, 1.5, 0, 2 * Math.PI);
+          overlayCtx.fill();
+        }
+      }
 
-      // Left eye
+      // 2. Draw eye contours (blue - slightly thicker)
+      overlayCtx.strokeStyle = '#0066ff';
+      overlayCtx.lineWidth = 2.5;
+
+      // Left eye contour
       overlayCtx.beginPath();
       LANDMARKS.leftEyeContour.forEach((idx, i) => {
         const point = landmarks[idx];
@@ -590,7 +603,7 @@ Head: P=${headPose?.pitch.toFixed(1)}° Y=${headPose?.yaw.toFixed(1)}° R=${head
       overlayCtx.closePath();
       overlayCtx.stroke();
 
-      // Right eye
+      // Right eye contour
       overlayCtx.beginPath();
       LANDMARKS.rightEyeContour.forEach((idx, i) => {
         const point = landmarks[idx];
@@ -602,7 +615,42 @@ Head: P=${headPose?.pitch.toFixed(1)}° Y=${headPose?.yaw.toFixed(1)}° R=${head
       overlayCtx.closePath();
       overlayCtx.stroke();
 
-      // Draw iris landmarks (red)
+      // 3. Calculate iris centers and radii
+      const leftIrisCenter = calculateIrisCenter3D(landmarks, LANDMARKS.leftIris);
+      const rightIrisCenter = calculateIrisCenter3D(landmarks, LANDMARKS.rightIris);
+
+      // 4. Draw CYAN iris circles (JEO signature feature)
+      if (leftIrisCenter && rightIrisCenter) {
+        overlayCtx.strokeStyle = '#00ffff';
+        overlayCtx.lineWidth = 3;
+
+        // Estimate iris radius from landmarks (typical: 12-15px at 640x480)
+        const irisRadiusPixels = overlayCanvas.width * 0.025; // ~2.5% of width
+
+        // Left iris circle
+        overlayCtx.beginPath();
+        overlayCtx.arc(
+          leftIrisCenter.x * overlayCanvas.width,
+          leftIrisCenter.y * overlayCanvas.height,
+          irisRadiusPixels,
+          0,
+          2 * Math.PI
+        );
+        overlayCtx.stroke();
+
+        // Right iris circle
+        overlayCtx.beginPath();
+        overlayCtx.arc(
+          rightIrisCenter.x * overlayCanvas.width,
+          rightIrisCenter.y * overlayCanvas.height,
+          irisRadiusPixels,
+          0,
+          2 * Math.PI
+        );
+        overlayCtx.stroke();
+      }
+
+      // 5. Draw iris landmarks (red dots - pupil region)
       overlayCtx.fillStyle = '#ff0000';
       [...LANDMARKS.leftIris, ...LANDMARKS.rightIris].forEach((idx) => {
         const point = landmarks[idx];
@@ -613,18 +661,88 @@ Head: P=${headPose?.pitch.toFixed(1)}° Y=${headPose?.yaw.toFixed(1)}° R=${head
         overlayCtx.fill();
       });
 
-      // Draw eye centers (green)
+      // 6. Calculate eye centers and gaze vectors
       const leftEyeCenter = calculateEyeCenter3D(landmarks, LANDMARKS.leftEyeContour);
       const rightEyeCenter = calculateEyeCenter3D(landmarks, LANDMARKS.rightEyeContour);
 
-      if (leftEyeCenter && rightEyeCenter) {
+      if (leftEyeCenter && rightEyeCenter && leftIrisCenter && rightIrisCenter) {
+        // 7. Draw GREEN gaze direction vectors (JEO: arrows from eye center through iris)
+        overlayCtx.strokeStyle = '#00ff00';
+        overlayCtx.lineWidth = 3;
+        overlayCtx.setLineDash([]);
+
+        // Calculate gaze vectors
+        const leftGazeVec = calculateGazeVector3D(leftIrisCenter, leftEyeCenter);
+        const rightGazeVec = calculateGazeVector3D(rightIrisCenter, rightEyeCenter);
+
+        // Vector length in pixels (make visible)
+        const vectorLength = overlayCanvas.width * 0.15;
+
+        // Left gaze vector
+        const leftStartX = leftEyeCenter.x * overlayCanvas.width;
+        const leftStartY = leftEyeCenter.y * overlayCanvas.height;
+        const leftEndX = leftStartX + leftGazeVec.x * vectorLength;
+        const leftEndY = leftStartY + leftGazeVec.y * vectorLength;
+
+        overlayCtx.beginPath();
+        overlayCtx.moveTo(leftStartX, leftStartY);
+        overlayCtx.lineTo(leftEndX, leftEndY);
+        overlayCtx.stroke();
+
+        // Arrow head for left vector
+        const leftAngle = Math.atan2(leftGazeVec.y, leftGazeVec.x);
+        const arrowSize = 10;
+        overlayCtx.beginPath();
+        overlayCtx.moveTo(leftEndX, leftEndY);
+        overlayCtx.lineTo(
+          leftEndX - arrowSize * Math.cos(leftAngle - Math.PI / 6),
+          leftEndY - arrowSize * Math.sin(leftAngle - Math.PI / 6)
+        );
+        overlayCtx.moveTo(leftEndX, leftEndY);
+        overlayCtx.lineTo(
+          leftEndX - arrowSize * Math.cos(leftAngle + Math.PI / 6),
+          leftEndY - arrowSize * Math.sin(leftAngle + Math.PI / 6)
+        );
+        overlayCtx.stroke();
+
+        // Right gaze vector
+        const rightStartX = rightEyeCenter.x * overlayCanvas.width;
+        const rightStartY = rightEyeCenter.y * overlayCanvas.height;
+        const rightEndX = rightStartX + rightGazeVec.x * vectorLength;
+        const rightEndY = rightStartY + rightGazeVec.y * vectorLength;
+
+        overlayCtx.beginPath();
+        overlayCtx.moveTo(rightStartX, rightStartY);
+        overlayCtx.lineTo(rightEndX, rightEndY);
+        overlayCtx.stroke();
+
+        // Arrow head for right vector
+        const rightAngle = Math.atan2(rightGazeVec.y, rightGazeVec.x);
+        overlayCtx.beginPath();
+        overlayCtx.moveTo(rightEndX, rightEndY);
+        overlayCtx.lineTo(
+          rightEndX - arrowSize * Math.cos(rightAngle - Math.PI / 6),
+          rightEndY - arrowSize * Math.sin(rightAngle - Math.PI / 6)
+        );
+        overlayCtx.moveTo(rightEndX, rightEndY);
+        overlayCtx.lineTo(
+          rightEndX - arrowSize * Math.cos(rightAngle + Math.PI / 6),
+          rightEndY - arrowSize * Math.sin(rightAngle + Math.PI / 6)
+        );
+        overlayCtx.stroke();
+
+        // 8. Draw eye centers (bright green circles)
         overlayCtx.fillStyle = '#00ff00';
+        overlayCtx.strokeStyle = '#ffffff';
+        overlayCtx.lineWidth = 2;
+
         [leftEyeCenter, rightEyeCenter].forEach((center) => {
           const x = center.x * overlayCanvas.width;
           const y = center.y * overlayCanvas.height;
           overlayCtx.beginPath();
-          overlayCtx.arc(x, y, 5, 0, 2 * Math.PI);
+          overlayCtx.arc(x, y, 6, 0, 2 * Math.PI);
           overlayCtx.fill();
+          overlayCtx.stroke();
         });
       }
     }
@@ -940,8 +1058,9 @@ Head: P=${headPose?.pitch.toFixed(1)}° Y=${headPose?.yaw.toFixed(1)}° R=${head
                     </div>
                   </div>
                   <div className="bg-gray-900 px-3 py-1 text-xs text-white space-y-0.5">
-                    <p>🔵 Blue: Eye contours | 🔴 Red: Iris</p>
-                    <p>🟢 Green: Eye centers | {gazeHistory.length} points tracked</p>
+                    <p>⚪ White: 468 Face Mesh | 🔵 Blue: Eye Contours</p>
+                    <p>🟦 Cyan: Iris Circles | 🔴 Red: Pupil Landmarks</p>
+                    <p>🟢 Green: Eye Centers + Gaze Vectors | {gazeHistory.length} tracked</p>
                   </div>
                 </div>
               )}
