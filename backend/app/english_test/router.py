@@ -115,9 +115,18 @@ async def start_test(request: StartTestRequest):
     2. Select first routing item (Stage 1)
     3. Return session info and first item
     """
+    import logging
+    import traceback
+
+    logger = logging.getLogger(__name__)
+
     try:
+        logger.info(f"🚀 Starting English test for user: {request.user_id}")
         service = get_service()
+        logger.info("✅ Service instance created")
+
         result = service.start_session(request.user_id)
+        logger.info(f"✅ Session started: {result.get('session_id')}")
 
         return StartTestResponse(
             session_id=result['session_id'],
@@ -128,6 +137,8 @@ async def start_test(request: StartTestRequest):
         )
 
     except Exception as e:
+        logger.error(f"❌ Failed to start test: {str(e)}")
+        logger.error(f"📋 Traceback: {traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=f"Failed to start test: {str(e)}")
 
 
