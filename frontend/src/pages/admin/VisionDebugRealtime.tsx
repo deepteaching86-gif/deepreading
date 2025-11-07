@@ -374,15 +374,19 @@ const VisionDebugRealtime: React.FC = () => {
    * Calculate 3D gaze direction vector
    * JEO: Gaze vector = Iris center - Eye center (normalized)
    *
-   * ⚠️ MediaPipe Y-axis correction:
-   * - MediaPipe Y increases downward (0=top, 1=bottom)
-   * - Looking up: iris Y decreases → dy should be positive for upward gaze
-   * - Looking down: iris Y increases → dy should be negative for downward gaze
-   * - Therefore: INVERT Y component (eyeCenter.y - irisCenter.y)
+   * MediaPipe coordinate system:
+   * - X: left to right (0=left, 1=right)
+   * - Y: top to bottom (0=top, 1=bottom) ⚠️ increases downward
+   * - Z: near to far (negative=closer to camera)
+   *
+   * Gaze vector direction (in MediaPipe coords):
+   * - Looking right: iris X > eye X → dx positive
+   * - Looking down: iris Y > eye Y → dy positive
+   * - Looking forward: iris Z ≈ eye Z → dz ≈ 0
    */
   const calculateGazeVector3D = (irisCenter: Vector3D, eyeCenter: Vector3D): Vector3D => {
     const dx = irisCenter.x - eyeCenter.x;
-    const dy = eyeCenter.y - irisCenter.y; // ✅ INVERTED for MediaPipe Y-axis
+    const dy = irisCenter.y - eyeCenter.y; // Keep MediaPipe Y direction
     const dz = irisCenter.z - eyeCenter.z;
 
     // Normalize
@@ -484,13 +488,24 @@ const VisionDebugRealtime: React.FC = () => {
     const mmToPixelX = screenWidth / EYE_MODEL.screenWidthMM;
     const mmToPixelY = screenHeight / EYE_MODEL.screenHeightMM;
 
+    // ✅ CRITICAL FIX: Y-axis coordinate transformation
+    // MediaPipe gaze vector: Y positive = looking down
+    // Screen coords: Y positive = downward
+    // BUT: Ray-plane intersection produces inverted Y behavior
+    // Solution: Invert yMM to correct the mapping
     const screenX = screenWidth / 2 + xMM * mmToPixelX * depthFactor;
-    const screenY = screenHeight / 2 + yMM * mmToPixelY * depthFactor; // Y coordinate (screen Y increases downward)
+    const screenY = screenHeight / 2 - yMM * mmToPixelY * depthFactor; // ✅ INVERTED Y
+
+    // 🎯 Vertical bias compensation (anatomical rest position)
+    // Human eyes naturally rest at ~5-10 degrees downward
+    // Add upward offset to compensate for this anatomical bias
+    const VERTICAL_BIAS_OFFSET = screenHeight * 0.05; // 5% upward shift
+    const correctedY = screenY - VERTICAL_BIAS_OFFSET;
 
     // Clamp to screen bounds
     return {
       x: Math.max(0, Math.min(screenWidth - 1, screenX)),
-      y: Math.max(0, Math.min(screenHeight - 1, screenY)),
+      y: Math.max(0, Math.min(screenHeight - 1, correctedY)),
     };
   };
 
@@ -568,10 +583,21 @@ const VisionDebugRealtime: React.FC = () => {
     // 8. Estimate head pose for additional context
     const headPose = estimateHeadPose(landmarks);
 
-    // Debug info
-    const debugText = `Gaze Vec: (${avgGazeVec.x.toFixed(2)}, ${avgGazeVec.y.toFixed(2)}, ${avgGazeVec.z.toFixed(2)})
-Eye Depth: ${avgDepth.toFixed(3)}
-Head: P=${headPose?.pitch.toFixed(1)}° Y=${headPose?.yaw.toFixed(1)}° R=${headPose?.roll.toFixed(1)}°`;
+    // 🔬 Enhanced debug info with detailed coordinate tracking
+    const debugText = `🎯 Gaze Vector (normalized):
+  X: ${avgGazeVec.x.toFixed(3)} | Y: ${avgGazeVec.y.toFixed(3)} | Z: ${avgGazeVec.z.toFixed(3)}
+
+👁️ Eye Center (MediaPipe normalized):
+  Y: ${avgEyeCenter.y.toFixed(3)} | Depth: ${avgDepth.toFixed(3)}
+
+🔵 Left Iris Y: ${leftIrisCenter.y.toFixed(3)} | Eye Y: ${leftEyeCenter.y.toFixed(3)} | ΔY: ${(leftIrisCenter.y - leftEyeCenter.y).toFixed(3)}
+🔵 Right Iris Y: ${rightIrisCenter.y.toFixed(3)} | Eye Y: ${rightEyeCenter.y.toFixed(3)} | ΔY: ${(rightIrisCenter.y - rightEyeCenter.y).toFixed(3)}
+
+📍 Screen Gaze (pixels):
+  X: ${screenPoint.x.toFixed(0)}px | Y: ${screenPoint.y.toFixed(0)}px
+
+🧭 Head Pose:
+  Pitch: ${headPose?.pitch.toFixed(1)}° | Yaw: ${headPose?.yaw.toFixed(1)}° | Roll: ${headPose?.roll.toFixed(1)}°`;
     setDebugInfo(debugText);
 
     return {
