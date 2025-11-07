@@ -1,5 +1,5 @@
 # Netlify Configuration for Frontend
-# Updated: 2025-11-02 - Force rebuild with correct backend URL
+# Updated: 2025-11-08 - Rebuild to clear cache and apply VITE_API_URL for English test backend
 
 [build]
   base = "frontend"
