@@ -2,19 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { FaceLandmarker, FilesetResolver } from '@mediapipe/tasks-vision';
 
 /**
- * 🎯 JEO-Style Real-Time Eye Tracking using MediaPipe Face Mesh
- *
- * Architecture (JEO Algorithm):
- * 1. 3D Eye Model: Eye ball center + radius (mm units)
- * 2. Eye Center Calculation: Using eye contour landmarks
- * 3. Gaze Vector: Iris center - Eye center = gaze direction (3D)
- * 4. Ray-Plane Intersection: Project 3D gaze to 2D screen coordinates
- * 5. Depth Compensation: Use MediaPipe z-depth for distance correction
- * 6. Head Pose Approximation: Face orientation for rotation matrix
- *
- * References:
- * - backend/app/vision/tracker.py (JEO implementation)
- * - MediaPipe Face Mesh 468 landmarks + 10 iris landmarks
+ * 실시간 시선 추적 디버그
+ * Real-Time Eye Tracking Debug Interface
  */
 
 interface GazePoint {
@@ -120,6 +109,9 @@ const VisionDebugRealtime: React.FC = () => {
   const [calibrationData, setCalibrationData] = useState<CalibrationData | null>(null);
   const [calibrationMessage, setCalibrationMessage] = useState<string>('');
   const [showVideoOverlay, setShowVideoOverlay] = useState(true);
+
+  // 📹 Camera resolution state
+  const [cameraResolution, setCameraResolution] = useState({ width: 640, height: 480 });
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -926,6 +918,14 @@ Head: P=${headPose?.pitch.toFixed(1)}° Y=${headPose?.yaw.toFixed(1)}° R=${head
       streamRef.current = stream;
       await videoRef.current.play();
 
+      // 📹 Get actual camera resolution from video track
+      const videoTrack = stream.getVideoTracks()[0];
+      const settings = videoTrack.getSettings();
+      if (settings.width && settings.height) {
+        setCameraResolution({ width: settings.width, height: settings.height });
+        console.log(`✅ Camera resolution: ${settings.width}x${settings.height}`);
+      }
+
       setIsRunning(true);
 
       console.log('✅ JEO real-time eye tracking started with LOCAL WASM files');
@@ -991,31 +991,28 @@ Head: P=${headPose?.pitch.toFixed(1)}° Y=${headPose?.yaw.toFixed(1)}° R=${head
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-background p-6">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          🎯 JEO Real-Time Eye Tracking
+        <h1 className="text-3xl font-bold text-foreground mb-6">
+          실시간 시선 추적 디버그
         </h1>
-        <p className="text-sm text-gray-600 mb-6">
-          3D Eye Model + Ray-Plane Intersection for precise gaze mapping
-        </p>
 
         {/* Control Panel */}
-        <div className="bg-white rounded-lg shadow p-6 mb-6">
+        <div className="bg-card rounded-lg shadow-lg p-6 mb-6 border border-border">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-xl font-semibold text-gray-800">Controls</h2>
-              <p className="text-sm text-gray-500 mt-1">
+              <h2 className="text-xl font-semibold text-card-foreground">Controls</h2>
+              <p className="text-sm text-muted-foreground mt-1">
                 Status: {isRunning ? '🟢 Running' : '🔴 Stopped'} | FPS: {fps} | Face:{' '}
                 {faceDetected ? '✅ Detected' : '❌ Not Detected'}
               </p>
               {calibrationData && (
-                <p className="text-xs text-green-600 mt-1">
+                <p className="text-xs text-primary mt-1">
                   🎯 Calibrated (Offset: {calibrationData.offsetX.toFixed(0)}px, {calibrationData.offsetY.toFixed(0)}px | Accuracy: {calibrationData.accuracy.toFixed(1)}px)
                 </p>
               )}
               {calibrationMessage && (
-                <p className="text-sm text-blue-600 mt-1 font-semibold">
+                <p className="text-sm text-primary mt-1 font-semibold">
                   {calibrationMessage}
                 </p>
               )}
@@ -1024,38 +1021,38 @@ Head: P=${headPose?.pitch.toFixed(1)}° Y=${headPose?.yaw.toFixed(1)}° R=${head
               {!isRunning ? (
                 <button
                   onClick={startTracking}
-                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                  className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition shadow-md"
                 >
-                  Start JEO Tracking
+                  시선추적 시작
                 </button>
               ) : (
                 <>
                   <button
                     onClick={stopTracking}
-                    className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+                    className="px-6 py-2 bg-destructive text-destructive-foreground rounded-lg hover:bg-destructive/90 transition shadow-md"
                   >
-                    Stop Tracking
+                    중지
                   </button>
                   <button
                     onClick={startCalibration}
                     disabled={isCalibrating}
-                    className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition disabled:bg-gray-400 disabled:cursor-not-allowed"
+                    className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition disabled:bg-muted disabled:cursor-not-allowed shadow-md"
                   >
-                    {isCalibrating ? '🎯 Calibrating...' : '🎯 Calibrate'}
+                    {isCalibrating ? '🎯 보정 중...' : '🎯 보정'}
                   </button>
                   {calibrationData && (
                     <button
                       onClick={clearCalibration}
-                      className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition text-sm"
+                      className="px-4 py-2 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/90 transition text-sm shadow-md"
                     >
-                      Clear
+                      초기화
                     </button>
                   )}
                   <button
                     onClick={() => setShowVideoOverlay(!showVideoOverlay)}
-                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition text-sm"
+                    className="px-4 py-2 bg-accent text-accent-foreground rounded-lg hover:bg-accent/90 transition text-sm shadow-md"
                   >
-                    {showVideoOverlay ? '📹 Hide Video' : '📹 Show Video'}
+                    {showVideoOverlay ? '📹 카메라 숨기기' : '📹 카메라 보기'}
                   </button>
                 </>
               )}
@@ -1066,9 +1063,9 @@ Head: P=${headPose?.pitch.toFixed(1)}° Y=${headPose?.yaw.toFixed(1)}° R=${head
         {/* ✅ NEW LAYOUT: Large Heatmap + Small Camera Popup */}
         <div className="relative">
           {/* MAIN: Full-Width Gaze Heatmap (BIG) */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-2xl font-semibold text-gray-800 mb-4">
-              🎯 Gaze Heatmap (JEO Algorithm - Smoothed)
+          <div className="bg-card rounded-lg shadow-lg p-6 border border-border">
+            <h2 className="text-2xl font-semibold text-card-foreground mb-4">
+              시선 히트맵
             </h2>
             <div
               className="relative bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg overflow-hidden"
@@ -1141,18 +1138,21 @@ Head: P=${headPose?.pitch.toFixed(1)}° Y=${headPose?.yaw.toFixed(1)}° R=${head
               />
 
               {!isRunning && (
-                <div className="absolute inset-0 flex items-center justify-center text-gray-400 text-lg">
-                  🎯 Click "Start JEO Tracking" to begin eye tracking
+                <div className="absolute inset-0 flex items-center justify-center text-muted-foreground text-lg">
+                  시선 추적 버튼을 눌러 실시간 추적을 시작하세요
                 </div>
               )}
 
               {/* ✅ CAMERA POPUP WITH LANDMARKS (Top-Right) */}
               {isRunning && showVideoOverlay && (
-                <div className="absolute top-4 right-4 z-30 bg-black rounded-lg shadow-2xl border-4 border-blue-500 overflow-hidden">
-                  <div className="bg-blue-600 px-3 py-1 text-xs text-white font-semibold">
-                    📹 Live Camera + JEO Landmark Overlay
-                  </div>
-                  <div className="relative" style={{ width: '480px', height: '360px' }}>
+                <div className="absolute top-4 right-4 z-30 bg-black rounded-lg shadow-2xl border-4 border-primary overflow-hidden">
+                  <div
+                    className="relative"
+                    style={{
+                      width: `${Math.min(cameraResolution.width * 0.4, 640)}px`,
+                      height: `${Math.min(cameraResolution.height * 0.4, 480)}px`
+                    }}
+                  >
 
                     {/* Canvas for video rendering */}
                     <canvas
@@ -1203,28 +1203,13 @@ Head: P=${headPose?.pitch.toFixed(1)}° Y=${headPose?.yaw.toFixed(1)}° R=${head
             {/* Debug Info */}
             {debugInfo && (
               <div className="mt-4">
-                <p className="text-sm font-semibold text-gray-700 mb-2">🔬 JEO Debug Info</p>
-                <pre className="p-3 bg-gray-100 rounded text-xs font-mono whitespace-pre-wrap text-gray-700">
+                <p className="text-sm font-semibold text-muted-foreground mb-2">🔬 Debug Info</p>
+                <pre className="p-3 bg-muted rounded text-xs font-mono whitespace-pre-wrap text-muted-foreground">
                   {debugInfo}
                 </pre>
               </div>
             )}
           </div>
-        </div>
-
-        {/* Technical Info */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6">
-          <h3 className="font-semibold text-blue-900 mb-2">🎯 JEO Algorithm Architecture</h3>
-          <ul className="text-sm text-blue-800 space-y-1">
-            <li>✅ 3D Eye Model: Eye ball center ({EYE_MODEL.leftEyeCenter.x}, {EYE_MODEL.leftEyeCenter.z})mm + radius {EYE_MODEL.eyeBallRadius}mm</li>
-            <li>✅ Eye Center Calculation: 8-point contour landmarks for precision</li>
-            <li>✅ Iris Center: 5-point iris landmarks (MediaPipe refine_landmarks)</li>
-            <li>✅ Gaze Vector: Iris - Eye Center (normalized 3D)</li>
-            <li>✅ Ray-Plane Intersection: 3D gaze → 2D screen at {EYE_MODEL.screenDistance}mm</li>
-            <li>✅ Depth Compensation: z-coordinate for distance correction</li>
-            <li>✅ Head Pose Approximation: Pitch/Yaw/Roll from face orientation</li>
-            <li>✅ Screen Physical Model: {EYE_MODEL.screenWidthMM}mm × {EYE_MODEL.screenHeightMM}mm</li>
-          </ul>
         </div>
       </div>
     </div>

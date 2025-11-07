@@ -5,7 +5,10 @@
       "Bash(npm run build:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(for:*)",
+      "Bash(do echo \"⏳ Netlify 백엔드 wake-up 기능 배포 대기 중... $i분\")",
+      "Bash(done)"
     ],
     "deny": [],
     "ask": []
