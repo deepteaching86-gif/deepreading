@@ -10,7 +10,8 @@
       "Bash(do echo \"⏳ Netlify 백엔드 wake-up 기능 배포 대기 중... $i분\")",
       "Bash(done)",
       "Bash(do echo \"⏳ Netlify 시선 추적 UI 개선 배포 대기 중... $i분\")",
-      "Bash(do echo \"⏳ Netlify Y축 추적 수정 배포 대기 중... $i분\")"
+      "Bash(do echo \"⏳ Netlify Y축 추적 수정 배포 대기 중... $i분\")",
+      "Bash(do echo \"⏳ Netlify 정밀 Y축 추적 + 해부학적 보정 배포 대기 중... $i분\")"
     ],
     "deny": [],
     "ask": []

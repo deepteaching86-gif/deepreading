@@ -7,12 +7,12 @@
 
 import axios, { AxiosInstance } from 'axios';
 
-// API Base URL
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+// API Base URL - Use dedicated English Test backend (Python)
+const API_BASE_URL = import.meta.env.VITE_ENGLISH_TEST_API_URL || 'http://localhost:8000';
 
 // 🔍 DEBUG: Log the actual API URL being used
 console.log('🌐 English Test API Base URL:', API_BASE_URL);
-console.log('📦 VITE_API_URL env var:', import.meta.env.VITE_API_URL);
+console.log('📦 VITE_ENGLISH_TEST_API_URL env var:', import.meta.env.VITE_ENGLISH_TEST_API_URL);
 
 // Create axios instance
 const apiClient: AxiosInstance = axios.create({

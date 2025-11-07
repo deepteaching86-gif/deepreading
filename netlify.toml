@@ -8,7 +8,8 @@
 
 [build.environment]
   NODE_VERSION = "20"
-  VITE_API_URL = "https://literacy-english-test-backend.onrender.com"
+  VITE_API_URL = "https://literacy-backend.onrender.com"
+  VITE_ENGLISH_TEST_API_URL = "https://literacy-english-test-backend.onrender.com"
 
 # Frontend SPA fallback - all routes go to index.html
 [[redirects]]
@@ -41,10 +42,12 @@
 [context.development.environment]
   VITE_API_URL = "http://localhost:3000"
 
-# Production context - use Render backend
+# Production context - use Render backends
 [context.production.environment]
-  VITE_API_URL = "https://literacy-english-test-backend.onrender.com"
+  VITE_API_URL = "https://literacy-backend.onrender.com"
+  VITE_ENGLISH_TEST_API_URL = "https://literacy-english-test-backend.onrender.com"
 
-# Preview context - use Render backend
+# Preview context - use Render backends
 [context.branch-deploy.environment]
-  VITE_API_URL = "https://literacy-english-test-backend.onrender.com"
+  VITE_API_URL = "https://literacy-backend.onrender.com"
+  VITE_ENGLISH_TEST_API_URL = "https://literacy-english-test-backend.onrender.com"
