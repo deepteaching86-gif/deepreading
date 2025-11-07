@@ -373,10 +373,16 @@ const VisionDebugRealtime: React.FC = () => {
   /**
    * Calculate 3D gaze direction vector
    * JEO: Gaze vector = Iris center - Eye center (normalized)
+   *
+   * ⚠️ MediaPipe Y-axis correction:
+   * - MediaPipe Y increases downward (0=top, 1=bottom)
+   * - Looking up: iris Y decreases → dy should be positive for upward gaze
+   * - Looking down: iris Y increases → dy should be negative for downward gaze
+   * - Therefore: INVERT Y component (eyeCenter.y - irisCenter.y)
    */
   const calculateGazeVector3D = (irisCenter: Vector3D, eyeCenter: Vector3D): Vector3D => {
     const dx = irisCenter.x - eyeCenter.x;
-    const dy = irisCenter.y - eyeCenter.y;
+    const dy = eyeCenter.y - irisCenter.y; // ✅ INVERTED for MediaPipe Y-axis
     const dz = irisCenter.z - eyeCenter.z;
 
     // Normalize
