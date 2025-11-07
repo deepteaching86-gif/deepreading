@@ -30,9 +30,6 @@ import Unauthorized from './pages/Unauthorized';
 // English Adaptive Test
 import EnglishTestPage from './pages/test/EnglishTestPage';
 
-// Vision Tracking Test
-import VisionTest from './pages/test/VisionTest';
-
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -100,16 +97,6 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['student']}>
                 <EnglishTestPage />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* Vision Tracking Test Routes */}
-          <Route
-            path="/test/vision"
-            element={
-              <ProtectedRoute allowedRoles={['student', 'admin']}>
-                <VisionTest />
               </ProtectedRoute>
             }
           />
