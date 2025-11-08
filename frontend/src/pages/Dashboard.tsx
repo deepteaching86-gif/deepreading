@@ -82,9 +82,11 @@ export default function Dashboard() {
       const templatesRes = await axios.get('/api/v1/templates');
       const allTemplates = templatesRes.data.data;
 
-      // Filter templates for student's grade
+      // Filter templates for student's grade and exclude VISIONTEST templates
       const gradeTemplates = allTemplates.filter(
-        (t: TestTemplate) => t.grade === studentProfile.grade
+        (t: TestTemplate) =>
+          t.grade === studentProfile.grade &&
+          !t.templateCode.includes('VISIONTEST')
       );
       setTemplates(gradeTemplates);
     } catch (error: any) {
