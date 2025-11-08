@@ -32,11 +32,11 @@ class EnglishTestDB:
         credentials = 'postgres.sxnjeqqvqbhueqbwsnpj:DeepReading2025%21%40%23%24SecureDB'
 
         try:
-            # Resolve hostname to IPv4 address only
-            ipv4_addr = socket.getaddrinfo(hostname, None, socket.AF_INET)[0][4][0]
+            # Force IPv4 resolution using gethostbyname (returns IPv4 only)
+            ipv4_addr = socket.gethostbyname(hostname)
             direct_url = f'postgresql://{credentials}@{ipv4_addr}:5432/postgres'
-        except (socket.gaierror, IndexError):
-            # Fallback to hostname if IPv4 resolution fails
+        except socket.gaierror:
+            # Fallback to hostname if resolution fails
             direct_url = f'postgresql://{credentials}@{hostname}:5432/postgres'
 
         # Allow override via environment variable if needed
