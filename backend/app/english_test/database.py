@@ -7,6 +7,7 @@ Mirrors Prisma schema for English test tables.
 """
 
 import os
+import socket
 from typing import Dict, List, Optional, Tuple
 from datetime import datetime
 import psycopg2
@@ -25,7 +26,18 @@ class EnglishTestDB:
     def __init__(self):
         # Direct connection to Supabase PostgreSQL (bypass connection pooler for psycopg2 compatibility)
         # NOTE: Connection pooler (port 6543) is incompatible with psycopg2 SASL authentication
-        direct_url = 'postgresql://postgres.sxnjeqqvqbhueqbwsnpj:DeepReading2025%21%40%23%24SecureDB@db.sxnjeqqvqbhueqbwsnpj.supabase.co:5432/postgres'
+        # NOTE: Force IPv4 resolution to avoid "Network is unreachable" errors on IPv6-disabled hosts
+
+        hostname = 'db.sxnjeqqvqbhueqbwsnpj.supabase.co'
+        credentials = 'postgres.sxnjeqqvqbhueqbwsnpj:DeepReading2025%21%40%23%24SecureDB'
+
+        try:
+            # Resolve hostname to IPv4 address only
+            ipv4_addr = socket.getaddrinfo(hostname, None, socket.AF_INET)[0][4][0]
+            direct_url = f'postgresql://{credentials}@{ipv4_addr}:5432/postgres'
+        except (socket.gaierror, IndexError):
+            # Fallback to hostname if IPv4 resolution fails
+            direct_url = f'postgresql://{credentials}@{hostname}:5432/postgres'
 
         # Allow override via environment variable if needed
         self.database_url = os.getenv('DIRECT_URL', direct_url)
