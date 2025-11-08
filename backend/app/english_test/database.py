@@ -23,11 +23,12 @@ class EnglishTestDB:
     """
 
     def __init__(self):
-        # Get database URL from environment (URL-encoded)
-        self.database_url = os.getenv(
-            'DIRECT_URL',
-            'postgresql://postgres.sxnjeqqvqbhueqbwsnpj:DeepReading2025%21%40%23%24SecureDB@db.sxnjeqqvqbhueqbwsnpj.supabase.co:5432/postgres'
-        )
+        # Direct connection to Supabase PostgreSQL (bypass connection pooler for psycopg2 compatibility)
+        # NOTE: Connection pooler (port 6543) is incompatible with psycopg2 SASL authentication
+        direct_url = 'postgresql://postgres.sxnjeqqvqbhueqbwsnpj:DeepReading2025%21%40%23%24SecureDB@db.sxnjeqqvqbhueqbwsnpj.supabase.co:5432/postgres'
+
+        # Allow override via environment variable if needed
+        self.database_url = os.getenv('DIRECT_URL', direct_url)
 
     def _get_connection(self):
         """Get database connection"""
