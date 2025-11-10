@@ -43,16 +43,14 @@ class EnglishTestDB:
             direct_url = f'postgresql://{credentials}@{hostname}:5432/postgres'
             print(f"⚠️ Falling back to hostname: {hostname}")
 
-        # Check if environment variable overrides our URL
+        # Always use our generated URL (ignore DIRECT_URL env var to force IPv4)
         env_url = os.getenv('DIRECT_URL')
         if env_url:
-            print(f"🔧 Environment variable DIRECT_URL found, overriding default")
-            print(f"🔧 DIRECT_URL = {env_url}")
-            self.database_url = env_url
-        else:
-            print(f"✅ No DIRECT_URL env var, using generated URL")
-            self.database_url = direct_url
+            print(f"⚠️ Environment variable DIRECT_URL found but IGNORING to force IPv4")
+            print(f"⚠️ Ignored DIRECT_URL = {env_url}")
 
+        self.database_url = direct_url
+        print(f"✅ Using generated IPv4-forced URL")
         print(f"🔗 Final database URL (host part): {self.database_url.split('@')[1].split('/')[0] if '@' in self.database_url else 'unknown'}")
 
     def _get_connection(self):
