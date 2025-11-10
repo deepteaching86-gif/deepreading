@@ -24,34 +24,41 @@ class EnglishTestDB:
     """
 
     def __init__(self):
-        # Direct connection to Supabase PostgreSQL (bypass connection pooler for psycopg2 compatibility)
-        # NOTE: Connection pooler (port 6543) is incompatible with psycopg2 SASL authentication
-        # NOTE: Force IPv4 resolution to avoid "Network is unreachable" errors on IPv6-disabled hosts
+        # Try multiple Supabase connection methods
+        # 1. Direct connection (db.*.supabase.co:5432)
+        # 2. Transaction Pooler (aws-*.pooler.supabase.com:5432) - Session mode, psycopg2 compatible
+        # 3. IPv4 resolution fallback
 
-        hostname = 'db.sxnjeqqvqbhueqbwsnpj.supabase.co'
         credentials = 'postgres.sxnjeqqvqbhueqbwsnpj:DeepReading2025%21%40%23%24SecureDB'
 
+        # Try Transaction Pooler first (Session mode, port 5432 - psycopg2 compatible)
+        pooler_hostname = 'aws-1-ap-northeast-2.pooler.supabase.com'
         try:
-            # Force IPv4 resolution using gethostbyname (returns IPv4 only)
-            ipv4_addr = socket.gethostbyname(hostname)
-            print(f"🔍 DNS Resolution: {hostname} -> {ipv4_addr}")
-            direct_url = f'postgresql://{credentials}@{ipv4_addr}:5432/postgres'
-            print(f"✅ Using IPv4 connection: {ipv4_addr}:5432")
+            print(f"🔄 Trying Transaction Pooler: {pooler_hostname}:5432")
+            ipv4_addr = socket.gethostbyname(pooler_hostname)
+            print(f"✅ DNS Resolution: {pooler_hostname} -> {ipv4_addr}")
+            self.database_url = f'postgresql://{credentials}@{ipv4_addr}:5432/postgres?sslmode=require'
+            print(f"✅ Using Transaction Pooler (Session mode): {ipv4_addr}:5432")
+            return
         except socket.gaierror as e:
-            # Fallback to hostname if resolution fails
-            print(f"⚠️ DNS resolution failed: {e}")
-            direct_url = f'postgresql://{credentials}@{hostname}:5432/postgres'
-            print(f"⚠️ Falling back to hostname: {hostname}")
+            print(f"⚠️ Transaction Pooler DNS failed: {e}")
 
-        # Always use our generated URL (ignore DIRECT_URL env var to force IPv4)
-        env_url = os.getenv('DIRECT_URL')
-        if env_url:
-            print(f"⚠️ Environment variable DIRECT_URL found but IGNORING to force IPv4")
-            print(f"⚠️ Ignored DIRECT_URL = {env_url}")
+        # Fallback to direct connection
+        direct_hostname = 'db.sxnjeqqvqbhueqbwsnpj.supabase.co'
+        try:
+            print(f"🔄 Trying direct connection: {direct_hostname}:5432")
+            ipv4_addr = socket.gethostbyname(direct_hostname)
+            print(f"✅ DNS Resolution: {direct_hostname} -> {ipv4_addr}")
+            self.database_url = f'postgresql://{credentials}@{ipv4_addr}:5432/postgres'
+            print(f"✅ Using direct connection: {ipv4_addr}:5432")
+            return
+        except socket.gaierror as e:
+            print(f"⚠️ Direct connection DNS failed: {e}")
 
-        self.database_url = direct_url
-        print(f"✅ Using generated IPv4-forced URL")
-        print(f"🔗 Final database URL (host part): {self.database_url.split('@')[1].split('/')[0] if '@' in self.database_url else 'unknown'}")
+        # Last resort: use hostname directly (will likely fail on Render)
+        print(f"⚠️ All IPv4 resolution failed, using hostname as last resort")
+        self.database_url = f'postgresql://{credentials}@{pooler_hostname}:5432/postgres?sslmode=require'
+        print(f"🔗 Final URL: {pooler_hostname}:5432")
 
     def _get_connection(self):
         """Get database connection"""
