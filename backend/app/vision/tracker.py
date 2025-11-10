@@ -7,6 +7,7 @@ import numpy as np
 from typing import Optional, Dict, Tuple, List
 from .pupil_detector import OrloskyPupilDetector
 from .head_pose import HeadPoseEstimator
+from .calibration import CalibrationCorrector
 
 class VisionTracker:
     """통합 시선 추적 엔진 (JEO 3D gaze ray computation)"""
@@ -20,6 +21,7 @@ class VisionTracker:
     def __init__(self):
         self.pupil_detector = OrloskyPupilDetector()
         self.head_pose_estimator = HeadPoseEstimator()
+        self.calibration_corrector = CalibrationCorrector()
 
         # 3D 눈 모델 (mm 단위, 얼굴 중심 기준)
         self.eye_ball_center_left = np.array([-29.0, 0.0, -42.0])
@@ -417,3 +419,56 @@ class VisionTracker:
                            cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
 
         return debug_frame
+
+    def train_calibration(self, calibration_points: List[Dict]) -> Dict[str, float]:
+        """
+        캘리브레이션 데이터로 개인별 보정 학습
+
+        Args:
+            calibration_points: List of calibration data points from 9-point calibration
+
+        Returns:
+            Calibration metrics (scale, offset, error)
+        """
+        return self.calibration_corrector.train(calibration_points)
+
+    def map_to_screen_calibrated(
+        self,
+        gaze_vector: np.ndarray,
+        head_translation: list,
+        screen_width: int,
+        screen_height: int
+    ) -> Tuple[int, int]:
+        """
+        3D 시선 벡터 → 화면 좌표 변환 (캘리브레이션 보정 적용)
+
+        Args:
+            gaze_vector: 3D gaze direction vector
+            head_translation: Head position (tx, ty, tz)
+            screen_width: Screen width in pixels
+            screen_height: Screen height in pixels
+
+        Returns:
+            (calibrated_x, calibrated_y) - Calibrated screen coordinates
+        """
+        # 1. 기본 투영
+        raw_x, raw_y = self.map_to_screen(
+            gaze_vector, head_translation, screen_width, screen_height
+        )
+
+        # 2. 캘리브레이션 보정 적용
+        if self.calibration_corrector.is_calibrated:
+            corrected_x, corrected_y = self.calibration_corrector.correct(
+                float(raw_x), float(raw_y)
+            )
+            # 화면 범위 클리핑
+            corrected_x = max(0, min(screen_width - 1, int(corrected_x)))
+            corrected_y = max(0, min(screen_height - 1, int(corrected_y)))
+            return (corrected_x, corrected_y)
+        else:
+            # 캘리브레이션 전에는 raw 값 반환
+            return (raw_x, raw_y)
+
+    def reset_calibration(self):
+        """캘리브레이션 리셋"""
+        self.calibration_corrector.reset()

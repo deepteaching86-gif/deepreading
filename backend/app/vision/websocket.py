@@ -17,12 +17,14 @@ class VisionWebSocketHandler:
         self.tracker = VisionTracker()
         self.active_connections: Dict[str, WebSocket] = {}
         self.gaze_buffer: Dict[str, list] = {}  # 배치 저장용 버퍼
+        self.debug_mode: Dict[str, bool] = {}  # 세션별 디버그 모드 활성화 여부
 
     async def connect(self, websocket: WebSocket, session_id: str):
         """클라이언트 연결"""
         await websocket.accept()
         self.active_connections[session_id] = websocket
         self.gaze_buffer[session_id] = []
+        self.debug_mode[session_id] = False  # 기본값: 디버그 모드 비활성화
         print(f"Vision session {session_id} connected")
 
     def disconnect(self, session_id: str):
@@ -31,6 +33,8 @@ class VisionWebSocketHandler:
             del self.active_connections[session_id]
         if session_id in self.gaze_buffer:
             del self.gaze_buffer[session_id]
+        if session_id in self.debug_mode:
+            del self.debug_mode[session_id]
         print(f"Vision session {session_id} disconnected")
 
     async def handle_frame(
@@ -49,10 +53,17 @@ class VisionWebSocketHandler:
                 "screenHeight": 1080,
                 "frameWidth": 1280,  # 카메라 프레임 해상도 (adaptive)
                 "frameHeight": 720,   # 카메라 프레임 해상도 (adaptive)
+                "enableDebug": false,  # 디버그 이미지 생성 여부 (optional, default: false)
                 "timestamp": 1234567890
             }
         """
         websocket = self.active_connections.get(session_id)
+
+        # 디버그 모드 업데이트 (클라이언트 요청에 따라)
+        enable_debug = frame_data.get('enableDebug', False)
+        if enable_debug != self.debug_mode.get(session_id, False):
+            self.debug_mode[session_id] = enable_debug
+            print(f"[{session_id}] 🐛 Debug mode: {'ON' if enable_debug else 'OFF'}")
 
         # 프레임 해상도 정보 추출 (기본값: 화면 해상도 사용)
         frame_width = frame_data.get('frameWidth', frame_data['screenWidth'])
@@ -81,15 +92,15 @@ class VisionWebSocketHandler:
                     })
                 return
 
-            # 시선 추적 (디버그 이미지 포함)
+            # 시선 추적
             result = self.tracker.track(frame)
 
-            # 디버그 시각화 이미지 생성
-            debug_frame = self.tracker.draw_debug_overlay(frame, result)
-
-            # 디버그 이미지를 Base64로 인코딩
-            _, buffer = cv2.imencode('.jpg', debug_frame)
-            debug_image = base64.b64encode(buffer).decode('utf-8')
+            # 디버그 이미지 생성 (조건부 - 디버그 모드일 때만)
+            debug_image = None
+            if self.debug_mode.get(session_id, False):
+                debug_frame = self.tracker.draw_debug_overlay(frame, result)
+                _, buffer = cv2.imencode('.jpg', debug_frame, [cv2.IMWRITE_JPEG_QUALITY, 80])
+                debug_image = base64.b64encode(buffer).decode('utf-8')
 
             if result:
                 # 화면 좌표로 변환
@@ -109,9 +120,12 @@ class VisionWebSocketHandler:
                     "pupilLeft": result.get('pupil_left'),
                     "pupilRight": result.get('pupil_right'),
                     "headPose": result['head_pose'],
-                    "timestamp": frame_data['timestamp'],
-                    "debugImage": f"data:image/jpeg;base64,{debug_image}"  # 디버그 시각화 이미지
+                    "timestamp": frame_data['timestamp']
                 }
+
+                # 디버그 이미지 추가 (디버그 모드일 때만)
+                if debug_image:
+                    response["debugImage"] = f"data:image/jpeg;base64,{debug_image}"
 
                 if websocket:
                     await websocket.send_json(response)
@@ -123,14 +137,17 @@ class VisionWebSocketHandler:
                 if len(self.gaze_buffer[session_id]) >= 100:
                     await self._flush_buffer(session_id)
             else:
-                # Tracking 실패 - debugImage와 함께 경고 전송
+                # Tracking 실패 - 경고 전송
                 print(f"[{session_id}] Tracking failed - no face detected or tracking error")
                 if websocket:
-                    await websocket.send_json({
+                    warning_response = {
                         "type": "warning",
-                        "message": "No face detected - please position your face in front of camera",
-                        "debugImage": f"data:image/jpeg;base64,{debug_image}"  # "NO FACE DETECTED" 오버레이 포함
-                    })
+                        "message": "No face detected - please position your face in front of camera"
+                    }
+                    # 디버그 이미지 추가 (디버그 모드일 때만)
+                    if debug_image:
+                        warning_response["debugImage"] = f"data:image/jpeg;base64,{debug_image}"
+                    await websocket.send_json(warning_response)
 
         except Exception as e:
             print(f"[{session_id}] Error processing frame: {e}")
