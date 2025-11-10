@@ -34,15 +34,15 @@ class EnglishTestDB:
         encoded_password = quote_plus(password)
 
         # Try Transaction Pooler first (Session mode, port 5432)
-        # NOTE: Port 5432 requires username 'postgres' (not 'postgres.PROJECT')
+        # NOTE: Pooler ALWAYS requires full username 'postgres.PROJECT_REF' regardless of port
         pooler_hostname = 'aws-1-ap-northeast-2.pooler.supabase.com'
         try:
             print(f"🔄 Trying Transaction Pooler: {pooler_hostname}:5432")
             ipv4_addr = socket.gethostbyname(pooler_hostname)
             print(f"✅ DNS Resolution: {pooler_hostname} -> {ipv4_addr}")
 
-            # Username for port 5432: 'postgres' only
-            username = 'postgres'
+            # Username for Pooler: Always 'postgres.PROJECT_REF'
+            username = 'postgres.sxnjeqqvqbhueqbwsnpj'
             self.database_url = f'postgresql://{username}:{encoded_password}@{ipv4_addr}:5432/postgres?sslmode=require'
             print(f"✅ Using Transaction Pooler (port 5432, username={username}): {ipv4_addr}:5432")
             return
