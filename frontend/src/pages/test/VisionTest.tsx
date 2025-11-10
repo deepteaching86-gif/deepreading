@@ -144,9 +144,11 @@ const VisionTest: React.FC = () => {
         </div>
       )}
 
-      {phase === 'calibration' && (
+      {phase === 'calibration' && sessionId && (
         <VisionCalibration
           wsClient={wsClient}
+          sessionId={sessionId}
+          backendUrl={BACKEND_URL}
           onCalibrationComplete={handleCalibrationComplete}
           onCancel={handleCalibrationCancel}
         />

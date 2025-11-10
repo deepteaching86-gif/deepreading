@@ -20,6 +20,7 @@ export interface GazeData {
     pitch: number;
     yaw: number;
     roll: number;
+    translation: number[];
   };
   confidence: number;
   debugImage?: string;  // Base64 디버그 시각화 이미지

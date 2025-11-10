@@ -113,7 +113,6 @@ const FacePositionGuide: React.FC<FacePositionGuideProps> = ({
  */
 const DistanceIndicator: React.FC<{ distance: number; isGood: boolean }> = ({
   distance,
-  isGood,
 }) => {
   // Convert from mm to cm
   const distanceCm = Math.abs(distance) / 10;

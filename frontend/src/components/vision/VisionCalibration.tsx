@@ -202,22 +202,6 @@ const VisionCalibration: React.FC<VisionCalibrationProps> = ({
     }
   };
 
-  const calculateAccuracy = (points: CalibrationPoint[]): number => {
-    const errors = points.map((p) => {
-      const dx = p.screen_x - p.gaze_x;
-      const dy = p.screen_y - p.gaze_y;
-      return Math.sqrt(dx * dx + dy * dy);
-    });
-
-    const avgError = errors.reduce((sum, e) => sum + e, 0) / errors.length;
-
-    // Accuracy: 1.0 (perfect) to 0.0 (worst)
-    // Assume 50px error = 0.95 accuracy, 100px = 0.5 accuracy
-    const accuracy = Math.max(0, 1 - avgError / 200);
-
-    return parseFloat(accuracy.toFixed(2));
-  };
-
   const currentPoint = CALIBRATION_POINTS[currentPointIndex];
 
   return (
