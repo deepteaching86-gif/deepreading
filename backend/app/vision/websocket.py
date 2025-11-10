@@ -165,5 +165,26 @@ class VisionWebSocketHandler:
             await save_gaze_data_batch(session_id, self.gaze_buffer[session_id])
             self.gaze_buffer[session_id] = []
 
+    def train_calibration(self, session_id: str, calibration_points: list) -> dict:
+        """
+        세션별 캘리브레이션 학습
+
+        Args:
+            session_id: 세션 ID
+            calibration_points: List of calibration data points
+
+        Returns:
+            Calibration metrics dictionary
+        """
+        print(f"[{session_id}] 🎯 Training calibration with {len(calibration_points)} points")
+
+        # Train the tracker's calibration corrector
+        metrics = self.tracker.train_calibration(calibration_points)
+
+        print(f"[{session_id}] ✅ Calibration trained successfully")
+        print(f"   Error: {metrics['error_mean']:.1f}px ± {metrics['error_std']:.1f}px")
+
+        return metrics
+
 # 싱글톤 인스턴스
 vision_ws_handler = VisionWebSocketHandler()

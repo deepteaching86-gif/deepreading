@@ -150,7 +150,8 @@ export class VisionWebSocketClient {
     screenWidth: number,
     screenHeight: number,
     frameWidth: number,
-    frameHeight: number
+    frameHeight: number,
+    enableDebug: boolean = false
   ): void {
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
       console.warn('WebSocket not connected');
@@ -164,6 +165,7 @@ export class VisionWebSocketClient {
       screenHeight,
       frameWidth,   // Actual camera frame resolution
       frameHeight,  // Enables resolution-independent gaze tracking
+      enableDebug,  // Request debug image from backend (device-tier based)
     };
 
     this.ws.send(JSON.stringify(frameData));
@@ -262,6 +264,39 @@ export class VisionAPI {
     if (!response.ok) {
       throw new Error('Failed to save calibration');
     }
+  }
+
+  /**
+   * Train calibration corrector for a session
+   */
+  async trainCalibration(
+    sessionId: string,
+    calibrationPoints: CalibrationPoint[]
+  ): Promise<{
+    scale_x: number;
+    scale_y: number;
+    offset_x: number;
+    offset_y: number;
+    anatomical_offset_y: number;
+    error_mean: number;
+    error_std: number;
+  }> {
+    const response = await fetch(`${this.backendUrl}/api/vision/sessions/${sessionId}/train`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        points: calibrationPoints,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to train calibration');
+    }
+
+    const data = await response.json();
+    return data.metrics;
   }
 
   /**

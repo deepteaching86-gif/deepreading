@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { VisionWebSocketClient, GazeData } from '../../services/visionWebSocket';
+import { detectDevicePerformance, DevicePerformanceConfig } from '../../utils/devicePerformance';
+import FacePositionGuide from '../../components/vision/FacePositionGuide';
 
 // Python Vision Backend URL (Render.com)
 const BACKEND_URL = 'https://literacy-english-test-backend.onrender.com';
@@ -29,6 +31,8 @@ const VisionDebug: React.FC = () => {
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [wsClient] = useState(() => new VisionWebSocketClient(BACKEND_URL));
   const [debugImage, setDebugImage] = useState<string | null>(null);
+  const [deviceConfig, setDeviceConfig] = useState<DevicePerformanceConfig | null>(null);
+  const [showGuide, setShowGuide] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -47,10 +51,20 @@ const VisionDebug: React.FC = () => {
 
   useEffect(() => {
     loadSessions();
+    detectDevice();
     return () => {
       wsClient.disconnect();
     };
   }, []);
+
+  const detectDevice = async () => {
+    addLog('info', '🔍 Detecting device performance...');
+    const config = await detectDevicePerformance();
+    setDeviceConfig(config);
+    addLog('info', `✅ Device tier: ${config.tier.toUpperCase()}`);
+    addLog('info', `📹 Adaptive resolution: ${config.cameraResolution.width}x${config.cameraResolution.height}`);
+    addLog('info', `🐛 Debug mode: ${config.enableDebug ? 'ON' : 'OFF (performance)' }`);
+  };
 
   const loadSessions = async () => {
     try {
@@ -115,10 +129,11 @@ const VisionDebug: React.FC = () => {
 
       // Start camera with adaptive resolution
       addLog('info', '📸 Requesting camera access...');
+      const cameraResolution = deviceConfig?.cameraResolution || { width: 1280, height: 720 };
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
-          width: { ideal: 1280, max: 1920 },
-          height: { ideal: 720, max: 1080 },
+          width: { ideal: cameraResolution.width, max: 1920 },
+          height: { ideal: cameraResolution.height, max: 1080 },
           facingMode: 'user',
         },
       });
@@ -231,12 +246,14 @@ const VisionDebug: React.FC = () => {
         ctx.drawImage(video, 0, 0);
 
         const imageData = canvas.toDataURL('image/jpeg', 0.8);
+        const enableDebug = deviceConfig?.enableDebug ?? false;
         wsClient.sendFrame(
           imageData,
           window.innerWidth,
           window.innerHeight,
           video.videoWidth,
-          video.videoHeight
+          video.videoHeight,
+          enableDebug
         );
       }
 
@@ -309,12 +326,22 @@ const VisionDebug: React.FC = () => {
                   Start Debug Session
                 </button>
               ) : (
-                <button
-                  onClick={stopDebugSession}
-                  className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
-                >
-                  Stop Session
-                </button>
+                <>
+                  <button
+                    onClick={stopDebugSession}
+                    className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+                  >
+                    Stop Session
+                  </button>
+                  <button
+                    onClick={() => setShowGuide(!showGuide)}
+                    className={`px-6 py-2 ${
+                      showGuide ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-600 hover:bg-gray-700'
+                    } text-white rounded-lg transition`}
+                  >
+                    {showGuide ? '✅ Face Guide' : 'Face Guide'}
+                  </button>
+                </>
               )}
               <button
                 onClick={loadSessions}
@@ -509,6 +536,13 @@ const VisionDebug: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {/* Face Position Guide Overlay */}
+        <FacePositionGuide
+          headPose={currentGaze?.head_pose}
+          confidence={currentGaze?.confidence || 0}
+          show={showGuide && isConnected}
+        />
       </div>
     </div>
   );

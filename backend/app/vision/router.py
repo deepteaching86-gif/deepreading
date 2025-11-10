@@ -55,6 +55,46 @@ async def save_session_calibration(
     await save_calibration(session_id, calibration)
     return {"status": "success", "message": "Calibration saved"}
 
+@router.post("/sessions/{session_id}/train")
+async def train_session_calibration(
+    session_id: str,
+    request: Dict
+):
+    """
+    캘리브레이션 데이터로 개인별 시선 보정 학습
+
+    Request: {
+        "points": [
+            {
+                "screen_x": float,
+                "screen_y": float,
+                "gaze_x": float,
+                "gaze_y": float,
+                "timestamp": int
+            }
+        ]
+    }
+
+    Returns: {
+        "scale_x": float,
+        "scale_y": float,
+        "offset_x": float,
+        "offset_y": float,
+        "anatomical_offset_y": float,
+        "error_mean": float,
+        "error_std": float
+    }
+    """
+    calibration_points = request.get("points", [])
+
+    # Train calibration corrector on the VisionTracker for this session
+    metrics = vision_ws_handler.train_calibration(session_id, calibration_points)
+
+    return {
+        "status": "success",
+        "metrics": metrics
+    }
+
 @router.get("/test")
 async def test_vision_module():
     """Vision 모듈 테스트 엔드포인트"""

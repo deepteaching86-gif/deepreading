@@ -11,7 +11,19 @@
       "Bash(done)",
       "Bash(do echo \"⏳ Netlify 시선 추적 UI 개선 배포 대기 중... $i분\")",
       "Bash(do echo \"⏳ Netlify Y축 추적 수정 배포 대기 중... $i분\")",
-      "Bash(do echo \"⏳ Netlify 정밀 Y축 추적 + 해부학적 보정 배포 대기 중... $i분\")"
+      "Bash(do echo \"⏳ Netlify 정밀 Y축 추적 + 해부학적 보정 배포 대기 중... $i분\")",
+      "Bash(do echo \"⏳ Netlify 듀얼 백엔드 아키텍처 수정 배포 대기 중... $i분\")",
+      "Bash(do echo \"⏳ Netlify VISIONTEST 필터 배포 대기 중... $i분\")",
+      "Bash(do echo \"⏳ Render 백엔드 직접 연결 수정 배포 대기 중... $i분\")",
+      "Bash(do echo \"⏳ Render gethostbyname 수정 배포 대기 중... $i분\")",
+      "Bash(do echo \"⏳ Render 디버그 로깅 배포 대기 중... $i분\")",
+      "Bash(nslookup:*)",
+      "Bash(git log:*)",
+      "Bash(git show:*)",
+      "Bash(do echo \"⏳ Render Transaction Pooler 수정 배포 대기 중... $i분\")",
+      "Bash(do echo \"⏳ Render 비밀번호 인코딩 수정 배포 대기 중... $i분\")",
+      "Bash(do echo \"⏳ Render username 수정 배포 대기 중... $i분\")",
+      "Bash(do echo \"⏳ Render Vision 백엔드 개선 배포 대기 중... $i분\")"
     ],
     "deny": [],
     "ask": []

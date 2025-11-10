@@ -5,10 +5,12 @@
  */
 
 import React, { useState, useRef, useEffect } from 'react';
-import { VisionWebSocketClient, CalibrationPoint, GazeData } from '../../services/visionWebSocket';
+import { VisionWebSocketClient, VisionAPI, CalibrationPoint, GazeData } from '../../services/visionWebSocket';
 
 interface VisionCalibrationProps {
   wsClient: VisionWebSocketClient;
+  sessionId: string;
+  backendUrl: string;
   onCalibrationComplete: (accuracy: number) => void;
   onCancel: () => void;
 }
@@ -27,6 +29,8 @@ const CALIBRATION_POINTS = [
 
 const VisionCalibration: React.FC<VisionCalibrationProps> = ({
   wsClient,
+  sessionId,
+  backendUrl,
   onCalibrationComplete,
   onCancel,
 }) => {
@@ -34,9 +38,11 @@ const VisionCalibration: React.FC<VisionCalibrationProps> = ({
   const [isCollecting, setIsCollecting] = useState(false);
   const [collectedPoints, setCollectedPoints] = useState<CalibrationPoint[]>([]);
   const [gazePoints, setGazePoints] = useState<{ x: number; y: number }[]>([]);
+  const [isTraining, setIsTraining] = useState(false);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const visionAPI = useRef(new VisionAPI(backendUrl)).current;
 
   useEffect(() => {
     // Initialize webcam
@@ -162,15 +168,36 @@ const VisionCalibration: React.FC<VisionCalibrationProps> = ({
         timestamp: Date.now(),
       };
 
-      setCollectedPoints((prev) => [...prev, calibrationPoint]);
+      const allPoints = [...collectedPoints, calibrationPoint];
+      setCollectedPoints(allPoints);
 
       // Move to next point
       if (currentPointIndex < CALIBRATION_POINTS.length - 1) {
         setCurrentPointIndex(currentPointIndex + 1);
       } else {
-        // Calibration complete
-        const accuracy = calculateAccuracy([...collectedPoints, calibrationPoint]);
-        onCalibrationComplete(accuracy);
+        // Calibration complete - train the corrector
+        setIsTraining(true);
+
+        try {
+          console.log('🎯 Training calibration corrector with 9 points...');
+          const metrics = await visionAPI.trainCalibration(sessionId, allPoints);
+
+          console.log('✅ Calibration trained successfully:');
+          console.log(`   Error: ${metrics.error_mean.toFixed(1)}px ± ${metrics.error_std.toFixed(1)}px`);
+          console.log(`   Scale: X=${metrics.scale_x.toFixed(3)}, Y=${metrics.scale_y.toFixed(3)}`);
+          console.log(`   Offset: X=${metrics.offset_x.toFixed(1)}px, Y=${metrics.offset_y.toFixed(1)}px`);
+          console.log(`   Anatomical Y offset: ${metrics.anatomical_offset_y.toFixed(1)}px`);
+
+          // Convert error to accuracy (error_mean in pixels → accuracy 0-1)
+          // Assume 50px error = 0.95 accuracy, 100px = 0.5 accuracy
+          const accuracy = Math.max(0, 1 - metrics.error_mean / 200);
+
+          onCalibrationComplete(parseFloat(accuracy.toFixed(2)));
+        } catch (error) {
+          console.error('Failed to train calibration:', error);
+          alert('캘리브레이션 학습에 실패했습니다. 다시 시도해주세요.');
+          setIsTraining(false);
+        }
       }
     }
   };
@@ -210,12 +237,25 @@ const VisionCalibration: React.FC<VisionCalibrationProps> = ({
       {/* Calibration instructions */}
       <div className="absolute top-8 left-0 right-0 text-center">
         <h1 className="text-3xl font-bold text-white mb-2">시선 추적 캘리브레이션</h1>
-        <p className="text-gray-300">
-          화면에 나타나는 점을 클릭하고 2초간 응시해주세요
-        </p>
-        <p className="text-gray-400 mt-2">
-          진행: {currentPointIndex + 1} / {CALIBRATION_POINTS.length}
-        </p>
+        {isTraining ? (
+          <>
+            <p className="text-green-400 text-xl">
+              🎯 캘리브레이션 학습 중...
+            </p>
+            <p className="text-gray-300 mt-2">
+              개인별 시선 보정 계수를 계산하고 있습니다
+            </p>
+          </>
+        ) : (
+          <>
+            <p className="text-gray-300">
+              화면에 나타나는 점을 클릭하고 2초간 응시해주세요
+            </p>
+            <p className="text-gray-400 mt-2">
+              진행: {currentPointIndex + 1} / {CALIBRATION_POINTS.length}
+            </p>
+          </>
+        )}
       </div>
 
       {/* Calibration point */}
