@@ -24,27 +24,27 @@ class EnglishTestDB:
     """
 
     def __init__(self):
-        # Try multiple Supabase connection methods
-        # 1. Transaction Pooler (aws-*.pooler.supabase.com:5432) - Session mode, psycopg2 compatible
-        # 2. Direct connection (db.*.supabase.co:5432)
-        # 3. IPv4 resolution fallback
+        # Supabase connection with correct username/port combinations
+        # Port 5432 (Direct): username = 'postgres'
+        # Port 6543 (Pooler): username = 'postgres.PROJECT_REF'
 
-        # Connection credentials (URL will be auto-encoded by psycopg2)
-        username = 'postgres.sxnjeqqvqbhueqbwsnpj'
-        password = 'DeepReading2025!@#$SecureDB'  # Raw password, psycopg2 will handle encoding
+        from urllib.parse import quote_plus
 
-        # Try Transaction Pooler first (Session mode, port 5432 - psycopg2 compatible)
+        password = 'DeepReading2025!@#$SecureDB'
+        encoded_password = quote_plus(password)
+
+        # Try Transaction Pooler first (Session mode, port 5432)
+        # NOTE: Port 5432 requires username 'postgres' (not 'postgres.PROJECT')
         pooler_hostname = 'aws-1-ap-northeast-2.pooler.supabase.com'
         try:
             print(f"🔄 Trying Transaction Pooler: {pooler_hostname}:5432")
             ipv4_addr = socket.gethostbyname(pooler_hostname)
             print(f"✅ DNS Resolution: {pooler_hostname} -> {ipv4_addr}")
 
-            # Use parameters dict for proper password encoding
-            from urllib.parse import quote_plus
-            encoded_password = quote_plus(password)
+            # Username for port 5432: 'postgres' only
+            username = 'postgres'
             self.database_url = f'postgresql://{username}:{encoded_password}@{ipv4_addr}:5432/postgres?sslmode=require'
-            print(f"✅ Using Transaction Pooler (Session mode): {ipv4_addr}:5432")
+            print(f"✅ Using Transaction Pooler (port 5432, username={username}): {ipv4_addr}:5432")
             return
         except socket.gaierror as e:
             print(f"⚠️ Transaction Pooler DNS failed: {e}")
@@ -56,20 +56,19 @@ class EnglishTestDB:
             ipv4_addr = socket.gethostbyname(direct_hostname)
             print(f"✅ DNS Resolution: {direct_hostname} -> {ipv4_addr}")
 
-            from urllib.parse import quote_plus
-            encoded_password = quote_plus(password)
+            # Username for direct connection: 'postgres' only
+            username = 'postgres'
             self.database_url = f'postgresql://{username}:{encoded_password}@{ipv4_addr}:5432/postgres'
-            print(f"✅ Using direct connection: {ipv4_addr}:5432")
+            print(f"✅ Using direct connection (username={username}): {ipv4_addr}:5432")
             return
         except socket.gaierror as e:
             print(f"⚠️ Direct connection DNS failed: {e}")
 
-        # Last resort: use hostname directly (will likely fail on Render)
+        # Last resort: use hostname directly
         print(f"⚠️ All IPv4 resolution failed, using hostname as last resort")
-        from urllib.parse import quote_plus
-        encoded_password = quote_plus(password)
+        username = 'postgres'
         self.database_url = f'postgresql://{username}:{encoded_password}@{pooler_hostname}:5432/postgres?sslmode=require'
-        print(f"🔗 Final URL: {pooler_hostname}:5432")
+        print(f"🔗 Final URL (username={username}): {pooler_hostname}:5432")
 
     def _get_connection(self):
         """Get database connection"""
