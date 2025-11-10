@@ -23,7 +23,9 @@
       "Bash(do echo \"⏳ Render Transaction Pooler 수정 배포 대기 중... $i분\")",
       "Bash(do echo \"⏳ Render 비밀번호 인코딩 수정 배포 대기 중... $i분\")",
       "Bash(do echo \"⏳ Render username 수정 배포 대기 중... $i분\")",
-      "Bash(do echo \"⏳ Render Vision 백엔드 개선 배포 대기 중... $i분\")"
+      "Bash(do echo \"⏳ Render Vision 백엔드 개선 배포 대기 중... $i분\")",
+      "Bash(do echo \"⏳ Render Vision 풀패키지 배포 대기 중... $i분\")",
+      "Bash(do echo \"⏳ Netlify TypeScript 수정 배포 대기 중... $i분\")"
     ],
     "deny": [],
     "ask": []

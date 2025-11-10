@@ -20,7 +20,6 @@ import AdminGradingManagement from './pages/admin/GradingManagement';
 import AdminBulkUpload from './pages/admin/BulkUpload';
 import AdminStudentReports from './pages/admin/StudentReports';
 import AdminUserManagement from './pages/admin/UserManagement';
-import AdminVisionDebug from './pages/admin/VisionDebug';
 import AdminVisionDebugRealtime from './pages/admin/VisionDebugRealtime';
 import ParentDashboard from './pages/parent/ParentDashboard';
 import TeacherDashboard from './pages/teacher/TeacherDashboard';
@@ -165,14 +164,6 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['admin']}>
                 <AdminUserManagement />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/vision-debug"
-            element={
-              <ProtectedRoute allowedRoles={['admin']}>
-                <AdminVisionDebug />
               </ProtectedRoute>
             }
           />
