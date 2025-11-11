@@ -12,7 +12,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuthStore } from '../../stores/authStore';
 import VisionCalibration from '../../components/vision/VisionCalibration';
 import { VisionWebSocketClient } from '../../services/visionWebSocket';
 import PerceptionAPI, {
@@ -27,7 +27,7 @@ type TestPhase = 'intro' | 'calibration' | 'reading' | 'questions' | 'results';
 
 const VisualPerceptionTest: React.FC = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user } = useAuthStore();
   const [phase, setPhase] = useState<TestPhase>('intro');
 
   // API clients
@@ -35,20 +35,20 @@ const VisualPerceptionTest: React.FC = () => {
   const [perceptionAPI] = useState(() => new PerceptionAPI(BACKEND_URL));
 
   // Session data
-  const [session, setSession] = useState<PerceptionSession | null>(null);
+  const [_session, setSession] = useState<PerceptionSession | null>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
-  const [isConnected, setIsConnected] = useState(false);
+  const [_isConnected, setIsConnected] = useState(false);
 
   // Reading phase
   const [passageContent, setPassageContent] = useState<string>('');
   const [passageTitle, setPassageTitle] = useState<string>('');
-  const [readingStartTime, setReadingStartTime] = useState<number>(0);
+  const [_readingStartTime, setReadingStartTime] = useState<number>(0);
   const [showPassage, setShowPassage] = useState(true);
 
   // Questions phase
   const [questions, setQuestions] = useState<PerceptionQuestion[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [answers, setAnswers] = useState<{ [key: string]: string }>({});
+  const [_answers, setAnswers] = useState<{ [key: string]: string }>({});
   const [questionStartTime, setQuestionStartTime] = useState<number>(0);
 
   // Results
