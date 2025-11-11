@@ -25,7 +25,19 @@
       "Bash(do echo \"⏳ Render username 수정 배포 대기 중... $i분\")",
       "Bash(do echo \"⏳ Render Vision 백엔드 개선 배포 대기 중... $i분\")",
       "Bash(do echo \"⏳ Render Vision 풀패키지 배포 대기 중... $i분\")",
-      "Bash(do echo \"⏳ Netlify TypeScript 수정 배포 대기 중... $i분\")"
+      "Bash(do echo \"⏳ Netlify TypeScript 수정 배포 대기 중... $i분\")",
+      "Bash(do echo \"⏳ Netlify Vision 기능 통합 배포 대기 중... $i분\")",
+      "Bash(rm:*)",
+      "Bash(npx prisma migrate:*)",
+      "Bash(npx prisma db push)",
+      "Bash(psql:*)",
+      "Bash(python apply_perception_migration.py:*)",
+      "Bash(npx prisma generate:*)",
+      "Bash(python:*)",
+      "Bash(pip install:*)",
+      "Bash(prisma generate:*)",
+      "Bash(prisma py generate)",
+      "Bash(set PYTHONUTF8=1:*)"
     ],
     "deny": [],
     "ask": []

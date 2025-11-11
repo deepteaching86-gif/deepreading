@@ -82,11 +82,11 @@ export default function Dashboard() {
       const templatesRes = await axios.get('/api/v1/templates');
       const allTemplates = templatesRes.data.data;
 
-      // Filter templates for student's grade and exclude VISIONTEST templates
+      // Filter templates for student's grade (exclude all Vision-related templates)
       const gradeTemplates = allTemplates.filter(
         (t: TestTemplate) =>
           t.grade === studentProfile.grade &&
-          !t.templateCode.includes('VISIONTEST')
+          !t.templateCode.startsWith('VISION') // Literacy tests only - exclude all VISION* templates
       );
       setTemplates(gradeTemplates);
     } catch (error: any) {
@@ -329,6 +329,54 @@ export default function Dashboard() {
 
               <button
                 onClick={() => navigate('/test/english')}
+                className="w-full bg-primary text-primary-foreground py-2 px-4 rounded-lg hover:bg-primary/90 transition-colors font-medium"
+              >
+                시작하기
+              </button>
+            </div>
+          </div>
+        </section>
+
+        {/* Vision Test Section */}
+        <section className="mb-12">
+          <h2 className="text-2xl font-bold mb-6 text-foreground">Vision Test (시지각 평가)</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="bg-card rounded-lg shadow-md hover:shadow-lg transition-shadow p-6 border border-border">
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <h3 className="text-lg font-semibold text-card-foreground">
+                    시지각 집중력 평가
+                  </h3>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    JEO 시선추적 기술 기반
+                  </p>
+                </div>
+                <span className="px-3 py-1 bg-primary text-primary-foreground rounded-full text-xs font-medium">
+                  NEW
+                </span>
+              </div>
+
+              <div className="space-y-2 mb-4 text-sm text-card-foreground">
+                <div className="flex items-center gap-2">
+                  <span>👁️</span>
+                  <span>실시간 시선 추적 및 분석</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span>📖</span>
+                  <span>학년별 맞춤 독해 지문</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span>🎯</span>
+                  <span>10가지 집중력 지표 측정</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span>📊</span>
+                  <span>15가지 시선 분석 결과</span>
+                </div>
+              </div>
+
+              <button
+                onClick={() => navigate('/test/visual-perception')}
                 className="w-full bg-primary text-primary-foreground py-2 px-4 rounded-lg hover:bg-primary/90 transition-colors font-medium"
               >
                 시작하기

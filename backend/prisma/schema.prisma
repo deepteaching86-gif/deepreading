@@ -6,6 +6,12 @@ generator client {
   provider = "prisma-client-js"
 }
 
+generator py {
+  provider                    = "prisma-client-py"
+  recursive_type_depth        = -1
+  enable_experimental_decimal = true
+}
+
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
@@ -744,4 +750,217 @@ model MLDataConsent {
   updatedAt         DateTime     @updatedAt @map("updated_at")
 
   @@map("ml_data_consents")
+}
+
+// ===== Visual Perception Test (시지각 평가) =====
+
+enum PerceptionTestPhase {
+  introduction   // 소개
+  calibration   // 캘리브레이션
+  reading       // 지문 읽기
+  questions     // 문제 풀이
+  completed     // 완료
+}
+
+enum PerceptionTestStatus {
+  in_progress
+  completed
+  abandoned
+}
+
+// Visual Perception Test Sessions
+model PerceptionTestSession {
+  id                    String                @id @default(uuid()) @db.Uuid
+  studentId             String                @map("student_id") @db.Uuid
+  sessionCode           String                @unique @map("session_code") @db.VarChar(50)
+
+  // Session metadata
+  grade                 Int                   @db.Integer // 학년 (2학년 = 2)
+  passageId             String                @map("passage_id") @db.Uuid
+
+  // Phase tracking
+  currentPhase          PerceptionTestPhase   @map("current_phase") @default(introduction)
+  status                PerceptionTestStatus  @default(in_progress)
+
+  // Timestamps
+  startedAt             DateTime              @default(now()) @map("started_at")
+  calibrationStartedAt  DateTime?             @map("calibration_started_at")
+  calibrationCompletedAt DateTime?            @map("calibration_completed_at")
+  readingStartedAt      DateTime?             @map("reading_started_at")
+  readingCompletedAt    DateTime?             @map("reading_completed_at")
+  questionsStartedAt    DateTime?             @map("questions_started_at")
+  questionsCompletedAt  DateTime?             @map("questions_completed_at")
+  completedAt           DateTime?             @map("completed_at")
+
+  // Calibration data
+  calibrationPoints     Json?                 @map("calibration_points") @db.JsonB
+  calibrationAccuracy   Float?                @map("calibration_accuracy") @db.DoublePrecision // 0.0-1.0
+
+  // Relations
+  passage               PerceptionPassage     @relation(fields: [passageId], references: [id])
+  gazeData              PerceptionGazeData[]
+  responses             PerceptionResponse[]
+  result                PerceptionTestResult?
+
+  @@index([studentId])
+  @@index([status])
+  @@index([startedAt])
+  @@map("perception_test_sessions")
+}
+
+// Reading passages for visual perception test
+model PerceptionPassage {
+  id                String                @id @default(uuid()) @db.Uuid
+  grade             Int                   @db.Integer
+  title             String                @db.VarChar(200)
+  content           String                @db.Text
+
+  // Text metrics
+  wordCount         Int                   @map("word_count")
+  sentenceCount     Int                   @map("sentence_count")
+
+  // Metadata
+  category          String?               @db.VarChar(100) // e.g., "동화", "과학", "역사"
+  difficulty        String?               @db.VarChar(20)  // easy, medium, hard
+
+  createdAt         DateTime              @default(now()) @map("created_at")
+
+  // Relations
+  questions         PerceptionQuestion[]
+  sessions          PerceptionTestSession[]
+
+  @@index([grade])
+  @@map("perception_passages")
+}
+
+// Comprehension questions for perception test
+model PerceptionQuestion {
+  id                String                @id @default(uuid()) @db.Uuid
+  passageId         String                @map("passage_id") @db.Uuid
+  questionNumber    Int                   @map("question_number") @db.Integer
+
+  // Question content
+  questionText      String                @map("question_text") @db.Text
+  options           Json                  @db.JsonB // [{ id: "A", text: "..." }, ...]
+  correctAnswer     String                @map("correct_answer") @db.Char(1) // A, B, C, D
+
+  // Metadata
+  questionType      String?               @map("question_type") @db.VarChar(50)
+
+  // Relations
+  passage           PerceptionPassage     @relation(fields: [passageId], references: [id], onDelete: Cascade)
+  responses         PerceptionResponse[]
+
+  @@unique([passageId, questionNumber])
+  @@index([passageId])
+  @@map("perception_questions")
+}
+
+// Student responses to perception test questions
+model PerceptionResponse {
+  id                String                @id @default(uuid()) @db.Uuid
+  sessionId         String                @map("session_id") @db.Uuid
+  questionId        String                @map("question_id") @db.Uuid
+
+  selectedAnswer    String?               @map("selected_answer") @db.Char(1)
+  isCorrect         Boolean               @map("is_correct")
+
+  // Timing
+  responseTime      Int?                  @map("response_time") // milliseconds
+  answeredAt        DateTime              @default(now()) @map("answered_at")
+
+  // Relations
+  session           PerceptionTestSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  question          PerceptionQuestion    @relation(fields: [questionId], references: [id])
+
+  @@index([sessionId])
+  @@map("perception_responses")
+}
+
+// Time-series gaze tracking data
+model PerceptionGazeData {
+  id                String                @id @default(uuid()) @db.Uuid
+  sessionId         String                @map("session_id") @db.Uuid
+
+  // Test phase
+  phase             PerceptionTestPhase
+
+  // Gaze position (screen coordinates)
+  gazeX             Float                 @map("gaze_x") @db.DoublePrecision
+  gazeY             Float                 @map("gaze_y") @db.DoublePrecision
+
+  // Confidence
+  confidence        Float                 @db.DoublePrecision // 0.0-1.0
+
+  // Head pose
+  headPitch         Float?                @map("head_pitch") @db.DoublePrecision
+  headYaw           Float?                @map("head_yaw") @db.DoublePrecision
+  headRoll          Float?                @map("head_roll") @db.DoublePrecision
+
+  // Pupil data
+  leftPupilDiameter Float?                @map("left_pupil_diameter") @db.DoublePrecision
+  rightPupilDiameter Float?               @map("right_pupil_diameter") @db.DoublePrecision
+
+  // Timestamp
+  timestamp         DateTime              @default(now())
+
+  // Relations
+  session           PerceptionTestSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, phase])
+  @@index([sessionId, timestamp])
+  @@map("perception_gaze_data")
+}
+
+// Test results with concentration metrics
+model PerceptionTestResult {
+  id                          String                @id @default(uuid()) @db.Uuid
+  sessionId                   String                @unique @map("session_id") @db.Uuid
+
+  // Overall scores
+  comprehensionScore          Int                   @map("comprehension_score") // 0-100
+  concentrationScore          Int                   @map("concentration_score") // 0-100
+  overallGrade                String                @map("overall_grade") @db.VarChar(5) // A+, A, B+, etc.
+
+  // 10 Concentration Metrics (0-100 each)
+  fixationStability           Float                 @map("fixation_stability") @db.DoublePrecision
+  readingPatternRegularity    Float                 @map("reading_pattern_regularity") @db.DoublePrecision
+  regressionFrequency         Float                 @map("regression_frequency") @db.DoublePrecision
+  focusRetentionRate          Float                 @map("focus_retention_rate") @db.DoublePrecision
+  readingSpeedConsistency     Float                 @map("reading_speed_consistency") @db.DoublePrecision
+  blinkFrequencyScore         Float                 @map("blink_frequency_score") @db.DoublePrecision
+  fixationDurationScore       Float                 @map("fixation_duration_score") @db.DoublePrecision
+  verticalDriftScore          Float                 @map("vertical_drift_score") @db.DoublePrecision
+  horizontalRegressionScore   Float                 @map("horizontal_regression_score") @db.DoublePrecision
+  sustainedAttentionScore     Float                 @map("sustained_attention_score") @db.DoublePrecision
+
+  // 15 Gaze Analysis Items (raw values)
+  avgReadingSpeedWpm          Float                 @map("avg_reading_speed_wpm") @db.DoublePrecision
+  totalFixationCount          Int                   @map("total_fixation_count")
+  avgFixationDuration         Float                 @map("avg_fixation_duration") @db.DoublePrecision
+  saccadeCount                Int                   @map("saccade_count")
+  avgSaccadeLength            Float                 @map("avg_saccade_length") @db.DoublePrecision
+  inTextGazeRatio             Float                 @map("in_text_gaze_ratio") @db.DoublePrecision
+  regressionCount             Int                   @map("regression_count")
+  lineDriftCount              Int                   @map("line_drift_count")
+  maxSustainedAttention       Float                 @map("max_sustained_attention") @db.DoublePrecision
+  distractionIndex            Float                 @map("distraction_index") @db.DoublePrecision
+  regressionAccuracyCorr      Float?                @map("regression_accuracy_corr") @db.DoublePrecision
+  fixationAccuracyCorr        Float?                @map("fixation_accuracy_corr") @db.DoublePrecision
+  speedAccuracyCorr           Float?                @map("speed_accuracy_corr") @db.DoublePrecision
+  optionGazeDistribution      Json                  @map("option_gaze_distribution") @db.JsonB
+  revisitFrequency            Float                 @map("revisit_frequency") @db.DoublePrecision
+
+  // Analysis
+  strengths                   Json?                 @db.JsonB // 강점 분석
+  improvements                Json?                 @db.JsonB // 개선점 분석
+  recommendations             Json?                 @db.JsonB // 학습 권장사항
+
+  createdAt                   DateTime              @default(now()) @map("created_at")
+
+  // Relations
+  session                     PerceptionTestSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@map("perception_test_results")
 }

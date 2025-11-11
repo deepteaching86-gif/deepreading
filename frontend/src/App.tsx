@@ -29,6 +29,9 @@ import Unauthorized from './pages/Unauthorized';
 // English Adaptive Test
 import EnglishTestPage from './pages/test/EnglishTestPage';
 
+// Visual Perception Test
+import VisualPerceptionTest from './pages/test/VisualPerceptionTest';
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -96,6 +99,16 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['student']}>
                 <EnglishTestPage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Visual Perception Test Routes */}
+          <Route
+            path="/test/visual-perception"
+            element={
+              <ProtectedRoute allowedRoles={['student']}>
+                <VisualPerceptionTest />
               </ProtectedRoute>
             }
           />

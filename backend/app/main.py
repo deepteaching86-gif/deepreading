@@ -29,6 +29,14 @@ except Exception as e:
     print(f"⚠️  Vision tracking module not available: {e}")
     print("   (MediaPipe/OpenCV dependencies may be missing)")
 
+# Import Perception router (Visual Perception Test)
+try:
+    from app.perception.router import router as perception_router
+    print("✅ Visual Perception Test module loaded successfully")
+except Exception as e:
+    print(f"⚠️  Visual Perception Test module not available: {e}")
+    perception_router = None
+
 # Create FastAPI app
 app = FastAPI(
     title="Literacy Test API",
@@ -53,6 +61,10 @@ app.include_router(ai_router, prefix="/api/admin/ai", tags=["Admin AI"])
 # Include Vision router if available
 if vision_available and vision_router:
     app.include_router(vision_router, prefix="/api/vision", tags=["Vision Tracking"])
+
+# Include Perception router if available
+if perception_router:
+    app.include_router(perception_router, prefix="/api/perception", tags=["Visual Perception Test"])
 
 # Root endpoint
 @app.get("/")
