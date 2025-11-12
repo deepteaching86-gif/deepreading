@@ -22,12 +22,13 @@ import PerceptionAPI, {
 } from '../../services/perceptionAPI';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'https://literacy-english-test-backend.onrender.com';
+const NODE_BACKEND_URL = 'https://literacy-backend.onrender.com';
 
 type TestPhase = 'intro' | 'calibration' | 'reading' | 'questions' | 'results';
 
 const VisualPerceptionTest: React.FC = () => {
   const navigate = useNavigate();
-  const { user } = useAuthStore();
+  const { user, token } = useAuthStore();
   const [phase, setPhase] = useState<TestPhase>('intro');
 
   // API clients
@@ -83,8 +84,12 @@ const VisualPerceptionTest: React.FC = () => {
         return;
       }
 
-      // Get student profile
-      const profileRes = await axios.get('/api/v1/students/me/profile');
+      // Get student profile from Node.js backend
+      const profileRes = await axios.get(`${NODE_BACKEND_URL}/api/v1/students/me/profile`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
       const studentProfile = profileRes.data.data;
 
       // Start session with actual student data
@@ -254,12 +259,12 @@ const VisualPerceptionTest: React.FC = () => {
           <div className="max-w-2xl w-full bg-white rounded-lg shadow-lg p-8">
             <h1 className="text-3xl font-bold mb-4">시지각 집중력 평가</h1>
             <p className="text-gray-600 mb-6">
-              이 테스트는 JEO 시선추적 기술을 사용하여 독서 패턴과 집중력을 정밀하게 측정합니다.
+              이 테스트는 시선추적 시스템을 사용하여 독서 패턴과 집중력을 정밀하게 측정합니다.
             </p>
 
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-              <h3 className="font-semibold text-blue-900 mb-2">준비사항:</h3>
-              <ul className="list-disc list-inside text-blue-800 space-y-1">
+            <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-6">
+              <h3 className="font-semibold text-purple-900 mb-2">준비사항:</h3>
+              <ul className="list-disc list-inside text-purple-800 space-y-1">
                 <li>웹캠이 작동하는지 확인해주세요</li>
                 <li>밝은 환경에서 테스트해주세요</li>
                 <li>화면에서 약 50-70cm 떨어져 앉아주세요</li>
@@ -267,9 +272,9 @@ const VisualPerceptionTest: React.FC = () => {
               </ul>
             </div>
 
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-              <h3 className="font-semibold text-yellow-900 mb-2">테스트 진행:</h3>
-              <ol className="list-decimal list-inside text-yellow-800 space-y-1">
+            <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4 mb-6">
+              <h3 className="font-semibold text-indigo-900 mb-2">테스트 진행:</h3>
+              <ol className="list-decimal list-inside text-indigo-800 space-y-1">
                 <li>9-point 캘리브레이션 (약 2분)</li>
                 <li>지문 읽기 (시선 추적)</li>
                 <li>이해도 문제 풀이 (4문제)</li>
@@ -280,7 +285,7 @@ const VisualPerceptionTest: React.FC = () => {
             <div className="flex gap-4">
               <button
                 onClick={handleStart}
-                className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold"
+                className="flex-1 px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-semibold shadow-md"
               >
                 시작하기
               </button>
@@ -339,7 +344,7 @@ const VisualPerceptionTest: React.FC = () => {
               <div className="flex justify-center">
                 <button
                   onClick={handleReadingComplete}
-                  className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold"
+                  className="px-8 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-semibold shadow-md"
                 >
                   읽기 완료 (다음)
                 </button>
@@ -387,7 +392,7 @@ const VisualPerceptionTest: React.FC = () => {
                     <button
                       key={option.id}
                       onClick={() => handleAnswerSelect(option.id)}
-                      className="w-full text-left px-6 py-4 border-2 border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all"
+                      className="w-full text-left px-6 py-4 border-2 border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all"
                     >
                       <span className="font-semibold mr-3">{option.id}.</span>
                       {option.text}
@@ -416,21 +421,21 @@ const VisualPerceptionTest: React.FC = () => {
 
               {/* Overall Scores */}
               <div className="grid grid-cols-3 gap-6 mb-8">
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center">
-                  <div className="text-sm text-blue-600 mb-2">종합 등급</div>
-                  <div className="text-4xl font-bold text-blue-900">
+                <div className="bg-purple-50 border border-purple-200 rounded-lg p-6 text-center shadow-sm">
+                  <div className="text-sm text-purple-600 mb-2">종합 등급</div>
+                  <div className="text-4xl font-bold text-purple-900">
                     {testResult.overall_grade}
                   </div>
                 </div>
-                <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-center">
-                  <div className="text-sm text-green-600 mb-2">이해도 점수</div>
-                  <div className="text-4xl font-bold text-green-900">
+                <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-6 text-center shadow-sm">
+                  <div className="text-sm text-indigo-600 mb-2">이해도 점수</div>
+                  <div className="text-4xl font-bold text-indigo-900">
                     {testResult.comprehension_score}
                   </div>
                 </div>
-                <div className="bg-purple-50 border border-purple-200 rounded-lg p-6 text-center">
-                  <div className="text-sm text-purple-600 mb-2">집중력 점수</div>
-                  <div className="text-4xl font-bold text-purple-900">
+                <div className="bg-violet-50 border border-violet-200 rounded-lg p-6 text-center shadow-sm">
+                  <div className="text-sm text-violet-600 mb-2">집중력 점수</div>
+                  <div className="text-4xl font-bold text-violet-900">
                     {testResult.concentration_score}
                   </div>
                 </div>
@@ -447,7 +452,7 @@ const VisualPerceptionTest: React.FC = () => {
                       </div>
                       <div className="flex-1 bg-gray-200 rounded-full h-6">
                         <div
-                          className="bg-blue-600 h-6 rounded-full flex items-center justify-end pr-2"
+                          className="bg-gradient-to-r from-purple-500 to-purple-600 h-6 rounded-full flex items-center justify-end pr-2"
                           style={{ width: `${value}%` }}
                         >
                           <span className="text-xs text-white font-semibold">
@@ -491,11 +496,11 @@ const VisualPerceptionTest: React.FC = () => {
 
               {/* Recommendations */}
               {testResult.recommendations.length > 0 && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
-                  <h3 className="font-semibold text-blue-900 mb-3">학습 권장사항</h3>
+                <div className="bg-purple-50 border border-purple-200 rounded-lg p-6 mb-6">
+                  <h3 className="font-semibold text-purple-900 mb-3">학습 권장사항</h3>
                   <ul className="space-y-2">
                     {testResult.recommendations.map((rec, index) => (
-                      <li key={index} className="text-sm text-blue-800">
+                      <li key={index} className="text-sm text-purple-800">
                         {index + 1}. {rec}
                       </li>
                     ))}
@@ -506,7 +511,7 @@ const VisualPerceptionTest: React.FC = () => {
               <div className="flex justify-center">
                 <button
                   onClick={handleExit}
-                  className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold"
+                  className="px-8 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-semibold shadow-md"
                 >
                   대시보드로 돌아가기
                 </button>
