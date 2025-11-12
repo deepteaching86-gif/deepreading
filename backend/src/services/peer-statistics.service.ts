@@ -1,6 +1,9 @@
-import { PrismaClient, QuestionCategory } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
+
+// Type alias for QuestionCategory
+type QuestionCategory = 'vocabulary' | 'reading' | 'grammar' | 'reasoning' | 'reading_motivation' | 'writing_motivation' | 'reading_environment' | 'reading_habit' | 'reading_preference' | 'digital_literacy' | 'critical_thinking' | 'reading_attitude';
 
 /**
  * 실제 학생 데이터로 또래 평균 업데이트

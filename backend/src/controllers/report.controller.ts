@@ -1,9 +1,12 @@
 import { Request, Response, NextFunction } from 'express';
-import { PrismaClient, QuestionCategory } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import { ApiError } from '../errors/api-error';
 import { getPeerStatistics, calculateStudentPercentile } from '../services/peer-statistics.service';
 
 const prisma = new PrismaClient();
+
+// Type alias for QuestionCategory
+type QuestionCategory = 'vocabulary' | 'reading' | 'grammar' | 'reasoning' | 'reading_motivation' | 'writing_motivation' | 'reading_environment' | 'reading_habit' | 'reading_preference' | 'digital_literacy' | 'critical_thinking' | 'reading_attitude';
 
 interface AuthRequest extends Request {
   user?: {

@@ -1,5 +1,6 @@
 import { prisma } from '../config/database';
 import { Prisma } from '@prisma/client';
+import { Decimal } from '@prisma/client/runtime/library';
 
 interface ScoringResult {
   totalScore: number;
@@ -120,9 +121,9 @@ export class ScoringService {
         sessionId,
         totalScore,
         totalPossible,
-        percentage: new Prisma.Decimal(percentage.toFixed(2)),
+        percentage: new Decimal(percentage.toFixed(2)),
         gradeLevel,
-        percentile: percentile ? new Prisma.Decimal(percentile.toFixed(2)) : null,
+        percentile: percentile ? new Decimal(percentile.toFixed(2)) : null,
         vocabularyScore: categoryScores.vocabulary.score,
         readingScore: categoryScores.reading.score,
         grammarScore: categoryScores.grammar.score,
