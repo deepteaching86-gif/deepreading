@@ -1,9 +1,13 @@
 import { Request, Response } from 'express';
 import { prisma } from '../../config/database';
-import { Prisma, QuestionCategory, Difficulty } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
+
+// Type aliases for Prisma enums
+type QuestionCategory = 'vocabulary' | 'reading' | 'grammar' | 'reasoning' | 'reading_motivation' | 'writing_motivation' | 'reading_environment' | 'reading_habit' | 'reading_preference' | 'digital_literacy' | 'critical_thinking' | 'reading_attitude';
+type Difficulty = 'easy' | 'medium' | 'hard';
 
 // Multer 설정 (이미지 업로드)
 const storage = multer.diskStorage({

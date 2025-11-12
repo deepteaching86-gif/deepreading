@@ -2,6 +2,7 @@
 
 import { Request, Response, NextFunction } from 'express';
 import { Prisma } from '@prisma/client';
+import { PrismaClientKnownRequestError, PrismaClientValidationError } from '@prisma/client/runtime/library';
 import { ZodError } from 'zod';
 import { logger } from '../../config/logger';
 import { env } from '../../config/env';
@@ -46,7 +47,7 @@ export function errorHandler(
   }
 
   // Prisma errors
-  else if (error instanceof Prisma.PrismaClientKnownRequestError) {
+  else if (error instanceof PrismaClientKnownRequestError) {
     statusCode = 400;
 
     switch (error.code) {
@@ -84,7 +85,7 @@ export function errorHandler(
   }
 
   // Prisma validation error
-  else if (error instanceof Prisma.PrismaClientValidationError) {
+  else if (error instanceof PrismaClientValidationError) {
     statusCode = 400;
     message = 'Invalid data provided';
   }
