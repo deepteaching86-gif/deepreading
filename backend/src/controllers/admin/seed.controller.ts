@@ -47,7 +47,7 @@ export const runSeed = async (req: AuthRequest, res: Response, next: NextFunctio
       grade9Data,
     ];
 
-    const templates = [];
+    const templates: any[] = [];
     let totalQuestions = 0;
 
     // Seed templates

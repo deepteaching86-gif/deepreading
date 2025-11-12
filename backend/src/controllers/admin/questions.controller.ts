@@ -50,7 +50,7 @@ export const getAllQuestions = async (req: Request, res: Response) => {
     const skip = (Number(page) - 1) * Number(limit);
     const take = Number(limit);
 
-    const where: Prisma.QuestionWhereInput = {};
+    const where: any = {};
 
     if (category) {
       where.category = category as QuestionCategory;
