@@ -29,19 +29,8 @@ db = PerceptionDatabase()
 
 
 # ===== Lifecycle Events =====
-
-@router.on_event("startup")
-async def startup():
-    """Connect to database on startup"""
-    await db.connect()
-    logger.info("✅ Perception Test API connected to database")
-
-
-@router.on_event("shutdown")
-async def shutdown():
-    """Disconnect from database on shutdown"""
-    await db.disconnect()
-    logger.info("Perception Test API disconnected from database")
+# Note: Database connection is now lazy (connects on first request)
+# This prevents startup failures if the Prisma Query Engine is unavailable
 
 
 # ===== API Endpoints =====
@@ -62,6 +51,9 @@ async def start_session(request: StartSessionRequest):
     3. Return session info with passage and questions
     """
     try:
+        # Ensure database connection (lazy connect)
+        await db.connect()
+
         # Get passage for grade
         passage = await db.get_passage_for_grade(request.grade)
 
@@ -118,6 +110,9 @@ async def start_session(request: StartSessionRequest):
 async def get_session(session_id: str):
     """Get session information"""
     try:
+        # Ensure database connection (lazy connect)
+        await db.connect()
+
         session = await db.get_session(session_id)
 
         if not session:
@@ -176,6 +171,9 @@ async def get_session(session_id: str):
 async def save_calibration(session_id: str, request: SaveCalibrationRequest):
     """Save calibration data and move to reading phase"""
     try:
+        # Ensure database connection (lazy connect)
+        await db.connect()
+
         # Save calibration
         session = await db.save_calibration(
             session_id=session_id,
@@ -204,6 +202,9 @@ async def save_calibration(session_id: str, request: SaveCalibrationRequest):
 async def save_gaze_data(session_id: str, request: SaveGazeDataRequest):
     """Save gaze tracking data"""
     try:
+        # Ensure database connection (lazy connect)
+        await db.connect()
+
         gaze_data = request.dict()
         await db.save_gaze_data(session_id, gaze_data)
 
@@ -221,6 +222,9 @@ async def save_gaze_data(session_id: str, request: SaveGazeDataRequest):
 async def complete_reading(session_id: str):
     """Mark reading phase as complete and move to questions"""
     try:
+        # Ensure database connection (lazy connect)
+        await db.connect()
+
         await db.update_session_phase(session_id, "questions")
 
         return {
@@ -240,6 +244,9 @@ async def complete_reading(session_id: str):
 async def submit_answer(session_id: str, request: SubmitAnswerRequest):
     """Submit answer to a question"""
     try:
+        # Ensure database connection (lazy connect)
+        await db.connect()
+
         # Get question to check correct answer
         session = await db.get_session(session_id)
 
@@ -302,6 +309,9 @@ async def complete_session(session_id: str, request: CompleteSessionRequest):
     6. Return results
     """
     try:
+        # Ensure database connection (lazy connect)
+        await db.connect()
+
         # Get session
         session = await db.get_session(session_id)
 
@@ -397,6 +407,9 @@ async def complete_session(session_id: str, request: CompleteSessionRequest):
 async def get_result(session_id: str):
     """Get test result for a session"""
     try:
+        # Ensure database connection (lazy connect)
+        await db.connect()
+
         result = await db.get_result(session_id)
 
         if not result:
