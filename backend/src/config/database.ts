@@ -17,7 +17,7 @@ export async function connectDatabase(): Promise<void> {
     console.log('✅ Database connected successfully');
   } catch (error) {
     console.error('❌ Database connection failed:', error);
-    process.exit(1);
+    throw error;  // Throw error instead of exiting to allow graceful handling
   }
 }
 
