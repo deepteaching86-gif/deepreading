@@ -2,7 +2,28 @@
 Database Operations for Visual Perception Test
 """
 
-from prisma import Prisma
+import sys
+import os
+
+# Diagnostic logging
+print("=" * 80)
+print("PERCEPTION DATABASE MODULE LOADING")
+print(f"Python version: {sys.version}")
+print(f"Python path: {sys.path}")
+print(f"Current directory: {os.getcwd()}")
+print(f"Attempting to import Prisma...")
+print("=" * 80)
+
+try:
+    from prisma import Prisma
+    print("SUCCESS: Prisma imported successfully!")
+except Exception as e:
+    print(f"ERROR: Failed to import Prisma: {type(e).__name__}: {e}")
+    print(f"Error details: {repr(e)}")
+    import traceback
+    traceback.print_exc()
+    raise
+
 from typing import Optional, List, Dict
 from datetime import datetime
 import uuid
