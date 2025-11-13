@@ -3,7 +3,7 @@ services:
     name: literacy-test-backend
     runtime: python
     buildCommand: pip install -r requirements.txt && python -m prisma generate --generator py --schema=./prisma/schema.prisma
-    startCommand: python -m prisma generate --generator py --schema=./prisma/schema.prisma && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    startCommand: python verify_prisma.py && python -m prisma generate --generator py --schema=./prisma/schema.prisma && uvicorn app.main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: PYTHON_VERSION
         value: 3.11
