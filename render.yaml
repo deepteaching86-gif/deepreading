@@ -34,19 +34,17 @@ services:
     plan: free
     region: singapore
     buildCommand: cd backend && pip install -r requirements.txt
-    startCommand: cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    startCommand: cd backend && python -m prisma generate --generator py --schema=./prisma/schema.prisma && python verify_prisma.py && uvicorn app.main:app --host 0.0.0.0 --port $PORT
     envVars:
+      - key: PYTHON_VERSION
+        value: 3.11
+      - key: PYTHONUTF8
+        value: 1
       - key: DATABASE_URL
         value: postgresql://postgres.sxnjeqqvqbhueqbwsnpj:DeepReading2025%21%40%23%24SecureDB@aws-1-ap-northeast-2.pooler.supabase.com:6543/postgres?pgbouncer=true
-      - key: SUPABASE_URL
-        value: https://sxnjeqqvqbhueqbwsnpj.supabase.co
-      - key: SUPABASE_ANON_KEY
-        value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN4bmplcXF2cWJodWVxYndzbnBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk0ODUxMjAsImV4cCI6MjA3NTA2MTEyMH0.6xGE1QVp4GNV2iGRRwrXEU4ZblJqcn_gNusVhK8RmXI
-      - key: SUPABASE_SERVICE_ROLE_KEY
-        value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN4bmplcXF2cWJodWVxYndzbnBqIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1OTQ4NTEyMCwiZXhwIjoyMDc1MDYxMTIwfQ.SBNG3wXzfT5ahxBJBD84x_FAUHghy4iYj4c5apyrjRI
-      - key: CORS_ORIGIN
-        value: https://playful-cocada-a89755.netlify.app
+      - key: DIRECT_URL
+        value: postgresql://postgres.sxnjeqqvqbhueqbwsnpj:DeepReading2025%21%40%23%24SecureDB@aws-1-ap-northeast-2.pooler.supabase.com:5432/postgres
       - key: FRONTEND_URL
-        value: https://playful-cocada-a89755.netlify.app
-      - key: APP_URL
-        value: https://literacy-backend.onrender.com
+        value: https://literacy-test.netlify.app
+      - key: GOOGLE_API_KEY
+        sync: false
