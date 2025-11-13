@@ -1,17 +1,8 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { PrismaClient } from '@prisma/client';
 import { env } from '../../config/env';
-
-// Initialize Prisma with pgBouncer-compatible settings
-const prisma = new PrismaClient({
-  datasources: {
-    db: {
-      url: process.env.DATABASE_URL,
-    },
-  },
-});
+import { prisma } from '../../config/database';
 
 export const register = async (req: Request, res: Response) => {
   try {
