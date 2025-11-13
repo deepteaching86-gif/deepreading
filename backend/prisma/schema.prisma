@@ -1,6 +1,6 @@
-// Prisma Schema for Literacy Assessment System (Based on PRD)
-// Database: PostgreSQL (Supabase)
-// Version: 2.0 - Aligned with PRD Requirements
+// PrismaSchemaforLiteracyAssessmentSystemBasedonPRD
+// Database:PostgreSQLSupabase
+// Version:.AlignedwithPRDRequirements
 
 generator client {
   provider = "prisma-client-js"
@@ -15,10 +15,10 @@ generator py {
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")  // Use direct connection for migrations
+  directUrl = env("DIRECT_URL")  // Usedirectconnectionformigrations
 }
 
-// ===== User Management =====
+// UserManagement
 
 enum UserRole {
   student
@@ -49,7 +49,7 @@ model Student {
   id          String    @id @default(uuid()) @db.Uuid
   userId      String    @unique @map("user_id") @db.Uuid
   studentCode String?   @unique @map("student_code") @db.VarChar(50)
-  grade       Int       @db.Integer // 1-9 (초1~중3)
+  grade       Int       @db.Integer // ~
   schoolName  String?   @map("school_name") @db.VarChar(200)
   className   String?   @map("class_name") @db.VarChar(50)
   birthDate   DateTime? @map("birth_date") @db.Date
@@ -70,28 +70,28 @@ model Student {
   @@map("students")
 }
 
-// ===== Test Templates & Questions =====
+// TestTemplates&Questions
 
 enum QuestionCategory {
-  vocabulary          // 어휘력
-  reading             // 독해력
-  grammar             // 문법/어법
-  reasoning           // 추론/사고력
-  reading_motivation  // 읽기 동기
-  writing_motivation  // 글쓰기 동기
-  reading_environment // 독서 환경
-  reading_habit       // 독서 습관
-  reading_preference  // 선호 장르
-  digital_literacy    // 디지털 리터러시
-  critical_thinking   // 비판적 사고
-  reading_attitude    // 독서 태도
+  vocabulary
+  reading
+  grammar             // /
+  reasoning           // /
+  reading_motivation
+  writing_motivation
+  reading_environment
+  reading_habit
+  reading_preference
+  digital_literacy
+  critical_thinking
+  reading_attitude
 }
 
 enum QuestionType {
-  choice        // 선택형
-  short_answer  // 단답형
-  essay         // 서술형
-  likert_scale  // 리커트 척도 (1-5점)
+  choice
+  short_answer
+  essay
+  likert_scale
 }
 
 enum Difficulty {
@@ -103,14 +103,14 @@ enum Difficulty {
 model TestTemplate {
   id             String    @id @default(uuid()) @db.Uuid
   templateCode   String    @unique @map("template_code") @db.VarChar(50)
-  grade          Int       @db.Integer // 대상 학년 (1-9)
+  grade          Int       @db.Integer
   title          String    @db.VarChar(200)
   description    String?   @db.Text
   version        String    @default("1.0") @db.VarChar(10)
   totalQuestions Int       @map("total_questions") @db.Integer
   totalPoints    Int       @default(100) @map("total_points") @db.Integer
   passingScore   Int       @default(60) @map("passing_score") @db.Integer
-  timeLimit      Int?      @map("time_limit") @db.Integer // 분 단위
+  timeLimit      Int?      @map("time_limit") @db.Integer
   status         String    @default("active") @db.VarChar(20)
   isActive       Boolean   @default(true) @map("is_active")
 
@@ -131,9 +131,9 @@ model Question {
   category       QuestionCategory
   questionType   QuestionType     @map("question_type")
   questionText   String           @map("question_text") @db.Text
-  passage        String?          @db.Text // 지문 (독해 문항용)
-  imageUrl       String?          @map("image_url") @db.VarChar(500) // 문제 이미지 URL
-  options        Json?            @db.JsonB // 선택지 [{id: 1, text: "..."}, ...]
+  passage        String?          @db.Text
+  imageUrl       String?          @map("image_url") @db.VarChar(500) // URL
+  options        Json?            @db.JsonB // {id:,text:"..."},...
   correctAnswer  String           @map("correct_answer") @db.Text
   points         Int              @default(1) @db.Integer
   difficulty     Difficulty?
@@ -150,13 +150,13 @@ model Question {
   @@map("questions")
 }
 
-// ===== Test Sessions & Answers =====
+// TestSessions&Answers
 
 enum SessionStatus {
-  pending     // 대기 중
-  in_progress // 진행 중
-  completed   // 완료 (채점 전)
-  scored      // 채점 완료
+  pending
+  in_progress
+  completed
+  scored
 }
 
 model TestSession {
@@ -165,8 +165,8 @@ model TestSession {
   studentId           String        @map("student_id") @db.Uuid
   templateId          String        @map("template_id") @db.Uuid
   status              SessionStatus @default(pending)
-  surveyCompletedAt   DateTime?     @map("survey_completed_at") // 설문 완료 시간
-  startedAt           DateTime?     @map("started_at") // 실제 테스트 시작 시간
+  surveyCompletedAt   DateTime?     @map("survey_completed_at")
+  startedAt           DateTime?     @map("started_at")
   completedAt         DateTime?     @map("completed_at")
   scoredAt            DateTime?     @map("scored_at")
   createdAt           DateTime      @default(now()) @map("created_at")
@@ -193,7 +193,7 @@ model Answer {
   studentAnswer  String?  @map("student_answer") @db.Text
   isCorrect      Boolean? @map("is_correct")
   pointsEarned   Int      @default(0) @map("points_earned") @db.Integer
-  feedback       String?  @db.Text // AI-generated feedback for essays
+  feedback       String?  @db.Text // AIgeneratedfeedbackforessays
   createdAt      DateTime @default(now()) @map("created_at")
 
   // Relations
@@ -204,14 +204,14 @@ model Answer {
   @@map("answers")
 }
 
-// ===== Survey Responses (설문 응답) =====
+// SurveyResponses
 
 model SurveyResponse {
   id             String   @id @default(uuid()) @db.Uuid
   sessionId      String   @map("session_id") @db.Uuid
   questionId     String   @map("question_id") @db.Uuid
   questionNumber Int      @map("question_number") @db.Integer
-  response       String   @db.Text // 응답 값 (숫자 또는 텍스트)
+  response       String   @db.Text
   createdAt      DateTime @default(now()) @map("created_at")
 
   // Relations
@@ -222,7 +222,7 @@ model SurveyResponse {
   @@map("survey_responses")
 }
 
-// ===== Test Results =====
+// TestResults
 
 model TestResult {
   id                     String   @id @default(uuid()) @db.Uuid
@@ -230,7 +230,7 @@ model TestResult {
   totalScore             Int      @map("total_score") @db.Integer
   totalPossible          Int      @map("total_possible") @db.Integer
   percentage             Decimal  @db.Decimal(5, 2)
-  gradeLevel             Int?     @map("grade_level") @db.Integer // 1-9 등급
+  gradeLevel             Int?     @map("grade_level") @db.Integer
   correctAnswers         Int      @default(0) @map("correct_answers") @db.Integer
   incorrectAnswers       Int      @default(0) @map("incorrect_answers") @db.Integer
   percentile             Decimal? @db.Decimal(5, 2)
@@ -238,15 +238,15 @@ model TestResult {
   readingScore           Int?     @map("reading_score") @db.Integer
   grammarScore           Int?     @map("grammar_score") @db.Integer
   reasoningScore         Int?     @map("reasoning_score") @db.Integer
-  // 설문 점수 추가
-  readingMotivationScore Decimal? @map("reading_motivation_score") @db.Decimal(3, 2) // 1.00-5.00
+
+  readingMotivationScore Decimal? @map("reading_motivation_score") @db.Decimal(3, 2) // ..
   writingMotivationScore Decimal? @map("writing_motivation_score") @db.Decimal(3, 2)
   readingEnvironmentScore Decimal? @map("reading_environment_score") @db.Decimal(3, 2)
   readingHabitScore      Decimal? @map("reading_habit_score") @db.Decimal(3, 2)
-  readingPreferenceData  Json?    @map("reading_preference_data") @db.JsonB // 선호 장르 분석
-  strengths              Json?    @db.JsonB // 강점 분석
-  weaknesses             Json?    @db.JsonB // 약점 분석
-  recommendations        Json?    @db.JsonB // 학습 제안
+  readingPreferenceData  Json?    @map("reading_preference_data") @db.JsonB
+  strengths              Json?    @db.JsonB
+  weaknesses             Json?    @db.JsonB
+  recommendations        Json?    @db.JsonB
   createdAt              DateTime @default(now()) @map("created_at")
 
   // Relations
@@ -256,7 +256,7 @@ model TestResult {
   @@map("test_results")
 }
 
-// ===== Statistics Cache =====
+// StatisticsCache
 
 model Statistic {
   id            String       @id @default(uuid()) @db.Uuid
@@ -274,26 +274,26 @@ model Statistic {
   @@map("statistics")
 }
 
-// ===== Peer Statistics (또래 평균) =====
+// PeerStatistics
 
 model PeerStatistics {
   id                      String   @id @default(uuid()) @db.Uuid
-  grade                   Int      @db.Integer // 1-9
+  grade                   Int      @db.Integer
   category                QuestionCategory
 
-  // 평균 점수 (실제 데이터 + 시뮬레이션)
+
   avgScore                Decimal  @map("avg_score") @db.Decimal(5, 2)
   avgPercentage           Decimal  @map("avg_percentage") @db.Decimal(5, 2)
 
-  // 통계 정보
+
   stdDeviation            Decimal  @map("std_deviation") @db.Decimal(5, 2)
   sampleSize              Int      @map("sample_size") @db.Integer
   simulatedSampleSize     Int      @default(0) @map("simulated_sample_size") @db.Integer
 
-  // 백분위 분포 (JSON: {p10: 45, p25: 60, p50: 75, p75: 85, p90: 95})
+  // JSON:{p:,p:,p:,p:,p:}
   percentileDistribution  Json     @map("percentile_distribution") @db.JsonB
 
-  // 메타데이터
+
   lastUpdated             DateTime @updatedAt @map("last_updated")
   createdAt               DateTime @default(now()) @map("created_at")
 
@@ -302,9 +302,9 @@ model PeerStatistics {
   @@map("peer_statistics")
 }
 
-// ===== Additional System Tables =====
+// AdditionalSystemTables
 
-// Refresh Tokens for JWT
+// RefreshTokensforJWT
 model RefreshToken {
   id        String   @id @default(uuid()) @db.Uuid
   token     String   @unique @db.VarChar(500)
@@ -317,7 +317,7 @@ model RefreshToken {
   @@map("refresh_tokens")
 }
 
-// Audit Log for security
+// AuditLogforsecurity
 model AuditLog {
   id        String   @id @default(uuid()) @db.Uuid
   userId    String?  @map("user_id") @db.Uuid
@@ -334,15 +334,15 @@ model AuditLog {
   @@map("audit_logs")
 }
 
-// ===== English Adaptive Test Models =====
+// EnglishAdaptiveTestModels
 
-// Reading comprehension passages
+// Readingcomprehensionpassages
 model Passage {
   id              Int       @id @default(autoincrement())
   title           String    @db.VarChar(255)
   content         String    @db.Text
 
-  // Text complexity metrics
+  // Textcomplexitymetrics
   lexileScore     Int?      @map("lexile_score")
   arLevel         Float?    @map("ar_level") @db.DoublePrecision
   fleschKincaid   Float?    @map("flesch_kincaid") @db.DoublePrecision
@@ -385,44 +385,44 @@ enum MSTPanel {
 }
 
 enum ItemDomain {
-  grammar       // 문법 (32.5% = 13문항)
-  vocabulary    // 어휘 (35.0% = 14문항)
-  reading       // 독해 (32.5% = 13문항)
+  grammar       // .%
+  vocabulary    // .%
+  reading       // .%
 }
 
 enum TextType {
-  expository     // 설명문
-  argumentative  // 논증문
-  narrative      // 서사문
-  practical      // 실용문
+  expository
+  argumentative
+  narrative
+  practical
 }
 
 enum ItemStatus {
   active
-  flagged       // 부적합 문항
+  flagged
   inactive
 }
 
-// Test items with IRT 3PL parameters
+// TestitemswithIRTPLparameters
 model Item {
   id               Int       @id @default(autoincrement())
   passageId        Int?      @map("passage_id")
 
-  // Question content
+  // Questioncontent
   stem             String    @db.Text
-  options          Json      @db.JsonB // {"A": "...", "B": "...", "C": "...", "D": "..."}
+  options          Json      @db.JsonB // {"A":"...","B":"...","C":"...","D":"..."}
   correctAnswer    String    @map("correct_answer") @db.Char(1)
 
-  // Domain classification (FR-002)
+  // DomainclassificationFR
   domain           ItemDomain
-  textType         TextType?  @map("text_type") // For reading items only
+  textType         TextType?  @map("text_type") // Forreadingitemsonly
 
-  // IRT 3PL Parameters
-  discrimination   Float?     @db.DoublePrecision // a parameter (nullable until calibrated)
-  difficulty       Float?     @db.DoublePrecision // b parameter (nullable until calibrated)
-  guessing         Float      @default(0.25) @db.DoublePrecision // c parameter
+  // IRTPLParameters
+  discrimination   Float?     @db.DoublePrecision // aparameternullableuntilcalibrated
+  difficulty       Float?     @db.DoublePrecision // bparameternullableuntilcalibrated
+  guessing         Float      @default(0.25) @db.DoublePrecision // cparameter
 
-  // MST Configuration
+  // MSTConfiguration
   stage            Int
   panel            MSTPanel
   formId           Int       @map("form_id")
@@ -430,17 +430,17 @@ model Item {
   // Metadata
   skillTag         String?   @map("skill_tag") @db.VarChar(100)
   exposureCount    Int       @default(0) @map("exposure_count")
-  exposureRate     Float?    @map("exposure_rate") @db.DoublePrecision // Calculated percentage
+  exposureRate     Float?    @map("exposure_rate") @db.DoublePrecision // Calculatedpercentage
 
-  // Quality metrics (FR-009)
-  pointBiserial    Float?    @map("point_biserial") @db.DoublePrecision // Discrimination index
-  correctRate      Float?    @map("correct_rate") @db.DoublePrecision // Overall difficulty
+  // QualitymetricsFR
+  pointBiserial    Float?    @map("point_biserial") @db.DoublePrecision // Discriminationindex
+  correctRate      Float?    @map("correct_rate") @db.DoublePrecision // Overalldifficulty
   status           ItemStatus @default(active)
 
   // Timestamps
   createdAt        DateTime  @default(now()) @map("created_at")
   updatedAt        DateTime  @updatedAt @map("updated_at")
-  calibratedAt     DateTime? @map("calibrated_at") // When IRT params were estimated
+  calibratedAt     DateTime? @map("calibrated_at") // WhenIRTparamswereestimated
 
   // Relations
   passage          Passage?  @relation(fields: [passageId], references: [id], onDelete: Cascade)
@@ -455,24 +455,24 @@ model Item {
   @@map("items")
 }
 
-// Vocabulary items for VST
+// VocabularyitemsforVST
 model VocabularyItem {
   id               Int       @id @default(autoincrement())
   word             String    @unique @db.VarChar(100)
 
-  // Frequency band
+  // Frequencyband
   frequencyBand    String    @map("frequency_band") @db.VarChar(10)
   frequencyRank    Int?      @map("frequency_rank")
 
-  // VST structure
+  // VSTstructure
   targetWord       String    @map("target_word") @db.VarChar(100)
   options          Json      @db.JsonB
   correctAnswer    String    @map("correct_answer") @db.Char(1)
 
-  // Pseudo-word flag
+  // Pseudowordflag
   isPseudo         Boolean   @default(false) @map("is_pseudo")
 
-  // IRT Parameters
+  // IRTParameters
   discrimination   Float?    @db.DoublePrecision
   difficulty       Float?    @db.DoublePrecision
   guessing         Float     @default(0.25) @db.DoublePrecision
@@ -495,34 +495,34 @@ enum EnglishTestStatus {
   abandoned
 }
 
-// English test sessions
+// Englishtestsessions
 model EnglishTestSession {
   id                 Int       @id @default(autoincrement())
   userId             String    @map("user_id") @db.Uuid
 
-  // Session metadata
+  // Sessionmetadata
   startedAt          DateTime  @default(now()) @map("started_at")
   completedAt        DateTime? @map("completed_at")
 
-  // MST routing results
+  // MSTroutingresults
   stage1Theta        Float?    @map("stage1_theta") @db.DoublePrecision
   stage2Panel        MSTPanel? @map("stage2_panel")
   stage3Panel        MSTPanel? @map("stage3_panel")
 
-  // Final results
+  // Finalresults
   finalTheta         Float?    @map("final_theta") @db.DoublePrecision
   standardError      Float?    @map("standard_error") @db.DoublePrecision
   proficiencyLevel   Int?      @map("proficiency_level")
 
-  // Lexile/AR scores
+  // Lexile/ARscores
   lexileScore        Int?      @map("lexile_score")
   arLevel            Float?    @map("ar_level") @db.DoublePrecision
 
-  // Vocabulary results
+  // Vocabularyresults
   vocabularySize     Int?      @map("vocabulary_size")
   vocabularyBands    Json?     @map("vocabulary_bands") @db.JsonB
 
-  // Performance metadata
+  // Performancemetadata
   totalItems         Int       @default(40) @map("total_items")
   correctCount       Int?      @map("correct_count")
   responseTimeAvg    Float?    @map("response_time_avg") @db.DoublePrecision
@@ -539,13 +539,13 @@ model EnglishTestSession {
   @@map("english_test_sessions")
 }
 
-// Item responses
+// Itemresponses
 model EnglishItemResponse {
   id               Int       @id @default(autoincrement())
   sessionId        Int       @map("session_id")
   itemId           Int       @map("item_id")
 
-  // Response data
+  // Responsedata
   stage            Int
   itemOrder        Int       @map("item_order")
   selectedAnswer   String?   @map("selected_answer") @db.Char(1)
@@ -554,7 +554,7 @@ model EnglishItemResponse {
   // Timing
   responseTime     Int?      @map("response_time") // milliseconds
 
-  // IRT estimation at time of response
+  // IRTestimationattimeofresponse
   thetaEstimate    Float?    @map("theta_estimate") @db.DoublePrecision
   seEstimate       Float?    @map("se_estimate") @db.DoublePrecision
 
@@ -568,7 +568,7 @@ model EnglishItemResponse {
   @@map("english_item_responses")
 }
 
-// Vocabulary responses
+// Vocabularyresponses
 model VocabularyResponse {
   id               Int       @id @default(autoincrement())
   sessionId        Int       @map("session_id")
@@ -588,12 +588,12 @@ model VocabularyResponse {
   @@map("vocabulary_responses")
 }
 
-// Lexile calibration data for ML model training
+// LexilecalibrationdataforMLmodeltraining
 model LexileCalibrationData {
   id                     Int       @id @default(autoincrement())
   passageId              Int       @map("passage_id")
 
-  // Text features (12 features)
+  // Textfeaturesfeatures
   meanSentenceLength     Float     @map("mean_sentence_length") @db.DoublePrecision
   meanZipfFrequency      Float     @map("mean_zipf_frequency") @db.DoublePrecision
   fleschKincaidGrade     Float     @map("flesch_kincaid_grade") @db.DoublePrecision
@@ -607,7 +607,7 @@ model LexileCalibrationData {
   syllablePerWord        Float     @map("syllable_per_word") @db.DoublePrecision
   dependencyDepth        Float     @map("dependency_depth") @db.DoublePrecision
 
-  // Target variables
+  // Targetvariables
   lexileScore            Int       @map("lexile_score")
   arLevel                Float?    @map("ar_level") @db.DoublePrecision
 
@@ -619,73 +619,73 @@ model LexileCalibrationData {
   @@map("lexile_calibration_data")
 }
 
-// ===== Machine Learning Training Data (Lightweight) =====
+// MachineLearningTrainingDataLightweight
 
 enum DatasetPurpose {
-  PUPIL_DETECTION      // 동공 검출 학습
-  GAZE_ESTIMATION      // 시선 추정 학습
-  VERTICAL_CORRECTION  // 상하 오차 보정 학습
-  CALIBRATION_OPTIMIZE // 캘리브레이션 최적화
+  PUPIL_DETECTION
+  GAZE_ESTIMATION
+  VERTICAL_CORRECTION
+  CALIBRATION_OPTIMIZE
 }
 
 enum DataQuality {
-  EXCELLENT  // 95%+ 신뢰도
-  GOOD       // 85-95%
-  FAIR       // 70-85%
-  POOR       // <70%
+  EXCELLENT  // %
+  GOOD       // %
+  FAIR       // %
+  POOR       // <%
 }
 
-// ML 학습 샘플 (특징 벡터만 저장, 이미지 없음!)
-// 샘플당 2-5KB로 매우 경량
+// ML,!
+// KB
 model MLTrainingSample {
   id                String       @id @default(uuid()) @db.Uuid
   userId            String?      @map("user_id") @db.Uuid
   visionSessionId   String?      @map("vision_session_id") @db.Uuid
 
-  // 메타데이터
+
   ageGroup          String       @map("age_group") @db.VarChar(20)
-  // "GRADE_3_4" (8-10세), "GRADE_5_6" (11-12세), "GRADE_7_9" (13-15세)
+  // "GRADE__","GRADE__","GRADE__"
 
   gender            String?      @db.VarChar(10)
   wearsGlasses      Boolean      @map("wears_glasses") @default(false)
   deviceType        String       @db.VarChar(50)
   screenResolution  String?      @db.VarChar(20)
 
-  // 특징 벡터 (이미지 대신 랜드마크만!)
+  // !
   irisLandmarks     Json         @map("iris_landmarks") @db.JsonB
-  // { leftEye: [{x, y}, ...], rightEye: [{x, y}, ...] }
-  // MediaPipe Iris 10 points per eye
+  // {leftEye:{x,y},...,rightEye:{x,y},...}
+  // MediaPipeIrispointspereye
 
   faceLandmarks     Json         @map("face_landmarks") @db.JsonB
-  // 주요 68 포인트만 (478에서 압축)
+
 
   headPose          Json         @map("head_pose") @db.JsonB
-  // { pitch: number, yaw: number, roll: number }
+  // {pitch:number,yaw:number,roll:number}
 
-  // Ground Truth (캘리브레이션 데이터)
+  // GroundTruth
   calibrationPoints Json         @map("calibration_points") @db.JsonB
-  // [{ targetX, targetY, gazeX, gazeY, error }, ...]
+  // {targetX,targetY,gazeX,gazeY,error},...
 
   pupilDiameters    Json?        @map("pupil_diameters") @db.JsonB
-  // { left: number, right: number } (mm)
+  // {left:number,right:number}mm
 
-  // 품질 정보
+
   quality           DataQuality
-  qualityScore      Float        @db.DoublePrecision // 0-100
+  qualityScore      Float        @db.DoublePrecision
   qualityNotes      String?      @db.Text
 
-  // 데이터 출처
-  source            String       @default("VISIONTEST") @db.VarChar(50)
-  // "VISIONTEST", "EyeInfo", "GazeCapture", etc.
 
-  // 프라이버시
+  source            String       @default("VISIONTEST") @db.VarChar(50)
+  // "VISIONTEST","EyeInfo","GazeCapture",etc.
+
+
   isAnonymized      Boolean      @default(true)
   consentGiven      Boolean      @default(false)
 
   createdAt         DateTime     @default(now()) @map("created_at")
 
   // Relations
-  // visionSession relation removed - Vision test deleted
+  // visionSessionrelationremovedVisiontestdeleted
 
   @@index([quality])
   @@index([ageGroup])
@@ -693,33 +693,33 @@ model MLTrainingSample {
   @@map("ml_training_samples")
 }
 
-// ML 모델 메타데이터
+// ML
 model MLModel {
   id                String       @id @default(uuid()) @db.Uuid
   name              String       @db.VarChar(255)
   version           String       @db.VarChar(20)
   purpose           DatasetPurpose
 
-  // 모델 정보
+
   architecture      String       @db.VarChar(100)
-  // "MobileNetV2", "Custom CNN", "MediaPipe Fine-tuned"
+  // "MobileNetV","CustomCNN","MediaPipeFinetuned"
 
   framework         String       @db.VarChar(50)
-  // "TensorFlow.js", "TFLite"
+  // "TensorFlow.js","TFLite"
 
-  // 학습 정보
+
   trainingConfig    Json         @db.JsonB
-  trainingSamples   Int          // 학습에 사용된 샘플 수
+  trainingSamples   Int
 
-  // 성능 지표
+
   metrics           Json         @db.JsonB
-  // { accuracy, mae, fps, modelSize }
+  // {accuracy,mae,fps,modelSize}
 
-  // 모델 파일 URL
+  // URL
   modelUrl          String?      @db.VarChar(500)
   modelChecksum     String?      @db.VarChar(64)
 
-  // 상태
+
   isProduction      Boolean      @default(false)
   deployedAt        DateTime?
 
@@ -730,20 +730,20 @@ model MLModel {
   @@map("ml_models")
 }
 
-// ML 데이터 수집 동의 관리
+// ML
 model MLDataConsent {
   id                String       @id @default(uuid()) @db.Uuid
   userId            String       @unique @map("user_id") @db.Uuid
 
   consentGiven      Boolean      @default(false)
   consentDate       DateTime?    @map("consent_date")
-  consentVersion    String?      @db.VarChar(20) // "v1.0"
+  consentVersion    String?      @db.VarChar(20) // "v."
 
-  // 수집 설정
+
   collectFeatures   Boolean      @default(true)
   collectAnonymous  Boolean      @default(true)
 
-  // 철회
+
   revokedAt         DateTime?    @map("revoked_at")
 
   createdAt         DateTime     @default(now()) @map("created_at")
@@ -752,14 +752,14 @@ model MLDataConsent {
   @@map("ml_data_consents")
 }
 
-// ===== Visual Perception Test (시지각 평가) =====
+// VisualPerceptionTest
 
 enum PerceptionTestPhase {
-  introduction   // 소개
-  calibration   // 캘리브레이션
-  reading       // 지문 읽기
-  questions     // 문제 풀이
-  completed     // 완료
+  introduction
+  calibration
+  reading
+  questions
+  completed
 }
 
 enum PerceptionTestStatus {
@@ -768,17 +768,17 @@ enum PerceptionTestStatus {
   abandoned
 }
 
-// Visual Perception Test Sessions
+// VisualPerceptionTestSessions
 model PerceptionTestSession {
   id                    String                @id @default(uuid()) @db.Uuid
   studentId             String                @map("student_id") @db.Uuid
   sessionCode           String                @unique @map("session_code") @db.VarChar(50)
 
-  // Session metadata
-  grade                 Int                   @db.Integer // 학년 (2학년 = 2)
+  // Sessionmetadata
+  grade                 Int                   @db.Integer
   passageId             String                @map("passage_id") @db.Uuid
 
-  // Phase tracking
+  // Phasetracking
   currentPhase          PerceptionTestPhase   @map("current_phase") @default(introduction)
   status                PerceptionTestStatus  @default(in_progress)
 
@@ -792,9 +792,9 @@ model PerceptionTestSession {
   questionsCompletedAt  DateTime?             @map("questions_completed_at")
   completedAt           DateTime?             @map("completed_at")
 
-  // Calibration data
+  // Calibrationdata
   calibrationPoints     Json?                 @map("calibration_points") @db.JsonB
-  calibrationAccuracy   Float?                @map("calibration_accuracy") @db.DoublePrecision // 0.0-1.0
+  calibrationAccuracy   Float?                @map("calibration_accuracy") @db.DoublePrecision // ..
 
   // Relations
   passage               PerceptionPassage     @relation(fields: [passageId], references: [id])
@@ -808,20 +808,20 @@ model PerceptionTestSession {
   @@map("perception_test_sessions")
 }
 
-// Reading passages for visual perception test
+// Readingpassagesforvisualperceptiontest
 model PerceptionPassage {
   id                String                @id @default(uuid()) @db.Uuid
   grade             Int                   @db.Integer
   title             String                @db.VarChar(200)
   content           String                @db.Text
 
-  // Text metrics
+  // Textmetrics
   wordCount         Int                   @map("word_count")
   sentenceCount     Int                   @map("sentence_count")
 
   // Metadata
-  category          String?               @db.VarChar(100) // e.g., "동화", "과학", "역사"
-  difficulty        String?               @db.VarChar(20)  // easy, medium, hard
+  category          String?               @db.VarChar(100) // e.g.,"","",""
+  difficulty        String?               @db.VarChar(20)  // easy,medium,hard
 
   createdAt         DateTime              @default(now()) @map("created_at")
 
@@ -833,16 +833,16 @@ model PerceptionPassage {
   @@map("perception_passages")
 }
 
-// Comprehension questions for perception test
+// Comprehensionquestionsforperceptiontest
 model PerceptionQuestion {
   id                String                @id @default(uuid()) @db.Uuid
   passageId         String                @map("passage_id") @db.Uuid
   questionNumber    Int                   @map("question_number") @db.Integer
 
-  // Question content
+  // Questioncontent
   questionText      String                @map("question_text") @db.Text
-  options           Json                  @db.JsonB // [{ id: "A", text: "..." }, ...]
-  correctAnswer     String                @map("correct_answer") @db.Char(1) // A, B, C, D
+  options           Json                  @db.JsonB // {id:"A",text:"..."},...
+  correctAnswer     String                @map("correct_answer") @db.Char(1) // A,B,C,D
 
   // Metadata
   questionType      String?               @map("question_type") @db.VarChar(50)
@@ -856,7 +856,7 @@ model PerceptionQuestion {
   @@map("perception_questions")
 }
 
-// Student responses to perception test questions
+// Studentresponsestoperceptiontestquestions
 model PerceptionResponse {
   id                String                @id @default(uuid()) @db.Uuid
   sessionId         String                @map("session_id") @db.Uuid
@@ -877,27 +877,27 @@ model PerceptionResponse {
   @@map("perception_responses")
 }
 
-// Time-series gaze tracking data
+// Timeseriesgazetrackingdata
 model PerceptionGazeData {
   id                String                @id @default(uuid()) @db.Uuid
   sessionId         String                @map("session_id") @db.Uuid
 
-  // Test phase
+  // Testphase
   phase             PerceptionTestPhase
 
-  // Gaze position (screen coordinates)
+  // Gazepositionscreencoordinates
   gazeX             Float                 @map("gaze_x") @db.DoublePrecision
   gazeY             Float                 @map("gaze_y") @db.DoublePrecision
 
   // Confidence
-  confidence        Float                 @db.DoublePrecision // 0.0-1.0
+  confidence        Float                 @db.DoublePrecision // ..
 
-  // Head pose
+  // Headpose
   headPitch         Float?                @map("head_pitch") @db.DoublePrecision
   headYaw           Float?                @map("head_yaw") @db.DoublePrecision
   headRoll          Float?                @map("head_roll") @db.DoublePrecision
 
-  // Pupil data
+  // Pupildata
   leftPupilDiameter Float?                @map("left_pupil_diameter") @db.DoublePrecision
   rightPupilDiameter Float?               @map("right_pupil_diameter") @db.DoublePrecision
 
@@ -912,17 +912,17 @@ model PerceptionGazeData {
   @@map("perception_gaze_data")
 }
 
-// Test results with concentration metrics
+// Testresultswithconcentrationmetrics
 model PerceptionTestResult {
   id                          String                @id @default(uuid()) @db.Uuid
   sessionId                   String                @unique @map("session_id") @db.Uuid
 
-  // Overall scores
-  comprehensionScore          Int                   @map("comprehension_score") // 0-100
-  concentrationScore          Int                   @map("concentration_score") // 0-100
-  overallGrade                String                @map("overall_grade") @db.VarChar(5) // A+, A, B+, etc.
+  // Overallscores
+  comprehensionScore          Int                   @map("comprehension_score")
+  concentrationScore          Int                   @map("concentration_score")
+  overallGrade                String                @map("overall_grade") @db.VarChar(5) // A,A,B,etc.
 
-  // 10 Concentration Metrics (0-100 each)
+  // ConcentrationMetricseach
   fixationStability           Float                 @map("fixation_stability") @db.DoublePrecision
   readingPatternRegularity    Float                 @map("reading_pattern_regularity") @db.DoublePrecision
   regressionFrequency         Float                 @map("regression_frequency") @db.DoublePrecision
@@ -934,7 +934,7 @@ model PerceptionTestResult {
   horizontalRegressionScore   Float                 @map("horizontal_regression_score") @db.DoublePrecision
   sustainedAttentionScore     Float                 @map("sustained_attention_score") @db.DoublePrecision
 
-  // 15 Gaze Analysis Items (raw values)
+  // GazeAnalysisItemsrawvalues
   avgReadingSpeedWpm          Float                 @map("avg_reading_speed_wpm") @db.DoublePrecision
   totalFixationCount          Int                   @map("total_fixation_count")
   avgFixationDuration         Float                 @map("avg_fixation_duration") @db.DoublePrecision
@@ -952,9 +952,9 @@ model PerceptionTestResult {
   revisitFrequency            Float                 @map("revisit_frequency") @db.DoublePrecision
 
   // Analysis
-  strengths                   Json?                 @db.JsonB // 강점 분석
-  improvements                Json?                 @db.JsonB // 개선점 분석
-  recommendations             Json?                 @db.JsonB // 학습 권장사항
+  strengths                   Json?                 @db.JsonB
+  improvements                Json?                 @db.JsonB
+  recommendations             Json?                 @db.JsonB
 
   createdAt                   DateTime              @default(now()) @map("created_at")
 
