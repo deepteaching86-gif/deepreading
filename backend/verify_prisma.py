@@ -31,8 +31,30 @@ try:
         # Try to instantiate
         client = Prisma()
         print("✓ Prisma client instantiated successfully!")
+
+        # Check if perception models are available
+        print("\nChecking perception models...")
+        if hasattr(client, 'perceptiontestsession'):
+            print("✓ perceptiontestsession model found")
+        else:
+            print("✗ perceptiontestsession model NOT found")
+            print("  Available attributes:", [a for a in dir(client) if not a.startswith('_')][:20])
+            sys.exit(1)
+
+        if hasattr(client, 'perceptionpassage'):
+            print("✓ perceptionpassage model found")
+        else:
+            print("✗ perceptionpassage model NOT found")
+            sys.exit(1)
+
+        if hasattr(client, 'perceptiongazedata'):
+            print("✓ perceptiongazedata model found")
+        else:
+            print("✗ perceptiongazedata model NOT found")
+            sys.exit(1)
+
         print("\n" + "=" * 80)
-        print("SUCCESS: Prisma client is fully functional!")
+        print("SUCCESS: Prisma client is fully functional with all perception models!")
         print("=" * 80)
         sys.exit(0)
 
