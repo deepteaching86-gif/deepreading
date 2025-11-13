@@ -1,0 +1,962 @@
+// PrismaSchemaforLiteracyAssessmentSystemBasedonPRD
+// Database:PostgreSQLSupabase
+// Version:.AlignedwithPRDRequirements
+
+generator py {
+  provider                    = "prisma-client-py"
+  recursive_type_depth        = -1
+  enable_experimental_decimal = true
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")  // Usedirectconnectionformigrations
+}
+
+// UserManagement
+
+enum UserRole {
+  student
+  teacher
+  parent
+  admin
+}
+
+model User {
+  id           String    @id @default(uuid()) @db.Uuid
+  email        String    @unique @db.VarChar(255)
+  passwordHash String    @map("password_hash") @db.VarChar(255)
+  role         UserRole
+  name         String    @db.VarChar(100)
+  phone        String?   @db.VarChar(20)
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  student  Student?
+  asParent Student[] @relation("ParentToStudent")
+  asTeacher Student[] @relation("TeacherToStudent")
+
+  @@map("users")
+}
+
+model Student {
+  id          String    @id @default(uuid()) @db.Uuid
+  userId      String    @unique @map("user_id") @db.Uuid
+  studentCode String?   @unique @map("student_code") @db.VarChar(50)
+  grade       Int       @db.Integer // ~
+  schoolName  String?   @map("school_name") @db.VarChar(200)
+  className   String?   @map("class_name") @db.VarChar(50)
+  birthDate   DateTime? @map("birth_date") @db.Date
+  parentPhone String?   @map("parent_phone") @db.VarChar(20)
+  parentId    String?   @map("parent_id") @db.Uuid
+  teacherId   String?   @map("teacher_id") @db.Uuid
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  // Relations
+  user     User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent   User?         @relation("ParentToStudent", fields: [parentId], references: [id])
+  teacher  User?         @relation("TeacherToStudent", fields: [teacherId], references: [id])
+  sessions TestSession[]
+
+  @@index([userId])
+  @@index([grade])
+  @@index([grade, teacherId])
+  @@map("students")
+}
+
+// TestTemplates&Questions
+
+enum QuestionCategory {
+  vocabulary
+  reading
+  grammar             // /
+  reasoning           // /
+  reading_motivation
+  writing_motivation
+  reading_environment
+  reading_habit
+  reading_preference
+  digital_literacy
+  critical_thinking
+  reading_attitude
+}
+
+enum QuestionType {
+  choice
+  short_answer
+  essay
+  likert_scale
+}
+
+enum Difficulty {
+  easy
+  medium
+  hard
+}
+
+model TestTemplate {
+  id             String    @id @default(uuid()) @db.Uuid
+  templateCode   String    @unique @map("template_code") @db.VarChar(50)
+  grade          Int       @db.Integer
+  title          String    @db.VarChar(200)
+  description    String?   @db.Text
+  version        String    @default("1.0") @db.VarChar(10)
+  totalQuestions Int       @map("total_questions") @db.Integer
+  totalPoints    Int       @default(100) @map("total_points") @db.Integer
+  passingScore   Int       @default(60) @map("passing_score") @db.Integer
+  timeLimit      Int?      @map("time_limit") @db.Integer
+  status         String    @default("active") @db.VarChar(20)
+  isActive       Boolean   @default(true) @map("is_active")
+
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  // Relations
+  questions  Question[]
+  sessions   TestSession[]
+  statistics Statistic[]
+
+  @@map("test_templates")
+}
+
+model Question {
+  id             String           @id @default(uuid()) @db.Uuid
+  templateId     String           @map("template_id") @db.Uuid
+  questionNumber Int              @map("question_number") @db.Integer
+  category       QuestionCategory
+  questionType   QuestionType     @map("question_type")
+  questionText   String           @map("question_text") @db.Text
+  passage        String?          @db.Text
+  imageUrl       String?          @map("image_url") @db.VarChar(500) // URL
+  options        Json?            @db.JsonB // {id:,text:"..."},...
+  correctAnswer  String           @map("correct_answer") @db.Text
+  points         Int              @default(1) @db.Integer
+  difficulty     Difficulty?
+  explanation    String?          @db.Text
+
+  // Relations
+  template        TestTemplate     @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  answers         Answer[]
+  surveyResponses SurveyResponse[]
+
+  @@unique([templateId, questionNumber])
+  @@index([templateId])
+  @@index([category])
+  @@map("questions")
+}
+
+// TestSessions&Answers
+
+enum SessionStatus {
+  pending
+  in_progress
+  completed
+  scored
+}
+
+model TestSession {
+  id                  String        @id @default(uuid()) @db.Uuid
+  sessionCode         String        @unique @map("session_code") @db.VarChar(50)
+  studentId           String        @map("student_id") @db.Uuid
+  templateId          String        @map("template_id") @db.Uuid
+  status              SessionStatus @default(pending)
+  surveyCompletedAt   DateTime?     @map("survey_completed_at")
+  startedAt           DateTime?     @map("started_at")
+  completedAt         DateTime?     @map("completed_at")
+  scoredAt            DateTime?     @map("scored_at")
+  createdAt           DateTime      @default(now()) @map("created_at")
+
+  // Relations
+  student         Student           @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  template        TestTemplate      @relation(fields: [templateId], references: [id])
+  answers         Answer[]
+  result          TestResult?
+  surveyResponses SurveyResponse[]
+
+  @@index([studentId])
+  @@index([sessionCode])
+  @@index([status])
+  @@index([studentId, status])
+  @@map("test_sessions")
+}
+
+model Answer {
+  id             String   @id @default(uuid()) @db.Uuid
+  sessionId      String   @map("session_id") @db.Uuid
+  questionId     String   @map("question_id") @db.Uuid
+  questionNumber Int      @map("question_number") @db.Integer
+  studentAnswer  String?  @map("student_answer") @db.Text
+  isCorrect      Boolean? @map("is_correct")
+  pointsEarned   Int      @default(0) @map("points_earned") @db.Integer
+  feedback       String?  @db.Text // AIgeneratedfeedbackforessays
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  // Relations
+  session  TestSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  question Question    @relation(fields: [questionId], references: [id])
+
+  @@index([sessionId])
+  @@map("answers")
+}
+
+// SurveyResponses
+
+model SurveyResponse {
+  id             String   @id @default(uuid()) @db.Uuid
+  sessionId      String   @map("session_id") @db.Uuid
+  questionId     String   @map("question_id") @db.Uuid
+  questionNumber Int      @map("question_number") @db.Integer
+  response       String   @db.Text
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  // Relations
+  session  TestSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  question Question    @relation(fields: [questionId], references: [id])
+
+  @@index([sessionId])
+  @@map("survey_responses")
+}
+
+// TestResults
+
+model TestResult {
+  id                     String   @id @default(uuid()) @db.Uuid
+  sessionId              String   @unique @map("session_id") @db.Uuid
+  totalScore             Int      @map("total_score") @db.Integer
+  totalPossible          Int      @map("total_possible") @db.Integer
+  percentage             Decimal  @db.Decimal(5, 2)
+  gradeLevel             Int?     @map("grade_level") @db.Integer
+  correctAnswers         Int      @default(0) @map("correct_answers") @db.Integer
+  incorrectAnswers       Int      @default(0) @map("incorrect_answers") @db.Integer
+  percentile             Decimal? @db.Decimal(5, 2)
+  vocabularyScore        Int?     @map("vocabulary_score") @db.Integer
+  readingScore           Int?     @map("reading_score") @db.Integer
+  grammarScore           Int?     @map("grammar_score") @db.Integer
+  reasoningScore         Int?     @map("reasoning_score") @db.Integer
+
+  readingMotivationScore Decimal? @map("reading_motivation_score") @db.Decimal(3, 2) // ..
+  writingMotivationScore Decimal? @map("writing_motivation_score") @db.Decimal(3, 2)
+  readingEnvironmentScore Decimal? @map("reading_environment_score") @db.Decimal(3, 2)
+  readingHabitScore      Decimal? @map("reading_habit_score") @db.Decimal(3, 2)
+  readingPreferenceData  Json?    @map("reading_preference_data") @db.JsonB
+  strengths              Json?    @db.JsonB
+  weaknesses             Json?    @db.JsonB
+  recommendations        Json?    @db.JsonB
+  createdAt              DateTime @default(now()) @map("created_at")
+
+  // Relations
+  session TestSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@map("test_results")
+}
+
+// StatisticsCache
+
+model Statistic {
+  id            String       @id @default(uuid()) @db.Uuid
+  grade         Int          @db.Integer
+  templateId    String?      @map("template_id") @db.Uuid
+  avgScore      Decimal?     @map("avg_score") @db.Decimal(5, 2)
+  stdDeviation  Decimal?     @map("std_deviation") @db.Decimal(5, 2)
+  sampleSize    Int?         @map("sample_size") @db.Integer
+  updatedAt     DateTime     @updatedAt @map("updated_at")
+
+  // Relations
+  template TestTemplate? @relation(fields: [templateId], references: [id])
+
+  @@index([grade, templateId])
+  @@map("statistics")
+}
+
+// PeerStatistics
+
+model PeerStatistics {
+  id                      String   @id @default(uuid()) @db.Uuid
+  grade                   Int      @db.Integer
+  category                QuestionCategory
+
+
+  avgScore                Decimal  @map("avg_score") @db.Decimal(5, 2)
+  avgPercentage           Decimal  @map("avg_percentage") @db.Decimal(5, 2)
+
+
+  stdDeviation            Decimal  @map("std_deviation") @db.Decimal(5, 2)
+  sampleSize              Int      @map("sample_size") @db.Integer
+  simulatedSampleSize     Int      @default(0) @map("simulated_sample_size") @db.Integer
+
+  // JSON:{p:,p:,p:,p:,p:}
+  percentileDistribution  Json     @map("percentile_distribution") @db.JsonB
+
+
+  lastUpdated             DateTime @updatedAt @map("last_updated")
+  createdAt               DateTime @default(now()) @map("created_at")
+
+  @@unique([grade, category])
+  @@index([grade])
+  @@map("peer_statistics")
+}
+
+// AdditionalSystemTables
+
+// RefreshTokensforJWT
+model RefreshToken {
+  id        String   @id @default(uuid()) @db.Uuid
+  token     String   @unique @db.VarChar(500)
+  userId    String   @map("user_id") @db.Uuid
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@index([token])
+  @@map("refresh_tokens")
+}
+
+// AuditLogforsecurity
+model AuditLog {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String?  @map("user_id") @db.Uuid
+  action    String   @db.VarChar(100)
+  entity    String   @db.VarChar(100)
+  entityId  String?  @map("entity_id") @db.Uuid
+  changes   Json?    @db.JsonB
+  ipAddress String?  @map("ip_address") @db.VarChar(45)
+  userAgent String?  @map("user_agent") @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+// EnglishAdaptiveTestModels
+
+// Readingcomprehensionpassages
+model Passage {
+  id              Int       @id @default(autoincrement())
+  title           String    @db.VarChar(255)
+  content         String    @db.Text
+
+  // Textcomplexitymetrics
+  lexileScore     Int?      @map("lexile_score")
+  arLevel         Float?    @map("ar_level") @db.DoublePrecision
+  fleschKincaid   Float?    @map("flesch_kincaid") @db.DoublePrecision
+  wordCount       Int       @map("word_count")
+
+  // Categorization
+  genre           String?   @db.VarChar(50)
+  topic           String?   @db.VarChar(100)
+
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  items           Item[]
+  calibrationData LexileCalibrationData[]
+
+  @@map("passages")
+}
+
+enum MSTStage {
+  routing @map("1")
+  stage2  @map("2")
+  stage3  @map("3")
+}
+
+enum MSTPanel {
+  routing
+  low
+  medium
+  high
+  L1
+  L2
+  L3
+  M1
+  M2
+  M3
+  H1
+  H2
+  H3
+}
+
+enum ItemDomain {
+  grammar       // .%
+  vocabulary    // .%
+  reading       // .%
+}
+
+enum TextType {
+  expository
+  argumentative
+  narrative
+  practical
+}
+
+enum ItemStatus {
+  active
+  flagged
+  inactive
+}
+
+// TestitemswithIRTPLparameters
+model Item {
+  id               Int       @id @default(autoincrement())
+  passageId        Int?      @map("passage_id")
+
+  // Questioncontent
+  stem             String    @db.Text
+  options          Json      @db.JsonB // {"A":"...","B":"...","C":"...","D":"..."}
+  correctAnswer    String    @map("correct_answer") @db.Char(1)
+
+  // DomainclassificationFR
+  domain           ItemDomain
+  textType         TextType?  @map("text_type") // Forreadingitemsonly
+
+  // IRTPLParameters
+  discrimination   Float?     @db.DoublePrecision // aparameternullableuntilcalibrated
+  difficulty       Float?     @db.DoublePrecision // bparameternullableuntilcalibrated
+  guessing         Float      @default(0.25) @db.DoublePrecision // cparameter
+
+  // MSTConfiguration
+  stage            Int
+  panel            MSTPanel
+  formId           Int       @map("form_id")
+
+  // Metadata
+  skillTag         String?   @map("skill_tag") @db.VarChar(100)
+  exposureCount    Int       @default(0) @map("exposure_count")
+  exposureRate     Float?    @map("exposure_rate") @db.DoublePrecision // Calculatedpercentage
+
+  // QualitymetricsFR
+  pointBiserial    Float?    @map("point_biserial") @db.DoublePrecision // Discriminationindex
+  correctRate      Float?    @map("correct_rate") @db.DoublePrecision // Overalldifficulty
+  status           ItemStatus @default(active)
+
+  // Timestamps
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+  calibratedAt     DateTime? @map("calibrated_at") // WhenIRTparamswereestimated
+
+  // Relations
+  passage          Passage?  @relation(fields: [passageId], references: [id], onDelete: Cascade)
+  responses        EnglishItemResponse[]
+
+  @@index([stage, panel])
+  @@index([difficulty])
+  @@index([skillTag])
+  @@index([domain])
+  @@index([status])
+  @@index([exposureRate])
+  @@map("items")
+}
+
+// VocabularyitemsforVST
+model VocabularyItem {
+  id               Int       @id @default(autoincrement())
+  word             String    @unique @db.VarChar(100)
+
+  // Frequencyband
+  frequencyBand    String    @map("frequency_band") @db.VarChar(10)
+  frequencyRank    Int?      @map("frequency_rank")
+
+  // VSTstructure
+  targetWord       String    @map("target_word") @db.VarChar(100)
+  options          Json      @db.JsonB
+  correctAnswer    String    @map("correct_answer") @db.Char(1)
+
+  // Pseudowordflag
+  isPseudo         Boolean   @default(false) @map("is_pseudo")
+
+  // IRTParameters
+  discrimination   Float?    @db.DoublePrecision
+  difficulty       Float?    @db.DoublePrecision
+  guessing         Float     @default(0.25) @db.DoublePrecision
+
+  formId           Int       @map("form_id")
+  exposureCount    Int       @default(0) @map("exposure_count")
+
+  createdAt        DateTime  @default(now()) @map("created_at")
+
+  // Relations
+  responses        VocabularyResponse[]
+
+  @@index([frequencyBand])
+  @@map("vocabulary_items")
+}
+
+enum EnglishTestStatus {
+  in_progress
+  completed
+  abandoned
+}
+
+// Englishtestsessions
+model EnglishTestSession {
+  id                 Int       @id @default(autoincrement())
+  userId             String    @map("user_id") @db.Uuid
+
+  // Sessionmetadata
+  startedAt          DateTime  @default(now()) @map("started_at")
+  completedAt        DateTime? @map("completed_at")
+
+  // MSTroutingresults
+  stage1Theta        Float?    @map("stage1_theta") @db.DoublePrecision
+  stage2Panel        MSTPanel? @map("stage2_panel")
+  stage3Panel        MSTPanel? @map("stage3_panel")
+
+  // Finalresults
+  finalTheta         Float?    @map("final_theta") @db.DoublePrecision
+  standardError      Float?    @map("standard_error") @db.DoublePrecision
+  proficiencyLevel   Int?      @map("proficiency_level")
+
+  // Lexile/ARscores
+  lexileScore        Int?      @map("lexile_score")
+  arLevel            Float?    @map("ar_level") @db.DoublePrecision
+
+  // Vocabularyresults
+  vocabularySize     Int?      @map("vocabulary_size")
+  vocabularyBands    Json?     @map("vocabulary_bands") @db.JsonB
+
+  // Performancemetadata
+  totalItems         Int       @default(40) @map("total_items")
+  correctCount       Int?      @map("correct_count")
+  responseTimeAvg    Float?    @map("response_time_avg") @db.DoublePrecision
+
+  // Status
+  status             EnglishTestStatus @default(in_progress)
+
+  // Relations
+  itemResponses      EnglishItemResponse[]
+  vocabularyResponses VocabularyResponse[]
+
+  @@index([userId])
+  @@index([completedAt])
+  @@map("english_test_sessions")
+}
+
+// Itemresponses
+model EnglishItemResponse {
+  id               Int       @id @default(autoincrement())
+  sessionId        Int       @map("session_id")
+  itemId           Int       @map("item_id")
+
+  // Responsedata
+  stage            Int
+  itemOrder        Int       @map("item_order")
+  selectedAnswer   String?   @map("selected_answer") @db.Char(1)
+  isCorrect        Boolean   @map("is_correct")
+
+  // Timing
+  responseTime     Int?      @map("response_time") // milliseconds
+
+  // IRTestimationattimeofresponse
+  thetaEstimate    Float?    @map("theta_estimate") @db.DoublePrecision
+  seEstimate       Float?    @map("se_estimate") @db.DoublePrecision
+
+  answeredAt       DateTime  @default(now()) @map("answered_at")
+
+  // Relations
+  session          EnglishTestSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  item             Item @relation(fields: [itemId], references: [id])
+
+  @@index([sessionId])
+  @@map("english_item_responses")
+}
+
+// Vocabularyresponses
+model VocabularyResponse {
+  id               Int       @id @default(autoincrement())
+  sessionId        Int       @map("session_id")
+  vocabItemId      Int       @map("vocab_item_id")
+
+  selectedAnswer   String?   @map("selected_answer") @db.Char(1)
+  isCorrect        Boolean   @map("is_correct")
+  responseTime     Int?      @map("response_time")
+
+  answeredAt       DateTime  @default(now()) @map("answered_at")
+
+  // Relations
+  session          EnglishTestSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  vocabItem        VocabularyItem @relation(fields: [vocabItemId], references: [id])
+
+  @@index([sessionId])
+  @@map("vocabulary_responses")
+}
+
+// LexilecalibrationdataforMLmodeltraining
+model LexileCalibrationData {
+  id                     Int       @id @default(autoincrement())
+  passageId              Int       @map("passage_id")
+
+  // Textfeaturesfeatures
+  meanSentenceLength     Float     @map("mean_sentence_length") @db.DoublePrecision
+  meanZipfFrequency      Float     @map("mean_zipf_frequency") @db.DoublePrecision
+  fleschKincaidGrade     Float     @map("flesch_kincaid_grade") @db.DoublePrecision
+  gunningFog             Float     @map("gunning_fog") @db.DoublePrecision
+  smogIndex              Float     @map("smog_index") @db.DoublePrecision
+  colemanLiau            Float     @map("coleman_liau") @db.DoublePrecision
+  ariIndex               Float     @map("ari_index") @db.DoublePrecision
+  uniqueWordRatio        Float     @map("unique_word_ratio") @db.DoublePrecision
+  academicWordRatio      Float     @map("academic_word_ratio") @db.DoublePrecision
+  complexWordRatio       Float     @map("complex_word_ratio") @db.DoublePrecision
+  syllablePerWord        Float     @map("syllable_per_word") @db.DoublePrecision
+  dependencyDepth        Float     @map("dependency_depth") @db.DoublePrecision
+
+  // Targetvariables
+  lexileScore            Int       @map("lexile_score")
+  arLevel                Float?    @map("ar_level") @db.DoublePrecision
+
+  createdAt              DateTime  @default(now()) @map("created_at")
+
+  // Relations
+  passage                Passage   @relation(fields: [passageId], references: [id], onDelete: Cascade)
+
+  @@map("lexile_calibration_data")
+}
+
+// MachineLearningTrainingDataLightweight
+
+enum DatasetPurpose {
+  PUPIL_DETECTION
+  GAZE_ESTIMATION
+  VERTICAL_CORRECTION
+  CALIBRATION_OPTIMIZE
+}
+
+enum DataQuality {
+  EXCELLENT  // %
+  GOOD       // %
+  FAIR       // %
+  POOR       // <%
+}
+
+// ML,!
+// KB
+model MLTrainingSample {
+  id                String       @id @default(uuid()) @db.Uuid
+  userId            String?      @map("user_id") @db.Uuid
+  visionSessionId   String?      @map("vision_session_id") @db.Uuid
+
+
+  ageGroup          String       @map("age_group") @db.VarChar(20)
+  // "GRADE__","GRADE__","GRADE__"
+
+  gender            String?      @db.VarChar(10)
+  wearsGlasses      Boolean      @map("wears_glasses") @default(false)
+  deviceType        String       @db.VarChar(50)
+  screenResolution  String?      @db.VarChar(20)
+
+  // !
+  irisLandmarks     Json         @map("iris_landmarks") @db.JsonB
+  // {leftEye:{x,y},...,rightEye:{x,y},...}
+  // MediaPipeIrispointspereye
+
+  faceLandmarks     Json         @map("face_landmarks") @db.JsonB
+
+
+  headPose          Json         @map("head_pose") @db.JsonB
+  // {pitch:number,yaw:number,roll:number}
+
+  // GroundTruth
+  calibrationPoints Json         @map("calibration_points") @db.JsonB
+  // {targetX,targetY,gazeX,gazeY,error},...
+
+  pupilDiameters    Json?        @map("pupil_diameters") @db.JsonB
+  // {left:number,right:number}mm
+
+
+  quality           DataQuality
+  qualityScore      Float        @db.DoublePrecision
+  qualityNotes      String?      @db.Text
+
+
+  source            String       @default("VISIONTEST") @db.VarChar(50)
+  // "VISIONTEST","EyeInfo","GazeCapture",etc.
+
+
+  isAnonymized      Boolean      @default(true)
+  consentGiven      Boolean      @default(false)
+
+  createdAt         DateTime     @default(now()) @map("created_at")
+
+  // Relations
+  // visionSessionrelationremovedVisiontestdeleted
+
+  @@index([quality])
+  @@index([ageGroup])
+  @@index([visionSessionId])
+  @@map("ml_training_samples")
+}
+
+// ML
+model MLModel {
+  id                String       @id @default(uuid()) @db.Uuid
+  name              String       @db.VarChar(255)
+  version           String       @db.VarChar(20)
+  purpose           DatasetPurpose
+
+
+  architecture      String       @db.VarChar(100)
+  // "MobileNetV","CustomCNN","MediaPipeFinetuned"
+
+  framework         String       @db.VarChar(50)
+  // "TensorFlow.js","TFLite"
+
+
+  trainingConfig    Json         @db.JsonB
+  trainingSamples   Int
+
+
+  metrics           Json         @db.JsonB
+  // {accuracy,mae,fps,modelSize}
+
+  // URL
+  modelUrl          String?      @db.VarChar(500)
+  modelChecksum     String?      @db.VarChar(64)
+
+
+  isProduction      Boolean      @default(false)
+  deployedAt        DateTime?
+
+  createdAt         DateTime     @default(now()) @map("created_at")
+  updatedAt         DateTime     @updatedAt @map("updated_at")
+
+  @@index([purpose, isProduction])
+  @@map("ml_models")
+}
+
+// ML
+model MLDataConsent {
+  id                String       @id @default(uuid()) @db.Uuid
+  userId            String       @unique @map("user_id") @db.Uuid
+
+  consentGiven      Boolean      @default(false)
+  consentDate       DateTime?    @map("consent_date")
+  consentVersion    String?      @db.VarChar(20) // "v."
+
+
+  collectFeatures   Boolean      @default(true)
+  collectAnonymous  Boolean      @default(true)
+
+
+  revokedAt         DateTime?    @map("revoked_at")
+
+  createdAt         DateTime     @default(now()) @map("created_at")
+  updatedAt         DateTime     @updatedAt @map("updated_at")
+
+  @@map("ml_data_consents")
+}
+
+// VisualPerceptionTest
+
+enum PerceptionTestPhase {
+  introduction
+  calibration
+  reading
+  questions
+  completed
+}
+
+enum PerceptionTestStatus {
+  in_progress
+  completed
+  abandoned
+}
+
+// VisualPerceptionTestSessions
+model PerceptionTestSession {
+  id                    String                @id @default(uuid()) @db.Uuid
+  studentId             String                @map("student_id") @db.Uuid
+  sessionCode           String                @unique @map("session_code") @db.VarChar(50)
+
+  // Sessionmetadata
+  grade                 Int                   @db.Integer
+  passageId             String                @map("passage_id") @db.Uuid
+
+  // Phasetracking
+  currentPhase          PerceptionTestPhase   @map("current_phase") @default(introduction)
+  status                PerceptionTestStatus  @default(in_progress)
+
+  // Timestamps
+  startedAt             DateTime              @default(now()) @map("started_at")
+  calibrationStartedAt  DateTime?             @map("calibration_started_at")
+  calibrationCompletedAt DateTime?            @map("calibration_completed_at")
+  readingStartedAt      DateTime?             @map("reading_started_at")
+  readingCompletedAt    DateTime?             @map("reading_completed_at")
+  questionsStartedAt    DateTime?             @map("questions_started_at")
+  questionsCompletedAt  DateTime?             @map("questions_completed_at")
+  completedAt           DateTime?             @map("completed_at")
+
+  // Calibrationdata
+  calibrationPoints     Json?                 @map("calibration_points") @db.JsonB
+  calibrationAccuracy   Float?                @map("calibration_accuracy") @db.DoublePrecision // ..
+
+  // Relations
+  passage               PerceptionPassage     @relation(fields: [passageId], references: [id])
+  gazeData              PerceptionGazeData[]
+  responses             PerceptionResponse[]
+  result                PerceptionTestResult?
+
+  @@index([studentId])
+  @@index([status])
+  @@index([startedAt])
+  @@map("perception_test_sessions")
+}
+
+// Readingpassagesforvisualperceptiontest
+model PerceptionPassage {
+  id                String                @id @default(uuid()) @db.Uuid
+  grade             Int                   @db.Integer
+  title             String                @db.VarChar(200)
+  content           String                @db.Text
+
+  // Textmetrics
+  wordCount         Int                   @map("word_count")
+  sentenceCount     Int                   @map("sentence_count")
+
+  // Metadata
+  category          String?               @db.VarChar(100) // e.g.,"","",""
+  difficulty        String?               @db.VarChar(20)  // easy,medium,hard
+
+  createdAt         DateTime              @default(now()) @map("created_at")
+
+  // Relations
+  questions         PerceptionQuestion[]
+  sessions          PerceptionTestSession[]
+
+  @@index([grade])
+  @@map("perception_passages")
+}
+
+// Comprehensionquestionsforperceptiontest
+model PerceptionQuestion {
+  id                String                @id @default(uuid()) @db.Uuid
+  passageId         String                @map("passage_id") @db.Uuid
+  questionNumber    Int                   @map("question_number") @db.Integer
+
+  // Questioncontent
+  questionText      String                @map("question_text") @db.Text
+  options           Json                  @db.JsonB // {id:"A",text:"..."},...
+  correctAnswer     String                @map("correct_answer") @db.Char(1) // A,B,C,D
+
+  // Metadata
+  questionType      String?               @map("question_type") @db.VarChar(50)
+
+  // Relations
+  passage           PerceptionPassage     @relation(fields: [passageId], references: [id], onDelete: Cascade)
+  responses         PerceptionResponse[]
+
+  @@unique([passageId, questionNumber])
+  @@index([passageId])
+  @@map("perception_questions")
+}
+
+// Studentresponsestoperceptiontestquestions
+model PerceptionResponse {
+  id                String                @id @default(uuid()) @db.Uuid
+  sessionId         String                @map("session_id") @db.Uuid
+  questionId        String                @map("question_id") @db.Uuid
+
+  selectedAnswer    String?               @map("selected_answer") @db.Char(1)
+  isCorrect         Boolean               @map("is_correct")
+
+  // Timing
+  responseTime      Int?                  @map("response_time") // milliseconds
+  answeredAt        DateTime              @default(now()) @map("answered_at")
+
+  // Relations
+  session           PerceptionTestSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  question          PerceptionQuestion    @relation(fields: [questionId], references: [id])
+
+  @@index([sessionId])
+  @@map("perception_responses")
+}
+
+// Timeseriesgazetrackingdata
+model PerceptionGazeData {
+  id                String                @id @default(uuid()) @db.Uuid
+  sessionId         String                @map("session_id") @db.Uuid
+
+  // Testphase
+  phase             PerceptionTestPhase
+
+  // Gazepositionscreencoordinates
+  gazeX             Float                 @map("gaze_x") @db.DoublePrecision
+  gazeY             Float                 @map("gaze_y") @db.DoublePrecision
+
+  // Confidence
+  confidence        Float                 @db.DoublePrecision // ..
+
+  // Headpose
+  headPitch         Float?                @map("head_pitch") @db.DoublePrecision
+  headYaw           Float?                @map("head_yaw") @db.DoublePrecision
+  headRoll          Float?                @map("head_roll") @db.DoublePrecision
+
+  // Pupildata
+  leftPupilDiameter Float?                @map("left_pupil_diameter") @db.DoublePrecision
+  rightPupilDiameter Float?               @map("right_pupil_diameter") @db.DoublePrecision
+
+  // Timestamp
+  timestamp         DateTime              @default(now())
+
+  // Relations
+  session           PerceptionTestSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, phase])
+  @@index([sessionId, timestamp])
+  @@map("perception_gaze_data")
+}
+
+// Testresultswithconcentrationmetrics
+model PerceptionTestResult {
+  id                          String                @id @default(uuid()) @db.Uuid
+  sessionId                   String                @unique @map("session_id") @db.Uuid
+
+  // Overallscores
+  comprehensionScore          Int                   @map("comprehension_score")
+  concentrationScore          Int                   @map("concentration_score")
+  overallGrade                String                @map("overall_grade") @db.VarChar(5) // A,A,B,etc.
+
+  // ConcentrationMetricseach
+  fixationStability           Float                 @map("fixation_stability") @db.DoublePrecision
+  readingPatternRegularity    Float                 @map("reading_pattern_regularity") @db.DoublePrecision
+  regressionFrequency         Float                 @map("regression_frequency") @db.DoublePrecision
+  focusRetentionRate          Float                 @map("focus_retention_rate") @db.DoublePrecision
+  readingSpeedConsistency     Float                 @map("reading_speed_consistency") @db.DoublePrecision
+  blinkFrequencyScore         Float                 @map("blink_frequency_score") @db.DoublePrecision
+  fixationDurationScore       Float                 @map("fixation_duration_score") @db.DoublePrecision
+  verticalDriftScore          Float                 @map("vertical_drift_score") @db.DoublePrecision
+  horizontalRegressionScore   Float                 @map("horizontal_regression_score") @db.DoublePrecision
+  sustainedAttentionScore     Float                 @map("sustained_attention_score") @db.DoublePrecision
+
+  // GazeAnalysisItemsrawvalues
+  avgReadingSpeedWpm          Float                 @map("avg_reading_speed_wpm") @db.DoublePrecision
+  totalFixationCount          Int                   @map("total_fixation_count")
+  avgFixationDuration         Float                 @map("avg_fixation_duration") @db.DoublePrecision
+  saccadeCount                Int                   @map("saccade_count")
+  avgSaccadeLength            Float                 @map("avg_saccade_length") @db.DoublePrecision
+  inTextGazeRatio             Float                 @map("in_text_gaze_ratio") @db.DoublePrecision
+  regressionCount             Int                   @map("regression_count")
+  lineDriftCount              Int                   @map("line_drift_count")
+  maxSustainedAttention       Float                 @map("max_sustained_attention") @db.DoublePrecision
+  distractionIndex            Float                 @map("distraction_index") @db.DoublePrecision
+  regressionAccuracyCorr      Float?                @map("regression_accuracy_corr") @db.DoublePrecision
+  fixationAccuracyCorr        Float?                @map("fixation_accuracy_corr") @db.DoublePrecision
+  speedAccuracyCorr           Float?                @map("speed_accuracy_corr") @db.DoublePrecision
+  optionGazeDistribution      Json                  @map("option_gaze_distribution") @db.JsonB
+  revisitFrequency            Float                 @map("revisit_frequency") @db.DoublePrecision
+
+  // Analysis
+  strengths                   Json?                 @db.JsonB
+  improvements                Json?                 @db.JsonB
+  recommendations             Json?                 @db.JsonB
+
+  createdAt                   DateTime              @default(now()) @map("created_at")
+
+  // Relations
+  session                     PerceptionTestSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@map("perception_test_results")
+}
