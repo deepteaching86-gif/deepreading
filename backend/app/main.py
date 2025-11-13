@@ -31,10 +31,22 @@ except Exception as e:
 
 # Import Perception router (Visual Perception Test)
 try:
+    print("=" * 80)
+    print("ATTEMPTING TO LOAD VISUAL PERCEPTION TEST MODULE")
+    print("=" * 80)
     from app.perception.router import router as perception_router
+    print("=" * 80)
     print("✅ Visual Perception Test module loaded successfully")
+    print("=" * 80)
 except Exception as e:
-    print(f"⚠️  Visual Perception Test module not available: {e}")
+    print("=" * 80)
+    print(f"❌ Visual Perception Test module FAILED to load")
+    print(f"Error type: {type(e).__name__}")
+    print(f"Error message: {e}")
+    print("=" * 80)
+    import traceback
+    traceback.print_exc()
+    print("=" * 80)
     perception_router = None
 
 # Create FastAPI app
