@@ -143,7 +143,8 @@ class EnglishTestServiceV2:
         })
 
         # Check if stage transition needed (count only responses from current stage)
-        items_in_current_stage = len([r for r in responses if r.get('stage') == current_stage]) + 1  # Include current
+        # Note: Use r.get('stage', 1) with default=1 for backward compatibility with old responses
+        items_in_current_stage = len([r for r in responses if r.get('stage', 1) == current_stage]) + 1  # Include current
         stage_complete = (items_in_current_stage >= self.STAGE_ITEMS[current_stage])
 
         new_stage = current_stage
