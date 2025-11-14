@@ -313,6 +313,8 @@ class EnglishTestDB:
         item_id: int,
         selected_answer: str,
         is_correct: bool,
+        stage: int,
+        item_order: int,
         theta_estimate: Optional[float] = None,
         standard_error: Optional[float] = None,
         response_time: Optional[int] = None
@@ -325,6 +327,8 @@ class EnglishTestDB:
             item_id: Item ID
             selected_answer: Selected option ('A', 'B', 'C', 'D')
             is_correct: Whether answer is correct
+            stage: Current MST stage (1, 2, or 3)
+            item_order: Sequential order of this item in the session
             theta_estimate: Theta estimate after this response
             standard_error: Standard error of estimate
             response_time: Response time in milliseconds
@@ -345,12 +349,14 @@ class EnglishTestDB:
             cursor.execute("""
                 INSERT INTO english_test_responses (
                     session_id, item_id, selected_answer, is_correct,
+                    stage, item_order,
                     theta_estimate, standard_error, response_time, responded_at
                 )
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 RETURNING *;
             """, (
                 session_id, item_id, selected_answer, is_correct,
+                stage, item_order,
                 theta_estimate, standard_error, response_time, datetime.now()
             ))
 

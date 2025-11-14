@@ -118,32 +118,33 @@ class EnglishTestServiceV2:
         # Update θ estimate using IRT EAP
         theta_est, se = self.irt.eap_estimate(responses_bool, items_params)
 
-        # Record response in database
+        # Update session items_completed and current estimates
+        items_completed = session['items_completed'] + 1
+        current_stage = session['stage']
+
+        # Record response in database with stage tracking
         self.db.create_response(
             session_id=session_id,
             item_id=item_id,
             selected_answer=selected_answer,
             is_correct=is_correct,
+            stage=current_stage,
+            item_order=items_completed,
             theta_estimate=theta_est,
             standard_error=se,
             response_time=response_time
         )
 
-        # Update session items_completed and current estimates
-        items_completed = session['items_completed'] + 1
+        # Update session
         self.db.update_session(session_id, {
             'items_completed': items_completed,
             'current_theta': theta_est,
             'current_se': se
         })
 
-        # Check if stage transition needed
-        current_stage = session['stage']
-        items_in_stage = len([r for r in responses if r is not None]) + 1  # Include current
-
-        # Filter by current stage (responses don't have stage field, so count all)
-        # This is simplified - in production, track stage transitions properly
-        stage_complete = (items_in_stage >= self.STAGE_ITEMS[current_stage])
+        # Check if stage transition needed (count only responses from current stage)
+        items_in_current_stage = len([r for r in responses if r.get('stage') == current_stage]) + 1  # Include current
+        stage_complete = (items_in_current_stage >= self.STAGE_ITEMS[current_stage])
 
         new_stage = current_stage
         new_panel = session['panel']
