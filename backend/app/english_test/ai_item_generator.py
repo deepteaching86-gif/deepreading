@@ -7,6 +7,7 @@ Automatically generates English test items with IRT parameters.
 
 import os
 import json
+import random
 import google.generativeai as genai
 from typing import Dict, List, Optional
 
@@ -14,13 +15,16 @@ class AIItemGenerator:
     """Generate English test items using Gemini API"""
 
     def __init__(self):
-        """Initialize Gemini API client"""
+        """Initialize Gemini API client and load vocabulary lists"""
         api_key = os.getenv('GOOGLE_API_KEY')
         if not api_key:
             raise ValueError("GOOGLE_API_KEY environment variable not set")
 
         genai.configure(api_key=api_key)
         self.model = genai.GenerativeModel('gemini-1.5-flash')
+
+        # Load vocabulary lists for reference
+        self.vocab_lists = self._load_vocabulary_lists()
 
     def generate_items(
         self,
@@ -59,6 +63,68 @@ class AIItemGenerator:
 
         return items[:count]  # Ensure we return exactly count items
 
+    def _load_vocabulary_lists(self) -> Dict:
+        """Load vocabulary lists from JSON files"""
+        vocab_dir = os.path.join(os.path.dirname(__file__), '../../vocabulary_lists')
+
+        try:
+            # Load VST bands
+            vst_path = os.path.join(vocab_dir, 'vst_bands.json')
+            with open(vst_path, 'r', encoding='utf-8') as f:
+                vst_bands = json.load(f)
+
+            print(f"✅ Loaded vocabulary lists from {vocab_dir}")
+            return vst_bands
+
+        except FileNotFoundError:
+            print(f"⚠️ Vocabulary lists not found at {vocab_dir}")
+            print(f"⚠️ Using AI generation without word list reference")
+            return {}
+        except Exception as e:
+            print(f"⚠️ Error loading vocabulary lists: {e}")
+            return {}
+
+    def _get_frequency_band_for_difficulty(self, difficulty: float) -> str:
+        """Map IRT difficulty to VST frequency band"""
+        # Difficulty ranges → Frequency bands
+        # Very Easy (-2.0 to -1.0) → 1k band (most frequent)
+        # Easy (-1.0 to 0.0) → 2k band
+        # Medium (0.0 to 1.0) → 3k-6k bands
+        # Hard (1.0 to 2.0) → 8k-14k bands (academic)
+
+        if difficulty < -1.0:
+            return "1k"
+        elif difficulty < -0.3:
+            return "2k"
+        elif difficulty < 0.3:
+            return "3k"
+        elif difficulty < 0.7:
+            return "4k"
+        elif difficulty < 1.0:
+            return "6k"
+        elif difficulty < 1.3:
+            return "8k"
+        else:
+            return "14k"  # Academic vocabulary
+
+    def _get_vocabulary_examples(self, difficulty: float, count: int = 10) -> List[str]:
+        """Get vocabulary examples for given difficulty level"""
+        if not self.vocab_lists:
+            return []
+
+        frequency_band = self._get_frequency_band_for_difficulty(difficulty)
+
+        # Get words from appropriate band
+        band_data = self.vocab_lists.get(frequency_band, {})
+        words = band_data.get('words', [])
+
+        if not words:
+            return []
+
+        # Return random sample
+        sample_size = min(count, len(words))
+        return random.sample(words, sample_size)
+
     def _get_difficulty_range(self, stage: int, panel: str) -> tuple:
         """Get difficulty range for stage/panel combination"""
         ranges = {
@@ -83,6 +149,16 @@ class AIItemGenerator:
         """Build prompt for Gemini API"""
 
         min_diff, max_diff = difficulty_range
+        mid_diff = (min_diff + max_diff) / 2
+
+        # Get vocabulary examples for this difficulty level
+        vocab_examples = self._get_vocabulary_examples(mid_diff, count=15)
+        vocab_guidance = ""
+        if vocab_examples and 'vocabulary' in domains:
+            vocab_guidance = f"\n\n**Vocabulary Reference (use these or similar words):**\n"
+            vocab_guidance += f"Frequency band: {self._get_frequency_band_for_difficulty(mid_diff)}\n"
+            vocab_guidance += f"Example words: {', '.join(vocab_examples[:10])}\n"
+            vocab_guidance += f"These words are appropriate for difficulty {mid_diff:.2f}. Use these or similar words from the same frequency level."
 
         prompt = f"""Generate {count} English language test items for adaptive testing.
 
@@ -91,7 +167,7 @@ class AIItemGenerator:
 - Panel: {panel} (difficulty level)
 - Difficulty range: {min_diff:.1f} to {max_diff:.1f} (IRT 3PL model)
 - Domains: {', '.join(domains)}
-- Distribute items evenly across domains
+- Distribute items evenly across domains{vocab_guidance}
 
 **Item Format (JSON array):**
 ```json

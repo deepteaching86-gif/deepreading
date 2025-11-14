@@ -1,0 +1,26 @@
+{
+  "title": "Vocabulary List Integration Guide",
+  "description": "How to integrate open source word lists with AI item generator",
+  "files": {
+    "gsl.json": "General Service List - 2,000 most frequent words",
+    "awl.json": "Academic Word List - 570 academic words",
+    "vst_bands.json": "VST frequency band mapping (1k-14k)"
+  },
+  "usage": {
+    "vocabulary_item_generation": "Use VST bands to select target words by difficulty level",
+    "frequency_band_mapping": {
+      "1k": "Beginner level (A1-A2)",
+      "2k": "Elementary level (A2-B1)",
+      "3k-4k": "Intermediate level (B1-B2)",
+      "6k-8k": "Upper-intermediate level (B2-C1)",
+      "10k-14k": "Advanced level (C1-C2)"
+    },
+    "implementation": "Load VST bands in AI generator and select words based on target difficulty"
+  },
+  "next_steps": [
+    "Integrate vocabulary lists into ai_item_generator.py",
+    "Modify generate_vocabulary_item() to reference word lists",
+    "Add frequency band validation",
+    "Test with sample generation"
+  ]
+}
