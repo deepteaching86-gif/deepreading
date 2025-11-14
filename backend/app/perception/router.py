@@ -50,18 +50,31 @@ async def start_session(request: StartSessionRequest):
     2. Create a new session
     3. Return session info with passage and questions
     """
+    import traceback
+
     try:
+        logger.info(f"🚀 Starting perception test - student_id={request.student_id} (len={len(request.student_id)}), grade={request.grade}")
+
         # Ensure database connection (lazy connect)
         await db.connect()
+        logger.info("✅ Database connected")
 
         # Get passage for grade
         passage = await db.get_passage_for_grade(request.grade)
+        logger.info(f"✅ Found passage: {passage['id'] if passage else 'None'} (len={len(passage['id']) if passage else 0})")
 
         if not passage:
+            logger.warning(f"⚠️ No passages available for grade {request.grade}")
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"No passages available for grade {request.grade}"
             )
+
+        # Log data being sent to database
+        logger.info(f"📝 Creating session with:")
+        logger.info(f"  - student_id: {request.student_id} (type={type(request.student_id).__name__}, len={len(request.student_id)})")
+        logger.info(f"  - passage_id: {passage['id']} (type={type(passage['id']).__name__}, len={len(passage['id'])})")
+        logger.info(f"  - grade: {request.grade} (type={type(request.grade).__name__})")
 
         # Create session
         session = await db.create_session(
@@ -69,6 +82,11 @@ async def start_session(request: StartSessionRequest):
             grade=request.grade,
             passage_id=passage["id"]
         )
+
+        logger.info(f"✅ Session created successfully:")
+        logger.info(f"  - session_id: {session['id']}")
+        logger.info(f"  - session_code: {session['sessionCode']} (len={len(session['sessionCode'])})")
+        logger.info(f"  - current_phase: {session['currentPhase']}")
 
         # Format response
         return SessionResponse(
@@ -99,7 +117,11 @@ async def start_session(request: StartSessionRequest):
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error starting session: {e}")
+        logger.error(f"❌ Error starting perception test session: {type(e).__name__}: {str(e)}")
+        logger.error(f"📋 Traceback: {traceback.format_exc()}")
+        logger.error(f"📝 Request details:")
+        logger.error(f"  - student_id: {request.student_id} (type={type(request.student_id).__name__}, len={len(request.student_id)})")
+        logger.error(f"  - grade: {request.grade} (type={type(request.grade).__name__})")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to start session"

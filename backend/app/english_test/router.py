@@ -154,8 +154,17 @@ async def submit_response(request: SubmitResponseRequest):
     4. Select next item using Fisher Information
     5. Return next item or completion status
     """
+    import logging
+    import traceback
+
+    logger = logging.getLogger(__name__)
+
     try:
+        logger.info(f"📥 Submitting response - session_id={request.session_id}, item_id={request.item_id}, answer={request.selected_answer}")
+
         service = get_service()
+        logger.info("✅ Service instance created")
+
         result = service.submit_response(
             session_id=request.session_id,
             item_id=request.item_id,
@@ -163,11 +172,17 @@ async def submit_response(request: SubmitResponseRequest):
             response_time=request.response_time
         )
 
+        logger.info(f"✅ Response submitted successfully - is_correct={result.get('is_correct')}, test_completed={result.get('test_completed')}, stage={result.get('stage')}, panel={result.get('panel')}")
         return SubmitResponseResponse(**result)
 
     except ValueError as e:
+        logger.error(f"❌ ValueError: {str(e)}")
+        logger.error(f"📋 Traceback: {traceback.format_exc()}")
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
+        logger.error(f"❌ Unexpected error submitting response: {type(e).__name__}: {str(e)}")
+        logger.error(f"📋 Full traceback: {traceback.format_exc()}")
+        logger.error(f"📝 Request details: session_id={request.session_id}, item_id={request.item_id}, answer={request.selected_answer}")
         raise HTTPException(status_code=500, detail=f"Failed to submit response: {str(e)}")
 
 
