@@ -5,7 +5,11 @@
  * API endpoints for MST-based English proficiency testing.
  *
  * CHANGELOG:
- * - 2025-01-15: Fixed stage tracking bug (Question 14 stop issue)
+ * - 2025-01-15 (16:20): Fixed 500 Internal Server Error on response submission
+ *   Added backward compatibility for old responses without stage field (r.get('stage', 1))
+ *   Ensures seamless operation with pre-existing response records
+ *
+ * - 2025-01-15 (14:30): Fixed stage tracking bug (Question 14 stop issue)
  *   Backend now properly tracks stage-specific item counts for accurate MST transitions
  */
 
