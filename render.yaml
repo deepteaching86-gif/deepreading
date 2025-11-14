@@ -9,9 +9,9 @@ services:
     startCommand: cd backend && npx prisma generate --generator client && npm start
     envVars:
       - key: DATABASE_URL
-        value: postgresql://postgres.sxnjeqqvqbhueqbwsnpj:DeepReading2025%21%40%23%24SecureDB@aws-1-ap-northeast-2.pooler.supabase.com:6543/postgres?pgbouncer=true&pgbouncer_mode=session
+        value: postgresql://postgres.sxnjeqqvqbhueqbwsnpj:DEEP2025%21%40%23%24@aws-1-ap-northeast-2.pooler.supabase.com:6543/postgres?pgbouncer=true&pgbouncer_mode=session
       - key: DIRECT_URL
-        value: postgresql://postgres.sxnjeqqvqbhueqbwsnpj:DeepReading2025%21%40%23%24SecureDB@db.sxnjeqqvqbhueqbwsnpj.supabase.co:5432/postgres
+        value: postgresql://postgres.sxnjeqqvqbhueqbwsnpj:DEEP2025%21%40%23%24@db.sxnjeqqvqbhueqbwsnpj.supabase.co:5432/postgres
       - key: SUPABASE_URL
         value: https://sxnjeqqvqbhueqbwsnpj.supabase.co
       - key: SUPABASE_ANON_KEY
@@ -43,9 +43,9 @@ services:
       - key: PYTHONUTF8
         value: 1
       - key: DATABASE_URL
-        value: postgresql://postgres.sxnjeqqvqbhueqbwsnpj:DeepReading2025%21%40%23%24SecureDB@aws-1-ap-northeast-2.pooler.supabase.com:6543/postgres?pgbouncer=true&pgbouncer_mode=session
+        value: postgresql://postgres.sxnjeqqvqbhueqbwsnpj:DEEP2025%21%40%23%24@aws-1-ap-northeast-2.pooler.supabase.com:6543/postgres?pgbouncer=true&pgbouncer_mode=session
       - key: DIRECT_URL
-        value: postgresql://postgres.sxnjeqqvqbhueqbwsnpj:DeepReading2025%21%40%23%24SecureDB@db.sxnjeqqvqbhueqbwsnpj.supabase.co:5432/postgres
+        value: postgresql://postgres.sxnjeqqvqbhueqbwsnpj:DEEP2025%21%40%23%24@db.sxnjeqqvqbhueqbwsnpj.supabase.co:5432/postgres
       - key: FRONTEND_URL
         value: https://literacy-test.netlify.app
       - key: GOOGLE_API_KEY
