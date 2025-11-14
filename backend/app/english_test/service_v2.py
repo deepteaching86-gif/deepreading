@@ -328,7 +328,40 @@ class EnglishTestServiceV2:
         )
 
         if not candidates:
-            return None
+            # Fallback: Generate items using AI when database pool is depleted
+            print(f"⚠️ No items available in database for stage={stage}, panel={panel}")
+            print(f"🤖 Attempting AI generation...")
+
+            try:
+                from app.english_test.ai_item_generator import get_generator
+
+                ai_generator = get_generator()
+                generated_items = ai_generator.generate_items(
+                    stage=stage,
+                    panel=panel,
+                    count=5  # Generate 5 items to replenish pool
+                )
+
+                if generated_items:
+                    print(f"✅ Generated {len(generated_items)} items using Gemini AI")
+
+                    # Save generated items to database
+                    for item in generated_items:
+                        try:
+                            self.db.insert_item(item)
+                        except Exception as insert_error:
+                            print(f"⚠️ Failed to save item {item.get('id')}: {insert_error}")
+
+                    # Use first generated item as candidate
+                    candidates = [generated_items[0]]
+                    print(f"🎯 Selected AI-generated item: {generated_items[0]['id']}")
+                else:
+                    print(f"❌ AI generation returned no items")
+                    return None
+
+            except Exception as e:
+                print(f"❌ AI generation failed: {type(e).__name__}: {e}")
+                return None
 
         # Use IRT engine for Fisher Information-based selection
         selected_item = self.irt.select_next_item(

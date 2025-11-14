@@ -49,4 +49,4 @@ services:
       - key: FRONTEND_URL
         value: https://literacy-test.netlify.app
       - key: GOOGLE_API_KEY
-        sync: false
+        value: AIzaSyCRpJirW9yNFCBykygrjX3l-t13feE30ic
