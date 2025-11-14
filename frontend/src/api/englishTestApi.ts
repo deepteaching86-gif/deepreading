@@ -3,6 +3,10 @@
  * =================================
  *
  * API endpoints for MST-based English proficiency testing.
+ *
+ * CHANGELOG:
+ * - 2025-01-15: Fixed stage tracking bug (Question 14 stop issue)
+ *   Backend now properly tracks stage-specific item counts for accurate MST transitions
  */
 
 import axios, { AxiosInstance } from 'axios';
