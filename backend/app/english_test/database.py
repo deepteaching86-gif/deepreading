@@ -24,51 +24,21 @@ class EnglishTestDB:
     """
 
     def __init__(self):
-        # Supabase connection with correct username/port combinations
-        # Port 5432 (Direct): username = 'postgres'
-        # Port 6543 (Pooler): username = 'postgres.PROJECT_REF'
+        """
+        Initialize database connection using DATABASE_URL from environment.
+        This ensures we use the correct credentials set by Render.
+        """
+        # Use DATABASE_URL from environment (set by Render from render.yaml)
+        database_url = os.environ.get('DATABASE_URL')
 
-        from urllib.parse import quote_plus
-
-        password = 'DeepReading2025!@#$SecureDB'
-        encoded_password = quote_plus(password)
-
-        # Try Transaction Pooler first (Session mode, port 5432)
-        # NOTE: Pooler ALWAYS requires full username 'postgres.PROJECT_REF' regardless of port
-        pooler_hostname = 'aws-1-ap-northeast-2.pooler.supabase.com'
-        try:
-            print(f"🔄 Trying Transaction Pooler: {pooler_hostname}:5432")
-            ipv4_addr = socket.gethostbyname(pooler_hostname)
-            print(f"✅ DNS Resolution: {pooler_hostname} -> {ipv4_addr}")
-
-            # Username for Pooler: Always 'postgres.PROJECT_REF'
-            username = 'postgres.sxnjeqqvqbhueqbwsnpj'
-            self.database_url = f'postgresql://{username}:{encoded_password}@{ipv4_addr}:5432/postgres?sslmode=require'
-            print(f"✅ Using Transaction Pooler (port 5432, username={username}): {ipv4_addr}:5432")
-            return
-        except socket.gaierror as e:
-            print(f"⚠️ Transaction Pooler DNS failed: {e}")
-
-        # Fallback to direct connection
-        direct_hostname = 'db.sxnjeqqvqbhueqbwsnpj.supabase.co'
-        try:
-            print(f"🔄 Trying direct connection: {direct_hostname}:5432")
-            ipv4_addr = socket.gethostbyname(direct_hostname)
-            print(f"✅ DNS Resolution: {direct_hostname} -> {ipv4_addr}")
-
-            # Username for direct connection: 'postgres' only
-            username = 'postgres'
-            self.database_url = f'postgresql://{username}:{encoded_password}@{ipv4_addr}:5432/postgres'
-            print(f"✅ Using direct connection (username={username}): {ipv4_addr}:5432")
-            return
-        except socket.gaierror as e:
-            print(f"⚠️ Direct connection DNS failed: {e}")
-
-        # Last resort: use hostname directly
-        print(f"⚠️ All IPv4 resolution failed, using hostname as last resort")
-        username = 'postgres'
-        self.database_url = f'postgresql://{username}:{encoded_password}@{pooler_hostname}:5432/postgres?sslmode=require'
-        print(f"🔗 Final URL (username={username}): {pooler_hostname}:5432")
+        if database_url:
+            print(f"✅ Using DATABASE_URL from environment")
+            self.database_url = database_url
+        else:
+            # Fallback: This should never happen in production
+            print("⚠️ WARNING: DATABASE_URL not found in environment!")
+            print("⚠️ Please ensure DATABASE_URL is set in Render environment variables")
+            raise ValueError("DATABASE_URL environment variable is required")
 
     def _get_connection(self):
         """Get database connection"""

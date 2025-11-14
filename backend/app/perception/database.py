@@ -74,7 +74,8 @@ class PerceptionDatabase:
             }
         )
 
-        return session
+        # Convert Prisma object to dict
+        return session.model_dump() if hasattr(session, 'model_dump') else dict(session)
 
     async def get_session(self, session_id: str) -> Optional[Dict]:
         """Get session by ID"""
@@ -91,7 +92,8 @@ class PerceptionDatabase:
             }
         )
 
-        return session
+        # Convert Prisma object to dict
+        return session.model_dump() if session and hasattr(session, 'model_dump') else (dict(session) if session else None)
 
     async def update_session_phase(
         self,
@@ -263,7 +265,8 @@ class PerceptionDatabase:
             return None
 
         # Return first passage for now (can implement random selection later)
-        return passages[0]
+        # Convert Prisma object to dict
+        return passages[0].model_dump() if hasattr(passages[0], 'model_dump') else dict(passages[0])
 
     async def get_passage(self, passage_id: str) -> Optional[Dict]:
         """Get passage by ID"""
@@ -272,4 +275,5 @@ class PerceptionDatabase:
             include={"questions": True}
         )
 
-        return passage
+        # Convert Prisma object to dict
+        return passage.model_dump() if passage and hasattr(passage, 'model_dump') else (dict(passage) if passage else None)
