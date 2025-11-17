@@ -54,28 +54,40 @@ class PerceptionDatabase:
         passage_id: str
     ) -> Dict:
         """Create a new perception test session"""
-        session_code = f"PERCEPTION-{uuid.uuid4().hex[:12].upper()}"
+        try:
+            print(f"🔍 DATABASE: Creating session - student_id={student_id}, grade={grade}, passage_id={passage_id}")
+            session_code = f"PERCEPTION-{uuid.uuid4().hex[:12].upper()}"
+            print(f"🔍 DATABASE: Generated session_code: {session_code} (length: {len(session_code)})")
 
-        session = await self.db.perceptiontestsession.create(
-            data={
-                "studentId": student_id,
-                "grade": grade,
-                "passageId": passage_id,
-                "sessionCode": session_code,
-                "currentPhase": "introduction",
-                "status": "in_progress"
-            },
-            include={
-                "passage": {
-                    "include": {
-                        "questions": True
+            print(f"🔍 DATABASE: Calling Prisma create with data...")
+            session = await self.db.perceptiontestsession.create(
+                data={
+                    "studentId": student_id,
+                    "grade": grade,
+                    "passageId": passage_id,
+                    "sessionCode": session_code,
+                    "currentPhase": "introduction",
+                    "status": "in_progress"
+                },
+                include={
+                    "passage": {
+                        "include": {
+                            "questions": True
+                        }
                     }
                 }
-            }
-        )
+            )
+            print(f"✅ DATABASE: Session created successfully")
 
-        # Convert Prisma object to dict
-        return session.model_dump() if hasattr(session, 'model_dump') else dict(session)
+            # Convert Prisma object to dict
+            result = session.model_dump() if hasattr(session, 'model_dump') else dict(session)
+            print(f"✅ DATABASE: Successfully converted session to dict")
+            return result
+        except Exception as e:
+            print(f"❌ DATABASE ERROR in create_session: {type(e).__name__}: {e}")
+            import traceback
+            traceback.print_exc()
+            raise
 
     async def get_session(self, session_id: str) -> Optional[Dict]:
         """Get session by ID"""
@@ -256,17 +268,32 @@ class PerceptionDatabase:
 
     async def get_passage_for_grade(self, grade: int) -> Optional[Dict]:
         """Get a random passage for the given grade"""
-        passages = await self.db.perceptionpassage.find_many(
-            where={"grade": grade},
-            include={"questions": True}
-        )
+        try:
+            print(f"🔍 DATABASE: Querying passages for grade {grade}")
+            passages = await self.db.perceptionpassage.find_many(
+                where={"grade": grade},
+                include={"questions": True}
+            )
+            print(f"🔍 DATABASE: Found {len(passages)} passages")
 
-        if not passages:
-            return None
+            if not passages:
+                print(f"⚠️ DATABASE: No passages found for grade {grade}")
+                return None
 
-        # Return first passage for now (can implement random selection later)
-        # Convert Prisma object to dict
-        return passages[0].model_dump() if hasattr(passages[0], 'model_dump') else dict(passages[0])
+            passage = passages[0]
+            print(f"🔍 DATABASE: Selected passage ID: {passage.id if hasattr(passage, 'id') else 'unknown'}")
+            print(f"🔍 DATABASE: Passage has {len(passage.questions) if hasattr(passage, 'questions') else 0} questions")
+
+            # Return first passage for now (can implement random selection later)
+            # Convert Prisma object to dict
+            result = passage.model_dump() if hasattr(passage, 'model_dump') else dict(passage)
+            print(f"✅ DATABASE: Successfully converted passage to dict")
+            return result
+        except Exception as e:
+            print(f"❌ DATABASE ERROR in get_passage_for_grade: {type(e).__name__}: {e}")
+            import traceback
+            traceback.print_exc()
+            raise
 
     async def get_passage(self, passage_id: str) -> Optional[Dict]:
         """Get passage by ID"""
