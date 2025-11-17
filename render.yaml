@@ -35,8 +35,8 @@ services:
     runtime: python
     plan: free
     region: singapore
-    buildCommand: cd backend && pip install -r requirements.txt && python fix_session_code_column.py
-    startCommand: cd backend && python -m prisma generate --generator py --schema=./prisma/schema.prisma && python verify_prisma.py && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    buildCommand: cd backend && pip install -r requirements.txt && python -m prisma generate --schema=./prisma/schema.prisma && python fix_session_code_column.py
+    startCommand: cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: PYTHON_VERSION
         value: 3.12.8

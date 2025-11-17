@@ -19,20 +19,15 @@ export const EnglishTestIntro: React.FC<EnglishTestIntroProps> = ({
   onStart,
   isLoading = false
 }) => {
-  const [backendReady, setBackendReady] = useState(false);
-
-  // 🔥 Wake up backend on component mount (prevent cold start timeout)
+  // 🔥 Wake up backend silently in background (prevent cold start timeout)
   useEffect(() => {
     const wakeUpBackend = async () => {
       try {
-        console.log('⏳ Waking up backend server...');
+        console.log('⏳ Waking up backend server in background...');
         await checkHealth();
         console.log('✅ Backend server is ready');
-        setBackendReady(true);
       } catch (error) {
         console.warn('⚠️  Backend wake-up failed, will retry on test start:', error);
-        // Backend not ready, but allow user to try starting anyway
-        setBackendReady(true);
       }
     };
 
@@ -120,25 +115,17 @@ export const EnglishTestIntro: React.FC<EnglishTestIntroProps> = ({
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           onClick={onStart}
-          disabled={isLoading || !backendReady}
+          disabled={isLoading}
           className={`
             w-full py-4 rounded-xl font-semibold text-lg
-            ${isLoading || !backendReady
+            ${isLoading
               ? 'bg-muted text-muted-foreground cursor-not-allowed'
               : 'bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-lg'
             }
             transition-all duration-200
           `}
         >
-          {!backendReady ? (
-            <span className="flex items-center justify-center">
-              <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-muted-foreground" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-              서버 준비 중...
-            </span>
-          ) : isLoading ? (
+          {isLoading ? (
             <span className="flex items-center justify-center">
               <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-muted-foreground" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
