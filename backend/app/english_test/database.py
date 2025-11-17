@@ -44,7 +44,12 @@ class EnglishTestDB:
             print("⚠️ Please ensure DATABASE_URL is set in Render environment variables")
             raise ValueError("DATABASE_URL environment variable is required")
 
-        # Initialize connection pool (only once for the class)
+    def _ensure_pool_initialized(self):
+        """
+        Lazy initialization of connection pool.
+        Pool is created only when first connection is requested.
+        This prevents connection errors during module import.
+        """
         if EnglishTestDB._connection_pool is None:
             try:
                 print("🔧 Initializing connection pool (min=1, max=5)")
@@ -60,6 +65,9 @@ class EnglishTestDB:
 
     def _get_connection(self):
         """Get database connection from pool"""
+        # Ensure pool is initialized before getting connection
+        self._ensure_pool_initialized()
+
         try:
             return EnglishTestDB._connection_pool.getconn()
         except Exception as e:
