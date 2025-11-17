@@ -6,7 +6,7 @@
  * Based on PRD Section 4: UI/UX Specification
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { checkHealth } from '@/api/englishTestApi';
 
