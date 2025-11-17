@@ -9,7 +9,7 @@ services:
     startCommand: cd backend && npx prisma generate --generator client && npm start
     envVars:
       - key: DATABASE_URL
-        value: postgresql://postgres.sxnjeqqvqbhueqbwsnpj:DEEP2025%21%40%23%24@aws-1-ap-northeast-2.pooler.supabase.com:5432/postgres?connection_limit=5&pool_timeout=20
+        value: postgresql://postgres.sxnjeqqvqbhueqbwsnpj:DEEP2025%21%40%23%24@aws-1-ap-northeast-2.pooler.supabase.com:6543/postgres?pgbouncer=true
       - key: DIRECT_URL
         value: postgresql://postgres.sxnjeqqvqbhueqbwsnpj:DEEP2025%21%40%23%24@db.sxnjeqqvqbhueqbwsnpj.supabase.co:5432/postgres
       - key: SUPABASE_URL
@@ -43,7 +43,7 @@ services:
       - key: PYTHONUTF8
         value: 1
       - key: DATABASE_URL
-        value: postgresql://postgres.sxnjeqqvqbhueqbwsnpj:DEEP2025%21%40%23%24@aws-1-ap-northeast-2.pooler.supabase.com:5432/postgres?connection_limit=3&pool_timeout=20
+        value: postgresql://postgres.sxnjeqqvqbhueqbwsnpj:DEEP2025%21%40%23%24@aws-1-ap-northeast-2.pooler.supabase.com:6543/postgres?pgbouncer=true
       - key: DIRECT_URL
         value: postgresql://postgres.sxnjeqqvqbhueqbwsnpj:DEEP2025%21%40%23%24@db.sxnjeqqvqbhueqbwsnpj.supabase.co:5432/postgres
       - key: FRONTEND_URL

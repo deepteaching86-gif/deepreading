@@ -3,6 +3,8 @@
 import { PrismaClient } from '@prisma/client';
 import { env } from './env';
 
+// Configure Prisma with connection pool limits via environment
+// Prisma reads connection_limit from DATABASE_URL query parameters
 const prisma = new PrismaClient({
   log: env.NODE_ENV === 'development'
     ? ['query', 'error', 'warn']
