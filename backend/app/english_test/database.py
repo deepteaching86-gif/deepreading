@@ -11,6 +11,7 @@ import socket
 from typing import Dict, List, Optional, Tuple
 from datetime import datetime
 import psycopg2
+from psycopg2 import pool
 from psycopg2.extras import RealDictCursor
 import json
 
@@ -19,13 +20,16 @@ class EnglishTestDB:
     """
     Database access layer for English Adaptive Test.
 
-    Uses direct PostgreSQL connection via psycopg2.
+    Uses connection pooling via psycopg2 to prevent connection exhaustion.
     Schema mirrors Prisma definitions in schema.prisma.
     """
 
+    # Class-level connection pool (shared across all instances)
+    _connection_pool = None
+
     def __init__(self):
         """
-        Initialize database connection using DATABASE_URL from environment.
+        Initialize database connection pool using DATABASE_URL from environment.
         This ensures we use the correct credentials set by Render.
         """
         # Use DATABASE_URL from environment (set by Render from render.yaml)
@@ -40,9 +44,34 @@ class EnglishTestDB:
             print("⚠️ Please ensure DATABASE_URL is set in Render environment variables")
             raise ValueError("DATABASE_URL environment variable is required")
 
+        # Initialize connection pool (only once for the class)
+        if EnglishTestDB._connection_pool is None:
+            try:
+                print("🔧 Initializing connection pool (min=1, max=5)")
+                EnglishTestDB._connection_pool = pool.SimpleConnectionPool(
+                    minconn=1,
+                    maxconn=5,
+                    dsn=self.database_url
+                )
+                print("✅ Connection pool initialized successfully")
+            except Exception as e:
+                print(f"❌ Failed to initialize connection pool: {e}")
+                raise
+
     def _get_connection(self):
-        """Get database connection"""
-        return psycopg2.connect(self.database_url)
+        """Get database connection from pool"""
+        try:
+            return EnglishTestDB._connection_pool.getconn()
+        except Exception as e:
+            print(f"❌ Failed to get connection from pool: {e}")
+            raise
+
+    def _return_connection(self, conn):
+        """Return connection to pool"""
+        try:
+            EnglishTestDB._connection_pool.putconn(conn)
+        except Exception as e:
+            print(f"⚠️ Failed to return connection to pool: {e}")
 
     # ===== Session Methods =====
 
@@ -74,7 +103,7 @@ class EnglishTestDB:
 
         finally:
             cursor.close()
-            conn.close()
+            self._return_connection(conn)
 
     def get_session(self, session_id: int) -> Optional[Dict]:
         """
@@ -99,7 +128,7 @@ class EnglishTestDB:
 
         finally:
             cursor.close()
-            conn.close()
+            self._return_connection(conn)
 
     def update_session(self, session_id: int, updates: Dict) -> Dict:
         """
@@ -146,7 +175,7 @@ class EnglishTestDB:
 
         finally:
             cursor.close()
-            conn.close()
+            self._return_connection(conn)
 
     def finalize_session(self, session_id: int, final_results: Dict) -> Dict:
         """
@@ -216,7 +245,7 @@ class EnglishTestDB:
 
         finally:
             cursor.close()
-            conn.close()
+            self._return_connection(conn)
 
     def get_items_for_selection(
         self,
@@ -281,7 +310,7 @@ class EnglishTestDB:
 
         finally:
             cursor.close()
-            conn.close()
+            self._return_connection(conn)
 
     def increment_exposure(self, item_id: int):
         """
@@ -303,7 +332,7 @@ class EnglishTestDB:
 
         finally:
             cursor.close()
-            conn.close()
+            self._return_connection(conn)
 
     # ===== Response Methods =====
 
@@ -366,7 +395,7 @@ class EnglishTestDB:
 
         finally:
             cursor.close()
-            conn.close()
+            self._return_connection(conn)
 
     def get_session_responses(self, session_id: int) -> List[Dict]:
         """
@@ -396,7 +425,7 @@ class EnglishTestDB:
 
         finally:
             cursor.close()
-            conn.close()
+            self._return_connection(conn)
 
     # ===== Utility Methods =====
 
@@ -434,4 +463,4 @@ class EnglishTestDB:
 
         finally:
             cursor.close()
-            conn.close()
+            self._return_connection(conn)
