@@ -30,6 +30,7 @@ import EnglishTestPage from './pages/test/EnglishTestPage';
 
 // Visual Perception Test
 import VisualPerceptionTest from './pages/test/VisualPerceptionTest';
+import VisionRealtimeMonitor from './pages/admin/VisionRealtimeMonitor';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -176,6 +177,14 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['admin']}>
                 <AdminUserManagement />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/vision-realtime"
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <VisionRealtimeMonitor />
               </ProtectedRoute>
             }
           />
