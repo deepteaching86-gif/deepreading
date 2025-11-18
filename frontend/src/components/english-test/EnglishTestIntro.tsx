@@ -19,15 +19,28 @@ export const EnglishTestIntro: React.FC<EnglishTestIntroProps> = ({
   onStart,
   isLoading = false
 }) => {
-  // 🔥 Wake up backend silently in background (prevent cold start timeout)
+  // 🔥 Wake up backend with retry logic (prevent cold start timeout)
   useEffect(() => {
     const wakeUpBackend = async () => {
-      try {
-        console.log('⏳ Waking up backend server in background...');
-        await checkHealth();
-        console.log('✅ Backend server is ready');
-      } catch (error) {
-        console.warn('⚠️  Backend wake-up failed, will retry on test start:', error);
+      const maxRetries = 3;
+      const retryDelays = [2000, 5000, 10000]; // 2s, 5s, 10s (exponential backoff)
+
+      for (let attempt = 0; attempt < maxRetries; attempt++) {
+        try {
+          console.log(`⏳ [Attempt ${attempt + 1}/${maxRetries}] Waking up backend server...`);
+          await checkHealth();
+          console.log('✅ Backend server is ready');
+          return; // Success - exit retry loop
+        } catch (error) {
+          const isLastAttempt = attempt === maxRetries - 1;
+          if (isLastAttempt) {
+            console.warn('⚠️  Backend wake-up failed after 3 attempts. Will retry on test start.', error);
+          } else {
+            const delay = retryDelays[attempt];
+            console.log(`⏳ Retry in ${delay / 1000}s...`);
+            await new Promise(resolve => setTimeout(resolve, delay));
+          }
+        }
       }
     };
 
