@@ -32,6 +32,9 @@ import EnglishTestPage from './pages/test/EnglishTestPage';
 import VisualPerceptionTest from './pages/test/VisualPerceptionTest';
 import VisionRealtimeMonitor from './pages/admin/VisionRealtimeMonitor';
 
+// Games
+import EscapeRoomQuiz from './pages/games/EscapeRoomQuiz';
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -50,6 +53,9 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/unauthorized" element={<Unauthorized />} />
+
+          {/* Games (Public) */}
+          <Route path="/games/escape-room" element={<EscapeRoomQuiz />} />
 
           {/* Student Routes */}
           <Route
