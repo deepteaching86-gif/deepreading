@@ -98,7 +98,7 @@ const VisionRealtimeMonitor: React.FC = () => {
     }
   };
 
-  const handleCalibrationComplete = async (accuracy: number) => {
+  const handleCalibrationComplete = async (_accuracy: number) => {
     // Move to monitoring phase
     setPhase('monitoring');
   };
