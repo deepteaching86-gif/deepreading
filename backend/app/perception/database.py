@@ -56,6 +56,11 @@ class PerceptionDatabase:
         return self._get_pool().getconn()
 
     def _put_conn(self, conn):
+        # Ensure connection is not left in a transaction (PgBouncer compat)
+        try:
+            conn.rollback()
+        except Exception:
+            pass
         self._get_pool().putconn(conn)
 
     # ---- Lifecycle ----
@@ -74,7 +79,6 @@ class PerceptionDatabase:
     def _sync_initialize(self):
         conn = self._get_conn()
         try:
-            conn.autocommit = False
             cur = conn.cursor()
 
             cur.execute("""
@@ -88,6 +92,8 @@ class PerceptionDatabase:
                 self._run_migration(cur)
                 conn.commit()
                 logger.info("Perception tables created")
+            else:
+                conn.commit()  # end implicit transaction
 
             cur.execute("SELECT COUNT(*) FROM perception_passages;")
             count = cur.fetchone()[0]
@@ -97,10 +103,10 @@ class PerceptionDatabase:
                 conn.commit()
                 logger.info("Perception data seeded")
             else:
+                conn.commit()  # end implicit transaction
                 logger.info(f"Perception passages exist ({count})")
 
             cur.close()
-            conn.autocommit = True
         except Exception as e:
             logger.error(f"Init error: {type(e).__name__}: {e}")
             try:
