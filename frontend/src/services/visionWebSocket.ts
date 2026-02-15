@@ -55,11 +55,15 @@ export class VisionWebSocketClient {
     return new Promise((resolve, reject) => {
       try {
         this.ws = new WebSocket(wsUrl);
+        let settled = false;
 
         this.ws.onopen = () => {
           console.log('✅ Vision WebSocket connected');
           this.reconnectAttempts = 0;
-          resolve();
+          if (!settled) {
+            settled = true;
+            resolve();
+          }
         };
 
         this.ws.onmessage = (event) => {
@@ -105,6 +109,10 @@ export class VisionWebSocketClient {
 
         this.ws.onerror = (error) => {
           console.error('WebSocket error:', error);
+          if (!settled) {
+            settled = true;
+            reject(new Error('WebSocket connection failed'));
+          }
           if (this.onErrorCallback) {
             this.onErrorCallback('WebSocket connection error');
           }
@@ -112,6 +120,10 @@ export class VisionWebSocketClient {
 
         this.ws.onclose = () => {
           console.log('WebSocket disconnected');
+          if (!settled) {
+            settled = true;
+            reject(new Error('WebSocket connection closed before opening'));
+          }
           this.attemptReconnect();
         };
       } catch (error) {

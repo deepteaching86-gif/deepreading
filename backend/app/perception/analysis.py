@@ -501,6 +501,9 @@ class GazeAnalyzer:
 
     def _detect_attention_periods(self, gaze_data: List[Dict]) -> List[Dict]:
         """Detect continuous attention periods"""
+        if not gaze_data:
+            return []
+
         periods = []
         current_period_start = 0
         last_in_bounds = self._is_point_in_bounds(gaze_data[0], self.passage_bounds)

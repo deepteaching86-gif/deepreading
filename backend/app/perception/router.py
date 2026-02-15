@@ -6,6 +6,7 @@ from fastapi import APIRouter, HTTPException, status
 from fastapi.responses import JSONResponse
 from typing import List, Dict
 import logging
+import numpy as np
 
 from .models import (
     StartSessionRequest, SaveCalibrationRequest, SaveGazeDataRequest,
@@ -344,6 +345,7 @@ async def complete_session(session_id: str, request: CompleteSessionRequest):
             "recommendations": recommendations
         }
 
+        result_data = _convert_numpy(result_data)
         result = await db.save_result(session_id, result_data)
         await db.complete_session(session_id)
 
@@ -364,10 +366,12 @@ async def complete_session(session_id: str, request: CompleteSessionRequest):
     except HTTPException:
         raise
     except Exception as e:
+        import traceback
         logger.error(f"Error completing session: {e}")
+        logger.error(traceback.format_exc())
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to complete session"
+            detail=f"Failed to complete session: {type(e).__name__}: {str(e)}"
         )
 
 
@@ -441,6 +445,21 @@ async def get_result(session_id: str):
 
 
 # ===== Helper Functions =====
+
+def _convert_numpy(obj):
+    """Convert numpy types to native Python types for psycopg2 compatibility"""
+    if isinstance(obj, dict):
+        return {k: _convert_numpy(v) for k, v in obj.items()}
+    elif isinstance(obj, (list, tuple)):
+        return [_convert_numpy(i) for i in obj]
+    elif isinstance(obj, (np.integer,)):
+        return int(obj)
+    elif isinstance(obj, (np.floating,)):
+        return float(obj)
+    elif isinstance(obj, np.ndarray):
+        return obj.tolist()
+    return obj
+
 
 def _score_to_grade(score: float) -> str:
     """Convert numeric score to letter grade"""

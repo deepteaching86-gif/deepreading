@@ -57,6 +57,7 @@ const VisualPerceptionTest: React.FC = () => {
 
   // Gaze tracking
   const [currentGaze, setCurrentGaze] = useState<{ x: number; y: number } | null>(null);
+  const [visionAvailable, setVisionAvailable] = useState(false);
   const gazeBufferRef = useRef<any[]>([]);
 
   useEffect(() => {
@@ -106,31 +107,41 @@ const VisualPerceptionTest: React.FC = () => {
         setQuestions(newSession.questions);
       }
 
-      // Connect WebSocket
-      await wsClient.connect(newSession.id);
-      setIsConnected(true);
+      // Connect WebSocket (optional - test proceeds without vision tracking)
+      try {
+        await wsClient.connect(newSession.id);
+        setIsConnected(true);
+        setVisionAvailable(true);
 
-      // Register gaze callback
-      wsClient.onGaze((data: any) => {
-        setCurrentGaze({ x: data.x, y: data.y });
+        // Register gaze callback
+        wsClient.onGaze((data: any) => {
+          setCurrentGaze({ x: data.x, y: data.y });
 
-        // Buffer gaze data
-        gazeBufferRef.current.push({
-          phase: phase === 'reading' ? 'reading' : 'questions',
-          gaze_x: data.x,
-          gaze_y: data.y,
-          confidence: data.confidence || 0.8,
-          timestamp: new Date()
+          // Buffer gaze data
+          gazeBufferRef.current.push({
+            phase: phase === 'reading' ? 'reading' : 'questions',
+            gaze_x: data.x,
+            gaze_y: data.y,
+            confidence: data.confidence || 0.8,
+            timestamp: new Date()
+          });
+
+          // Send buffered data periodically (every 10 points)
+          if (gazeBufferRef.current.length >= 10) {
+            sendBufferedGazeData();
+          }
         });
 
-        // Send buffered data periodically (every 10 points)
-        if (gazeBufferRef.current.length >= 10) {
-          sendBufferedGazeData();
-        }
-      });
-
-      // Move to calibration
-      setPhase('calibration');
+        // Move to calibration (with vision tracking)
+        setPhase('calibration');
+      } catch (wsError) {
+        console.warn('Vision tracking unavailable, proceeding without gaze tracking:', wsError);
+        setIsConnected(false);
+        setVisionAvailable(false);
+        // Skip calibration and go directly to reading
+        setPhase('reading');
+        setReadingStartTime(Date.now());
+      }
     } catch (error) {
       console.error('Failed to start test:', error);
       alert('테스트 시작에 실패했습니다.');
@@ -351,7 +362,9 @@ const VisualPerceptionTest: React.FC = () => {
               </div>
 
               <div className="mt-4 text-center text-sm text-gray-500">
-                빨간 점이 당신의 시선 위치를 나타냅니다. 자연스럽게 읽어주세요.
+                {visionAvailable
+                  ? '빨간 점이 당신의 시선 위치를 나타냅니다. 자연스럽게 읽어주세요.'
+                  : '지문을 자연스럽게 읽은 후 "읽기 완료" 버튼을 눌러주세요.'}
               </div>
             </div>
           </div>
@@ -401,9 +414,11 @@ const VisualPerceptionTest: React.FC = () => {
                 </div>
               </div>
 
-              <div className="text-center text-sm text-gray-500">
-                파란 점이 당신의 시선 위치를 나타냅니다.
-              </div>
+              {visionAvailable && (
+                <div className="text-center text-sm text-gray-500">
+                  파란 점이 당신의 시선 위치를 나타냅니다.
+                </div>
+              )}
             </div>
           </div>
         </div>
