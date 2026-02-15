@@ -41,6 +41,44 @@ async def health_check():
     return {"status": "healthy", "module": "perception-test"}
 
 
+@router.get("/debug")
+async def debug_check():
+    """Debug endpoint to diagnose session creation issues"""
+    import traceback
+    result = {"steps": []}
+
+    # Step 1: Connect Prisma
+    try:
+        await db.connect()
+        result["steps"].append({"step": "prisma_connect", "status": "ok"})
+    except Exception as e:
+        result["steps"].append({"step": "prisma_connect", "status": "error", "error": f"{type(e).__name__}: {e}", "trace": traceback.format_exc()})
+        return JSONResponse(status_code=500, content=result)
+
+    # Step 2: Query passages
+    try:
+        passage = await db.get_passage_for_grade(2)
+        if passage:
+            result["steps"].append({"step": "get_passage", "status": "ok", "passage_id": passage["id"], "title": passage.get("title", "?"), "questions": len(passage.get("questions", []))})
+        else:
+            result["steps"].append({"step": "get_passage", "status": "no_data"})
+    except Exception as e:
+        result["steps"].append({"step": "get_passage", "status": "error", "error": f"{type(e).__name__}: {e}", "trace": traceback.format_exc()})
+        return JSONResponse(status_code=500, content=result)
+
+    # Step 3: Try creating a session (dry check - just verify table access)
+    try:
+        from prisma import Prisma
+        raw_db = db.db
+        count = await raw_db.perceptiontestsession.count()
+        result["steps"].append({"step": "session_table_access", "status": "ok", "session_count": count})
+    except Exception as e:
+        result["steps"].append({"step": "session_table_access", "status": "error", "error": f"{type(e).__name__}: {e}", "trace": traceback.format_exc()})
+
+    result["overall"] = "ok" if all(s["status"] == "ok" for s in result["steps"]) else "error"
+    return result
+
+
 @router.post("/sessions/start", response_model=SessionResponse, status_code=status.HTTP_201_CREATED)
 async def start_session(request: StartSessionRequest):
     """
