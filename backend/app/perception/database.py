@@ -1,127 +1,134 @@
 """
 Database Operations for Visual Perception Test
 
+Uses raw SQL via psycopg2 — no Prisma query engine dependency.
 Auto-initializes tables and seed data on first connection.
 """
 
-import sys
 import os
 import logging
-
-try:
-    from prisma import Prisma
-except Exception as e:
-    print(f"ERROR: Failed to import Prisma: {type(e).__name__}: {e}")
-    raise
-
-from typing import Optional, List, Dict
-from datetime import datetime
 import uuid
 import json
+import asyncio
+from typing import Optional, List, Dict
+from datetime import datetime
+
+import psycopg2
+from psycopg2 import pool as pg_pool
+from psycopg2.extras import RealDictCursor, Json
 
 logger = logging.getLogger(__name__)
 
-# Deterministic UUIDs for seed passages (prevents duplicate inserts)
-SEED_PASSAGE_IDS = [
-    "a1b2c3d4-e5f6-7890-abcd-ef1234567801",
-    "a1b2c3d4-e5f6-7890-abcd-ef1234567802",
-    "a1b2c3d4-e5f6-7890-abcd-ef1234567803",
-]
+
+def _serialize_row(row: dict) -> dict:
+    """Convert a RealDictRow to a serializable dict (UUID → str)."""
+    if row is None:
+        return None
+    result = {}
+    for key, val in row.items():
+        if isinstance(val, uuid.UUID):
+            val = str(val)
+        result[key] = val
+    return result
 
 
 class PerceptionDatabase:
-    """Database operations for perception test"""
+    """Database operations for perception test (psycopg2, no Prisma)."""
 
+    _pool: pg_pool.ThreadedConnectionPool = None
     _initialized = False
 
     def __init__(self):
-        self.db = Prisma()
+        pass
+
+    # ---- Connection pool ----
+
+    @classmethod
+    def _get_pool(cls) -> pg_pool.ThreadedConnectionPool:
+        if cls._pool is None:
+            database_url = os.getenv("DATABASE_URL") or os.getenv("DIRECT_URL")
+            if not database_url:
+                raise RuntimeError("DATABASE_URL is not set")
+            cls._pool = pg_pool.ThreadedConnectionPool(1, 5, database_url)
+        return cls._pool
+
+    def _get_conn(self):
+        return self._get_pool().getconn()
+
+    def _put_conn(self, conn):
+        self._get_pool().putconn(conn)
+
+    # ---- Lifecycle ----
 
     async def connect(self):
-        """Connect to database and ensure tables/data exist"""
-        if not self.db.is_connected():
-            await self.db.connect()
-
+        """Ensure pool exists and tables/data are ready."""
         if not PerceptionDatabase._initialized:
-            await self._ensure_initialized()
+            await asyncio.to_thread(self._sync_initialize)
             PerceptionDatabase._initialized = True
 
     async def disconnect(self):
-        """Disconnect from database"""
-        if self.db.is_connected():
-            await self.db.disconnect()
+        if PerceptionDatabase._pool:
+            PerceptionDatabase._pool.closeall()
+            PerceptionDatabase._pool = None
 
-    async def _ensure_initialized(self):
-        """Ensure perception tables exist and have seed data"""
-        import psycopg2
-
-        database_url = os.getenv('DATABASE_URL')
-        if not database_url:
-            logger.warning("DATABASE_URL not set, skipping auto-initialization")
-            return
-
-        conn = None
+    def _sync_initialize(self):
+        conn = self._get_conn()
         try:
-            conn = psycopg2.connect(database_url)
             conn.autocommit = False
-            cursor = conn.cursor()
+            cur = conn.cursor()
 
-            # Check if perception_passages table exists
-            cursor.execute("""
+            cur.execute("""
                 SELECT EXISTS (
                     SELECT FROM information_schema.tables
                     WHERE table_name = 'perception_passages'
                 );
             """)
-            table_exists = cursor.fetchone()[0]
-
-            if not table_exists:
+            if not cur.fetchone()[0]:
                 logger.info("Creating perception tables...")
-                self._run_migration(cursor)
+                self._run_migration(cur)
                 conn.commit()
-                logger.info("Perception tables created successfully")
+                logger.info("Perception tables created")
 
-            # Check if passages have data
-            cursor.execute("SELECT COUNT(*) FROM perception_passages;")
-            count = cursor.fetchone()[0]
-
+            cur.execute("SELECT COUNT(*) FROM perception_passages;")
+            count = cur.fetchone()[0]
             if count == 0:
                 logger.info("Seeding perception passages...")
-                self._seed_passages(cursor)
+                self._seed_passages(cur)
                 conn.commit()
-                logger.info("Perception data seeded successfully")
+                logger.info("Perception data seeded")
             else:
-                logger.info(f"Perception passages already exist ({count} passages)")
+                logger.info(f"Perception passages exist ({count})")
 
-            cursor.close()
-
+            cur.close()
+            conn.autocommit = True
         except Exception as e:
-            logger.error(f"Auto-initialization error: {type(e).__name__}: {e}")
-            if conn:
+            logger.error(f"Init error: {type(e).__name__}: {e}")
+            try:
                 conn.rollback()
+            except Exception:
+                pass
+            raise
         finally:
-            if conn:
-                conn.close()
+            self._put_conn(conn)
+
+    # ---- Migration ----
 
     def _run_migration(self, cursor):
-        """Create perception tables using raw SQL"""
-        # Create enums
         cursor.execute("""
             DO $$ BEGIN
-                CREATE TYPE "PerceptionTestPhase" AS ENUM ('introduction', 'calibration', 'reading', 'questions', 'completed');
-            EXCEPTION
-                WHEN duplicate_object THEN null;
+                CREATE TYPE "PerceptionTestPhase" AS ENUM
+                    ('introduction','calibration','reading','questions','completed');
+            EXCEPTION WHEN duplicate_object THEN null;
             END $$;
         """)
         cursor.execute("""
             DO $$ BEGIN
-                CREATE TYPE "PerceptionTestStatus" AS ENUM ('in_progress', 'completed', 'abandoned');
-            EXCEPTION
-                WHEN duplicate_object THEN null;
+                CREATE TYPE "PerceptionTestStatus" AS ENUM
+                    ('in_progress','completed','abandoned');
+            EXCEPTION WHEN duplicate_object THEN null;
             END $$;
         """)
 
-        # Create tables
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS "perception_passages" (
                 "id" UUID NOT NULL DEFAULT gen_random_uuid(),
@@ -138,7 +145,6 @@ class PerceptionDatabase:
                 CONSTRAINT "perception_passages_pkey" PRIMARY KEY ("id")
             );
         """)
-
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS "perception_questions" (
                 "id" UUID NOT NULL DEFAULT gen_random_uuid(),
@@ -152,17 +158,16 @@ class PerceptionDatabase:
                 CONSTRAINT "perception_questions_pkey" PRIMARY KEY ("id")
             );
         """)
-
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS "perception_test_sessions" (
                 "id" UUID NOT NULL DEFAULT gen_random_uuid(),
                 "session_code" VARCHAR(50) NOT NULL,
-                "student_id" UUID NOT NULL,
+                "student_id" VARCHAR(255) NOT NULL,
                 "grade" INTEGER NOT NULL,
                 "passage_id" UUID NOT NULL,
-                "current_phase" "PerceptionTestPhase" NOT NULL DEFAULT 'introduction',
-                "status" "PerceptionTestStatus" NOT NULL DEFAULT 'in_progress',
-                "calibration_data" JSONB,
+                "current_phase" VARCHAR(20) NOT NULL DEFAULT 'introduction',
+                "status" VARCHAR(20) NOT NULL DEFAULT 'in_progress',
+                "calibration_points" JSONB,
                 "calibration_accuracy" DOUBLE PRECISION,
                 "started_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 "calibration_started_at" TIMESTAMP(3),
@@ -170,11 +175,11 @@ class PerceptionDatabase:
                 "reading_started_at" TIMESTAMP(3),
                 "reading_completed_at" TIMESTAMP(3),
                 "questions_started_at" TIMESTAMP(3),
+                "questions_completed_at" TIMESTAMP(3),
                 "completed_at" TIMESTAMP(3),
                 CONSTRAINT "perception_test_sessions_pkey" PRIMARY KEY ("id")
             );
         """)
-
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS "perception_gaze_data" (
                 "id" UUID NOT NULL DEFAULT gen_random_uuid(),
@@ -192,7 +197,6 @@ class PerceptionDatabase:
                 CONSTRAINT "perception_gaze_data_pkey" PRIMARY KEY ("id")
             );
         """)
-
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS "perception_responses" (
                 "id" UUID NOT NULL DEFAULT gen_random_uuid(),
@@ -205,7 +209,6 @@ class PerceptionDatabase:
                 CONSTRAINT "perception_responses_pkey" PRIMARY KEY ("id")
             );
         """)
-
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS "perception_test_results" (
                 "id" UUID NOT NULL DEFAULT gen_random_uuid(),
@@ -246,338 +249,476 @@ class PerceptionDatabase:
             );
         """)
 
-        # Create indexes
-        cursor.execute('CREATE UNIQUE INDEX IF NOT EXISTS "perception_test_sessions_session_code_key" ON "perception_test_sessions"("session_code");')
-        cursor.execute('CREATE INDEX IF NOT EXISTS "perception_test_sessions_student_id_idx" ON "perception_test_sessions"("student_id");')
-        cursor.execute('CREATE INDEX IF NOT EXISTS "perception_questions_passage_id_idx" ON "perception_questions"("passage_id");')
-        cursor.execute('CREATE UNIQUE INDEX IF NOT EXISTS "perception_questions_passage_id_question_number_key" ON "perception_questions"("passage_id", "question_number");')
-        cursor.execute('CREATE INDEX IF NOT EXISTS "perception_gaze_data_session_id_idx" ON "perception_gaze_data"("session_id");')
-        cursor.execute('CREATE INDEX IF NOT EXISTS "perception_responses_session_id_idx" ON "perception_responses"("session_id");')
-        cursor.execute('CREATE UNIQUE INDEX IF NOT EXISTS "perception_test_results_session_id_key" ON "perception_test_results"("session_id");')
-        cursor.execute('CREATE INDEX IF NOT EXISTS "perception_passages_grade_idx" ON "perception_passages"("grade");')
+        # Indexes
+        for stmt in [
+            'CREATE UNIQUE INDEX IF NOT EXISTS "pts_session_code_key" ON "perception_test_sessions"("session_code");',
+            'CREATE INDEX IF NOT EXISTS "pts_student_id_idx" ON "perception_test_sessions"("student_id");',
+            'CREATE INDEX IF NOT EXISTS "pq_passage_id_idx" ON "perception_questions"("passage_id");',
+            'CREATE UNIQUE INDEX IF NOT EXISTS "pq_passage_qnum_key" ON "perception_questions"("passage_id","question_number");',
+            'CREATE INDEX IF NOT EXISTS "pgd_session_id_idx" ON "perception_gaze_data"("session_id");',
+            'CREATE INDEX IF NOT EXISTS "pr_session_id_idx" ON "perception_responses"("session_id");',
+            'CREATE UNIQUE INDEX IF NOT EXISTS "ptr_session_id_key" ON "perception_test_results"("session_id");',
+            'CREATE INDEX IF NOT EXISTS "pp_grade_idx" ON "perception_passages"("grade");',
+        ]:
+            cursor.execute(stmt)
 
-        # Add foreign key constraints (safe with IF NOT EXISTS pattern)
-        fk_statements = [
-            ('perception_questions', 'perception_questions_passage_id_fkey', '"passage_id"', '"perception_passages"("id")', 'CASCADE'),
-            ('perception_gaze_data', 'perception_gaze_data_session_id_fkey', '"session_id"', '"perception_test_sessions"("id")', 'CASCADE'),
-            ('perception_responses', 'perception_responses_session_id_fkey', '"session_id"', '"perception_test_sessions"("id")', 'CASCADE'),
-            ('perception_responses', 'perception_responses_question_id_fkey', '"question_id"', '"perception_questions"("id")', 'RESTRICT'),
-            ('perception_test_results', 'perception_test_results_session_id_fkey', '"session_id"', '"perception_test_sessions"("id")', 'CASCADE'),
-        ]
-        for table, fk_name, col, ref, on_delete in fk_statements:
+        # Foreign keys (safe re-run)
+        for table, fk, col, ref, on_del in [
+            ("perception_questions", "pq_passage_fk", "passage_id", "perception_passages(id)", "CASCADE"),
+            ("perception_gaze_data", "pgd_session_fk", "session_id", "perception_test_sessions(id)", "CASCADE"),
+            ("perception_responses", "pr_session_fk", "session_id", "perception_test_sessions(id)", "CASCADE"),
+            ("perception_responses", "pr_question_fk", "question_id", "perception_questions(id)", "RESTRICT"),
+            ("perception_test_results", "ptr_session_fk", "session_id", "perception_test_sessions(id)", "CASCADE"),
+            ("perception_test_sessions", "pts_passage_fk", "passage_id", "perception_passages(id)", "RESTRICT"),
+        ]:
             cursor.execute(f"""
                 ALTER TABLE "{table}"
-                    DROP CONSTRAINT IF EXISTS "{fk_name}",
-                    ADD CONSTRAINT "{fk_name}"
-                    FOREIGN KEY ({col}) REFERENCES {ref} ON DELETE {on_delete} ON UPDATE CASCADE;
+                    DROP CONSTRAINT IF EXISTS "{fk}",
+                    ADD CONSTRAINT "{fk}"
+                    FOREIGN KEY ("{col}") REFERENCES {ref}
+                    ON DELETE {on_del} ON UPDATE CASCADE;
             """)
 
-        # session FK to users table (may not exist, so wrap in try)
-        try:
-            cursor.execute("""
-                ALTER TABLE "perception_test_sessions"
-                    DROP CONSTRAINT IF EXISTS "perception_test_sessions_student_id_fkey",
-                    ADD CONSTRAINT "perception_test_sessions_student_id_fkey"
-                    FOREIGN KEY ("student_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-            """)
-        except Exception:
-            pass  # users table might not exist
-
-        cursor.execute("""
-            ALTER TABLE "perception_test_sessions"
-                DROP CONSTRAINT IF EXISTS "perception_test_sessions_passage_id_fkey",
-                ADD CONSTRAINT "perception_test_sessions_passage_id_fkey"
-                FOREIGN KEY ("passage_id") REFERENCES "perception_passages"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-        """)
+    # ---- Seeding ----
 
     def _seed_passages(self, cursor):
-        """Seed sample passages for grades 1-6"""
         from .sample_data import get_seed_passages
 
-        for passage_data in get_seed_passages():
-            # Check if passage already exists
-            cursor.execute(
-                "SELECT id FROM perception_passages WHERE id = %s",
-                (passage_data["id"],)
-            )
+        for p in get_seed_passages():
+            cursor.execute("SELECT 1 FROM perception_passages WHERE id = %s", (p["id"],))
             if cursor.fetchone():
                 continue
 
-            questions = passage_data.pop("questions")
-
-            cursor.execute(
-                """
+            questions = p.pop("questions")
+            cursor.execute("""
                 INSERT INTO perception_passages
-                (id, grade, title, content, word_count, sentence_count, category, difficulty)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-                """,
-                (
-                    passage_data["id"],
-                    passage_data["grade"],
-                    passage_data["title"],
-                    passage_data["content"],
-                    passage_data["word_count"],
-                    passage_data["sentence_count"],
-                    passage_data.get("category"),
-                    passage_data.get("difficulty"),
-                )
-            )
-            logger.info(f"Seeded passage: {passage_data['title']} (grade {passage_data['grade']})")
+                    (id, grade, title, content, word_count, sentence_count, category, difficulty)
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
+            """, (p["id"], p["grade"], p["title"], p["content"],
+                  p["word_count"], p["sentence_count"], p.get("category"), p.get("difficulty")))
+            logger.info(f"Seeded: {p['title']} (grade {p['grade']})")
 
             for q in questions:
-                cursor.execute(
-                    """
+                cursor.execute("""
                     INSERT INTO perception_questions
-                    (passage_id, question_number, question_text, options, correct_answer, question_type)
-                    VALUES (%s, %s, %s, %s, %s, %s)
-                    """,
-                    (
-                        passage_data["id"],
-                        q["question_number"],
-                        q["question_text"],
-                        json.dumps(q["options"]),
-                        q["correct_answer"],
-                        q.get("question_type"),
-                    )
-                )
-
-    # ===== Session Operations =====
-
-    async def create_session(
-        self,
-        student_id: str,
-        grade: int,
-        passage_id: str
-    ) -> Dict:
-        """Create a new perception test session"""
-        session_code = f"PERCEPTION-{uuid.uuid4().hex[:12].upper()}"
-
-        session = await self.db.perceptiontestsession.create(
-            data={
-                "studentId": student_id,
-                "grade": grade,
-                "passageId": passage_id,
-                "sessionCode": session_code,
-                "currentPhase": "introduction",
-                "status": "in_progress"
-            },
-            include={
-                "passage": {
-                    "include": {
-                        "questions": True
-                    }
-                }
-            }
-        )
-
-        return session.model_dump() if hasattr(session, 'model_dump') else dict(session)
-
-    async def get_session(self, session_id: str) -> Optional[Dict]:
-        """Get session by ID"""
-        session = await self.db.perceptiontestsession.find_unique(
-            where={"id": session_id},
-            include={
-                "passage": {
-                    "include": {
-                        "questions": True
-                    }
-                },
-                "responses": True,
-                "result": True
-            }
-        )
-
-        return session.model_dump() if session and hasattr(session, 'model_dump') else (dict(session) if session else None)
-
-    async def update_session_phase(
-        self,
-        session_id: str,
-        phase: str
-    ) -> Dict:
-        """Update session phase"""
-        timestamp_fields = {
-            "calibration": {"calibrationStartedAt": datetime.utcnow()},
-            "reading": {"readingStartedAt": datetime.utcnow()},
-            "questions": {"questionsStartedAt": datetime.utcnow()},
-            "completed": {"completedAt": datetime.utcnow()}
-        }
-
-        update_data = {
-            "currentPhase": phase,
-            **timestamp_fields.get(phase, {})
-        }
-
-        session = await self.db.perceptiontestsession.update(
-            where={"id": session_id},
-            data=update_data
-        )
-
-        return session
-
-    async def save_calibration(
-        self,
-        session_id: str,
-        calibration_points: List[Dict],
-        calibration_accuracy: float
-    ) -> Dict:
-        """Save calibration data"""
-        session = await self.db.perceptiontestsession.update(
-            where={"id": session_id},
-            data={
-                "calibrationPoints": calibration_points,
-                "calibrationAccuracy": calibration_accuracy,
-                "calibrationCompletedAt": datetime.utcnow()
-            }
-        )
-
-        return session
-
-    async def complete_session(self, session_id: str) -> Dict:
-        """Mark session as completed"""
-        session = await self.db.perceptiontestsession.update(
-            where={"id": session_id},
-            data={
-                "status": "completed",
-                "completedAt": datetime.utcnow()
-            }
-        )
-
-        return session
-
-    # ===== Gaze Data Operations =====
-
-    async def save_gaze_data(
-        self,
-        session_id: str,
-        gaze_data: Dict
-    ) -> Dict:
-        """Save gaze tracking data"""
-        data = await self.db.perceptiongazedata.create(
-            data={
-                "sessionId": session_id,
-                "phase": gaze_data["phase"],
-                "gazeX": gaze_data["gaze_x"],
-                "gazeY": gaze_data["gaze_y"],
-                "confidence": gaze_data["confidence"],
-                "headPitch": gaze_data.get("head_pitch"),
-                "headYaw": gaze_data.get("head_yaw"),
-                "headRoll": gaze_data.get("head_roll"),
-                "leftPupilDiameter": gaze_data.get("left_pupil_diameter"),
-                "rightPupilDiameter": gaze_data.get("right_pupil_diameter"),
-                "timestamp": gaze_data.get("timestamp", datetime.utcnow())
-            }
-        )
-
-        return data
-
-    async def get_gaze_data(
-        self,
-        session_id: str,
-        phase: Optional[str] = None
-    ) -> List[Dict]:
-        """Get gaze data for session"""
-        where_clause = {"sessionId": session_id}
-
-        if phase:
-            where_clause["phase"] = phase
-
-        data = await self.db.perceptiongazedata.find_many(
-            where=where_clause,
-            order_by={"timestamp": "asc"}
-        )
-
-        return data
-
-    # ===== Response Operations =====
-
-    async def save_response(
-        self,
-        session_id: str,
-        question_id: str,
-        selected_answer: str,
-        is_correct: bool,
-        response_time: Optional[int] = None
-    ) -> Dict:
-        """Save student response"""
-        response = await self.db.perceptionresponse.create(
-            data={
-                "sessionId": session_id,
-                "questionId": question_id,
-                "selectedAnswer": selected_answer,
-                "isCorrect": is_correct,
-                "responseTime": response_time
-            }
-        )
-
-        return response
-
-    async def get_responses(self, session_id: str) -> List[Dict]:
-        """Get all responses for session"""
-        responses = await self.db.perceptionresponse.find_many(
-            where={"sessionId": session_id},
-            include={"question": True}
-        )
-
-        return responses
-
-    # ===== Result Operations =====
-
-    async def save_result(
-        self,
-        session_id: str,
-        result_data: Dict
-    ) -> Dict:
-        """Save test result"""
-        result = await self.db.perceptiontestresult.create(
-            data={
-                "sessionId": session_id,
-                **result_data
-            }
-        )
-
-        return result
-
-    async def get_result(self, session_id: str) -> Optional[Dict]:
-        """Get test result"""
-        result = await self.db.perceptiontestresult.find_unique(
-            where={"sessionId": session_id}
-        )
-
-        return result
+                        (passage_id, question_number, question_text, options, correct_answer, question_type)
+                    VALUES (%s,%s,%s,%s,%s,%s)
+                """, (p["id"], q["question_number"], q["question_text"],
+                      Json(q["options"]), q["correct_answer"], q.get("question_type")))
 
     # ===== Passage Operations =====
 
     async def get_passage_for_grade(self, grade: int) -> Optional[Dict]:
-        """Get a passage for the given grade, falling back to nearest available"""
-        # Try exact grade first
-        passages = await self.db.perceptionpassage.find_many(
-            where={"grade": grade},
-            include={"questions": True}
-        )
+        return await asyncio.to_thread(self._sync_get_passage_for_grade, grade)
 
-        # Fallback: try nearest grade if exact match not found
-        if not passages:
-            logger.info(f"No passages for grade {grade}, searching all grades...")
-            all_passages = await self.db.perceptionpassage.find_many(
-                include={"questions": True}
-            )
+    def _sync_get_passage_for_grade(self, grade: int) -> Optional[Dict]:
+        conn = self._get_conn()
+        try:
+            cur = conn.cursor(cursor_factory=RealDictCursor)
+            # Try exact grade
+            cur.execute(
+                "SELECT * FROM perception_passages WHERE grade = %s AND is_active = true LIMIT 1",
+                (grade,))
+            row = cur.fetchone()
 
-            if not all_passages:
+            # Fallback: nearest grade
+            if not row:
+                cur.execute(
+                    "SELECT * FROM perception_passages WHERE is_active = true ORDER BY ABS(grade - %s) LIMIT 1",
+                    (grade,))
+                row = cur.fetchone()
+
+            if not row:
+                cur.close()
                 return None
 
-            # Pick the passage with the closest grade
-            all_passages.sort(key=lambda p: abs(p.grade - grade))
-            passages = [all_passages[0]]
-            logger.info(f"Using passage for grade {passages[0].grade} as fallback")
+            passage = _serialize_row(row)
 
-        passage = passages[0]
-        return passage.model_dump() if hasattr(passage, 'model_dump') else dict(passage)
+            # Get questions
+            cur.execute(
+                "SELECT * FROM perception_questions WHERE passage_id = %s ORDER BY question_number",
+                (row["id"],))
+            passage["questions"] = [_serialize_row(q) for q in cur.fetchall()]
+            cur.close()
+            return passage
+        finally:
+            self._put_conn(conn)
 
     async def get_passage(self, passage_id: str) -> Optional[Dict]:
-        """Get passage by ID"""
-        passage = await self.db.perceptionpassage.find_unique(
-            where={"id": passage_id},
-            include={"questions": True}
-        )
+        return await asyncio.to_thread(self._sync_get_passage, passage_id)
 
-        return passage.model_dump() if passage and hasattr(passage, 'model_dump') else (dict(passage) if passage else None)
+    def _sync_get_passage(self, passage_id: str) -> Optional[Dict]:
+        conn = self._get_conn()
+        try:
+            cur = conn.cursor(cursor_factory=RealDictCursor)
+            cur.execute("SELECT * FROM perception_passages WHERE id = %s", (passage_id,))
+            row = cur.fetchone()
+            if not row:
+                cur.close()
+                return None
+            passage = _serialize_row(row)
+            cur.execute(
+                "SELECT * FROM perception_questions WHERE passage_id = %s ORDER BY question_number",
+                (row["id"],))
+            passage["questions"] = [_serialize_row(q) for q in cur.fetchall()]
+            cur.close()
+            return passage
+        finally:
+            self._put_conn(conn)
+
+    # ===== Session Operations =====
+
+    async def create_session(self, student_id: str, grade: int, passage_id: str) -> Dict:
+        return await asyncio.to_thread(self._sync_create_session, student_id, grade, passage_id)
+
+    def _sync_create_session(self, student_id: str, grade: int, passage_id: str) -> Dict:
+        session_code = f"PERCEPTION-{uuid.uuid4().hex[:12].upper()}"
+        conn = self._get_conn()
+        try:
+            cur = conn.cursor(cursor_factory=RealDictCursor)
+            cur.execute("""
+                INSERT INTO perception_test_sessions
+                    (session_code, student_id, grade, passage_id, current_phase, status)
+                VALUES (%s, %s, %s, %s, 'introduction', 'in_progress')
+                RETURNING *
+            """, (session_code, student_id, grade, passage_id))
+            conn.commit()
+            row = _serialize_row(cur.fetchone())
+            cur.close()
+            return row
+        finally:
+            self._put_conn(conn)
+
+    async def get_session(self, session_id: str) -> Optional[Dict]:
+        return await asyncio.to_thread(self._sync_get_session, session_id)
+
+    def _sync_get_session(self, session_id: str) -> Optional[Dict]:
+        conn = self._get_conn()
+        try:
+            cur = conn.cursor(cursor_factory=RealDictCursor)
+            cur.execute("SELECT * FROM perception_test_sessions WHERE id = %s", (session_id,))
+            row = cur.fetchone()
+            if not row:
+                cur.close()
+                return None
+
+            session = _serialize_row(row)
+
+            # Attach passage + questions
+            cur.execute("SELECT * FROM perception_passages WHERE id = %s", (row["passage_id"],))
+            p_row = cur.fetchone()
+            if p_row:
+                passage = _serialize_row(p_row)
+                cur.execute(
+                    "SELECT * FROM perception_questions WHERE passage_id = %s ORDER BY question_number",
+                    (p_row["id"],))
+                passage["questions"] = [_serialize_row(q) for q in cur.fetchall()]
+                session["passage"] = passage
+
+            # Attach responses
+            cur.execute(
+                "SELECT * FROM perception_responses WHERE session_id = %s ORDER BY answered_at",
+                (session_id,))
+            session["responses"] = [_serialize_row(r) for r in cur.fetchall()]
+
+            # Attach result
+            cur.execute(
+                "SELECT * FROM perception_test_results WHERE session_id = %s", (session_id,))
+            res_row = cur.fetchone()
+            session["result"] = _serialize_row(res_row) if res_row else None
+
+            cur.close()
+            return session
+        finally:
+            self._put_conn(conn)
+
+    async def update_session_phase(self, session_id: str, phase: str) -> Dict:
+        return await asyncio.to_thread(self._sync_update_session_phase, session_id, phase)
+
+    def _sync_update_session_phase(self, session_id: str, phase: str) -> Dict:
+        ts_col = {
+            "calibration": "calibration_started_at",
+            "reading": "reading_started_at",
+            "questions": "questions_started_at",
+            "completed": "completed_at",
+        }.get(phase)
+
+        conn = self._get_conn()
+        try:
+            cur = conn.cursor(cursor_factory=RealDictCursor)
+            if ts_col:
+                cur.execute(f"""
+                    UPDATE perception_test_sessions
+                    SET current_phase = %s, "{ts_col}" = NOW()
+                    WHERE id = %s RETURNING *
+                """, (phase, session_id))
+            else:
+                cur.execute("""
+                    UPDATE perception_test_sessions
+                    SET current_phase = %s WHERE id = %s RETURNING *
+                """, (phase, session_id))
+            conn.commit()
+            row = _serialize_row(cur.fetchone())
+            cur.close()
+            return row
+        finally:
+            self._put_conn(conn)
+
+    async def save_calibration(self, session_id: str, calibration_points: List[Dict], calibration_accuracy: float) -> Dict:
+        return await asyncio.to_thread(
+            self._sync_save_calibration, session_id, calibration_points, calibration_accuracy)
+
+    def _sync_save_calibration(self, session_id: str, calibration_points: List[Dict], calibration_accuracy: float) -> Dict:
+        conn = self._get_conn()
+        try:
+            cur = conn.cursor(cursor_factory=RealDictCursor)
+            cur.execute("""
+                UPDATE perception_test_sessions
+                SET calibration_points = %s,
+                    calibration_accuracy = %s,
+                    calibration_completed_at = NOW()
+                WHERE id = %s RETURNING *
+            """, (Json(calibration_points), calibration_accuracy, session_id))
+            conn.commit()
+            row = _serialize_row(cur.fetchone())
+            cur.close()
+            return row
+        finally:
+            self._put_conn(conn)
+
+    async def complete_session(self, session_id: str) -> Dict:
+        return await asyncio.to_thread(self._sync_complete_session, session_id)
+
+    def _sync_complete_session(self, session_id: str) -> Dict:
+        conn = self._get_conn()
+        try:
+            cur = conn.cursor(cursor_factory=RealDictCursor)
+            cur.execute("""
+                UPDATE perception_test_sessions
+                SET status = 'completed', completed_at = NOW()
+                WHERE id = %s RETURNING *
+            """, (session_id,))
+            conn.commit()
+            row = _serialize_row(cur.fetchone())
+            cur.close()
+            return row
+        finally:
+            self._put_conn(conn)
+
+    # ===== Gaze Data Operations =====
+
+    async def save_gaze_data(self, session_id: str, gaze_data: Dict) -> Dict:
+        return await asyncio.to_thread(self._sync_save_gaze_data, session_id, gaze_data)
+
+    def _sync_save_gaze_data(self, session_id: str, gaze_data: Dict) -> Dict:
+        conn = self._get_conn()
+        try:
+            cur = conn.cursor(cursor_factory=RealDictCursor)
+            cur.execute("""
+                INSERT INTO perception_gaze_data
+                    (session_id, phase, gaze_x, gaze_y, confidence,
+                     head_pitch, head_yaw, head_roll,
+                     left_pupil_diameter, right_pupil_diameter, timestamp)
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                RETURNING *
+            """, (
+                session_id,
+                gaze_data["phase"],
+                gaze_data["gaze_x"],
+                gaze_data["gaze_y"],
+                gaze_data["confidence"],
+                gaze_data.get("head_pitch"),
+                gaze_data.get("head_yaw"),
+                gaze_data.get("head_roll"),
+                gaze_data.get("left_pupil_diameter"),
+                gaze_data.get("right_pupil_diameter"),
+                gaze_data.get("timestamp", datetime.utcnow()),
+            ))
+            conn.commit()
+            row = _serialize_row(cur.fetchone())
+            cur.close()
+            return row
+        finally:
+            self._put_conn(conn)
+
+    async def get_gaze_data(self, session_id: str, phase: Optional[str] = None) -> List[Dict]:
+        return await asyncio.to_thread(self._sync_get_gaze_data, session_id, phase)
+
+    def _sync_get_gaze_data(self, session_id: str, phase: Optional[str] = None) -> List[Dict]:
+        conn = self._get_conn()
+        try:
+            cur = conn.cursor(cursor_factory=RealDictCursor)
+            if phase:
+                cur.execute("""
+                    SELECT * FROM perception_gaze_data
+                    WHERE session_id = %s AND phase = %s
+                    ORDER BY timestamp ASC
+                """, (session_id, phase))
+            else:
+                cur.execute("""
+                    SELECT * FROM perception_gaze_data
+                    WHERE session_id = %s ORDER BY timestamp ASC
+                """, (session_id,))
+            rows = [_serialize_row(r) for r in cur.fetchall()]
+            cur.close()
+            return rows
+        finally:
+            self._put_conn(conn)
+
+    # ===== Response Operations =====
+
+    async def save_response(self, session_id: str, question_id: str,
+                            selected_answer: str, is_correct: bool,
+                            response_time: Optional[int] = None) -> Dict:
+        return await asyncio.to_thread(
+            self._sync_save_response, session_id, question_id,
+            selected_answer, is_correct, response_time)
+
+    def _sync_save_response(self, session_id, question_id, selected_answer, is_correct, response_time):
+        conn = self._get_conn()
+        try:
+            cur = conn.cursor(cursor_factory=RealDictCursor)
+            cur.execute("""
+                INSERT INTO perception_responses
+                    (session_id, question_id, selected_answer, is_correct, response_time)
+                VALUES (%s,%s,%s,%s,%s) RETURNING *
+            """, (session_id, question_id, selected_answer, is_correct, response_time))
+            conn.commit()
+            row = _serialize_row(cur.fetchone())
+            cur.close()
+            return row
+        finally:
+            self._put_conn(conn)
+
+    async def get_responses(self, session_id: str) -> List[Dict]:
+        return await asyncio.to_thread(self._sync_get_responses, session_id)
+
+    def _sync_get_responses(self, session_id: str) -> List[Dict]:
+        conn = self._get_conn()
+        try:
+            cur = conn.cursor(cursor_factory=RealDictCursor)
+            cur.execute("""
+                SELECT r.*, q.question_text, q.correct_answer, q.question_type
+                FROM perception_responses r
+                JOIN perception_questions q ON r.question_id = q.id
+                WHERE r.session_id = %s ORDER BY r.answered_at
+            """, (session_id,))
+            rows = [_serialize_row(r) for r in cur.fetchall()]
+            cur.close()
+            return rows
+        finally:
+            self._put_conn(conn)
+
+    # ===== Result Operations =====
+
+    async def save_result(self, session_id: str, result_data: Dict) -> Dict:
+        return await asyncio.to_thread(self._sync_save_result, session_id, result_data)
+
+    def _sync_save_result(self, session_id: str, rd: Dict) -> Dict:
+        conn = self._get_conn()
+        try:
+            cur = conn.cursor(cursor_factory=RealDictCursor)
+            cur.execute("""
+                INSERT INTO perception_test_results (
+                    session_id,
+                    comprehension_score, concentration_score, overall_grade,
+                    fixation_stability, reading_pattern_regularity, regression_frequency,
+                    focus_retention_rate, reading_speed_consistency,
+                    blink_frequency_score, fixation_duration_score,
+                    vertical_drift_score, horizontal_regression_score,
+                    sustained_attention_score,
+                    avg_reading_speed_wpm, total_fixation_count, avg_fixation_duration,
+                    saccade_count, avg_saccade_length, in_text_gaze_ratio,
+                    regression_count, line_drift_count,
+                    max_sustained_attention, distraction_index,
+                    regression_accuracy_corr, fixation_accuracy_corr, speed_accuracy_corr,
+                    option_gaze_distribution, revisit_frequency,
+                    strengths, improvements, recommendations
+                ) VALUES (
+                    %s, %s,%s,%s, %s,%s,%s, %s,%s, %s,%s, %s,%s, %s,
+                    %s,%s,%s, %s,%s,%s, %s,%s, %s,%s, %s,%s,%s, %s,%s, %s,%s,%s
+                ) RETURNING *
+            """, (
+                session_id,
+                rd["comprehension_score"], rd["concentration_score"], rd["overall_grade"],
+                rd["fixation_stability"], rd["reading_pattern_regularity"], rd["regression_frequency"],
+                rd["focus_retention_rate"], rd["reading_speed_consistency"],
+                rd["blink_frequency_score"], rd["fixation_duration_score"],
+                rd["vertical_drift_score"], rd["horizontal_regression_score"],
+                rd["sustained_attention_score"],
+                rd["avg_reading_speed_wpm"], rd["total_fixation_count"], rd["avg_fixation_duration"],
+                rd["saccade_count"], rd["avg_saccade_length"], rd["in_text_gaze_ratio"],
+                rd["regression_count"], rd["line_drift_count"],
+                rd["max_sustained_attention"], rd["distraction_index"],
+                rd.get("regression_accuracy_corr"), rd.get("fixation_accuracy_corr"),
+                rd.get("speed_accuracy_corr"),
+                Json(rd["option_gaze_distribution"]), rd["revisit_frequency"],
+                Json(rd.get("strengths", [])), Json(rd.get("improvements", [])),
+                Json(rd.get("recommendations", [])),
+            ))
+            conn.commit()
+            row = _serialize_row(cur.fetchone())
+            cur.close()
+            return row
+        finally:
+            self._put_conn(conn)
+
+    async def get_result(self, session_id: str) -> Optional[Dict]:
+        return await asyncio.to_thread(self._sync_get_result, session_id)
+
+    def _sync_get_result(self, session_id: str) -> Optional[Dict]:
+        conn = self._get_conn()
+        try:
+            cur = conn.cursor(cursor_factory=RealDictCursor)
+            cur.execute(
+                "SELECT * FROM perception_test_results WHERE session_id = %s", (session_id,))
+            row = cur.fetchone()
+            cur.close()
+            return _serialize_row(row) if row else None
+        finally:
+            self._put_conn(conn)
+
+    # ===== Debug helper =====
+
+    async def debug_check(self) -> Dict:
+        """Run diagnostic checks, returns step-by-step results."""
+        return await asyncio.to_thread(self._sync_debug_check)
+
+    def _sync_debug_check(self) -> Dict:
+        steps = []
+        conn = None
+        try:
+            conn = self._get_conn()
+            steps.append({"step": "pool_connect", "status": "ok"})
+        except Exception as e:
+            steps.append({"step": "pool_connect", "status": "error", "error": str(e)})
+            return {"steps": steps, "overall": "error"}
+
+        try:
+            cur = conn.cursor(cursor_factory=RealDictCursor)
+            cur.execute("SELECT COUNT(*) as cnt FROM perception_passages")
+            cnt = cur.fetchone()["cnt"]
+            steps.append({"step": "passages_count", "status": "ok", "count": cnt})
+
+            if cnt > 0:
+                cur.execute("SELECT id, title, grade FROM perception_passages LIMIT 1")
+                row = cur.fetchone()
+                steps.append({
+                    "step": "sample_passage", "status": "ok",
+                    "id": str(row["id"]), "title": row["title"], "grade": row["grade"]
+                })
+
+            cur.execute("SELECT COUNT(*) as cnt FROM perception_test_sessions")
+            s_cnt = cur.fetchone()["cnt"]
+            steps.append({"step": "sessions_count", "status": "ok", "count": s_cnt})
+            cur.close()
+        except Exception as e:
+            import traceback
+            steps.append({"step": "query", "status": "error", "error": str(e),
+                          "trace": traceback.format_exc()})
+        finally:
+            if conn:
+                self._put_conn(conn)
+
+        overall = "ok" if all(s["status"] == "ok" for s in steps) else "error"
+        return {"steps": steps, "overall": overall}

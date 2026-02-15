@@ -28,11 +28,6 @@ router = APIRouter()
 db = PerceptionDatabase()
 
 
-# ===== Lifecycle Events =====
-# Note: Database connection is now lazy (connects on first request)
-# This prevents startup failures if the Prisma Query Engine is unavailable
-
-
 # ===== API Endpoints =====
 
 @router.get("/health")
@@ -43,40 +38,12 @@ async def health_check():
 
 @router.get("/debug")
 async def debug_check():
-    """Debug endpoint to diagnose session creation issues"""
-    import traceback
-    result = {"steps": []}
-
-    # Step 1: Connect Prisma
+    """Debug endpoint to diagnose database/connection issues"""
     try:
         await db.connect()
-        result["steps"].append({"step": "prisma_connect", "status": "ok"})
-    except Exception as e:
-        result["steps"].append({"step": "prisma_connect", "status": "error", "error": f"{type(e).__name__}: {e}", "trace": traceback.format_exc()})
-        return JSONResponse(status_code=500, content=result)
-
-    # Step 2: Query passages
-    try:
-        passage = await db.get_passage_for_grade(2)
-        if passage:
-            result["steps"].append({"step": "get_passage", "status": "ok", "passage_id": passage["id"], "title": passage.get("title", "?"), "questions": len(passage.get("questions", []))})
-        else:
-            result["steps"].append({"step": "get_passage", "status": "no_data"})
-    except Exception as e:
-        result["steps"].append({"step": "get_passage", "status": "error", "error": f"{type(e).__name__}: {e}", "trace": traceback.format_exc()})
-        return JSONResponse(status_code=500, content=result)
-
-    # Step 3: Try creating a session (dry check - just verify table access)
-    try:
-        from prisma import Prisma
-        raw_db = db.db
-        count = await raw_db.perceptiontestsession.count()
-        result["steps"].append({"step": "session_table_access", "status": "ok", "session_count": count})
-    except Exception as e:
-        result["steps"].append({"step": "session_table_access", "status": "error", "error": f"{type(e).__name__}: {e}", "trace": traceback.format_exc()})
-
-    result["overall"] = "ok" if all(s["status"] == "ok" for s in result["steps"]) else "error"
-    return result
+    except Exception:
+        pass  # debug_check handles its own errors
+    return await db.debug_check()
 
 
 @router.post("/sessions/start", response_model=SessionResponse, status_code=status.HTTP_201_CREATED)
@@ -91,10 +58,8 @@ async def start_session(request: StartSessionRequest):
     try:
         logger.info(f"Starting perception test - student_id={request.student_id}, grade={request.grade}")
 
-        # Ensure database connection + auto-init tables/seed
         await db.connect()
 
-        # Get passage for grade (falls back to nearest available grade)
         passage = await db.get_passage_for_grade(request.grade)
 
         if not passage:
@@ -103,7 +68,6 @@ async def start_session(request: StartSessionRequest):
                 detail=f"No passages available for grade {request.grade}. Database may need seeding."
             )
 
-        # Create session
         session = await db.create_session(
             student_id=request.student_id,
             grade=request.grade,
@@ -112,26 +76,25 @@ async def start_session(request: StartSessionRequest):
 
         logger.info(f"Session created: {session['id']}")
 
-        # Format response
         return SessionResponse(
             id=session["id"],
-            session_code=session["sessionCode"],
-            student_id=session["studentId"],
+            session_code=session["session_code"],
+            student_id=session["student_id"],
             grade=session["grade"],
-            current_phase=session["currentPhase"],
+            current_phase=session["current_phase"],
             status=session["status"],
             passage=PassageResponse(
                 id=passage["id"],
                 title=passage["title"],
                 content=passage["content"],
-                word_count=passage["wordCount"],
-                sentence_count=passage["sentenceCount"]
+                word_count=passage["word_count"],
+                sentence_count=passage["sentence_count"]
             ),
             questions=[
                 QuestionResponse(
                     id=q["id"],
-                    question_number=q["questionNumber"],
-                    question_text=q["questionText"],
+                    question_number=q["question_number"],
+                    question_text=q["question_text"],
                     options=q["options"]
                 )
                 for q in passage["questions"]
@@ -154,7 +117,6 @@ async def start_session(request: StartSessionRequest):
 async def get_session(session_id: str):
     """Get session information"""
     try:
-        # Ensure database connection (lazy connect)
         await db.connect()
 
         session = await db.get_session(session_id)
@@ -165,35 +127,32 @@ async def get_session(session_id: str):
                 detail="Session not found"
             )
 
-        # Format response
         response = SessionResponse(
             id=session["id"],
-            session_code=session["sessionCode"],
-            student_id=session["studentId"],
+            session_code=session["session_code"],
+            student_id=session["student_id"],
             grade=session["grade"],
-            current_phase=session["currentPhase"],
+            current_phase=session["current_phase"],
             status=session["status"],
-            calibration_accuracy=session.get("calibrationAccuracy")
+            calibration_accuracy=session.get("calibration_accuracy")
         )
 
-        # Add passage if available
         if "passage" in session and session["passage"]:
             passage = session["passage"]
             response.passage = PassageResponse(
                 id=passage["id"],
                 title=passage["title"],
                 content=passage["content"],
-                word_count=passage["wordCount"],
-                sentence_count=passage["sentenceCount"]
+                word_count=passage["word_count"],
+                sentence_count=passage["sentence_count"]
             )
 
-            # Add questions
             if "questions" in passage:
                 response.questions = [
                     QuestionResponse(
                         id=q["id"],
-                        question_number=q["questionNumber"],
-                        question_text=q["questionText"],
+                        question_number=q["question_number"],
+                        question_text=q["question_text"],
                         options=q["options"]
                     )
                     for q in passage["questions"]
@@ -215,17 +174,14 @@ async def get_session(session_id: str):
 async def save_calibration(session_id: str, request: SaveCalibrationRequest):
     """Save calibration data and move to reading phase"""
     try:
-        # Ensure database connection (lazy connect)
         await db.connect()
 
-        # Save calibration
-        session = await db.save_calibration(
+        await db.save_calibration(
             session_id=session_id,
             calibration_points=request.calibration_points,
             calibration_accuracy=request.calibration_accuracy
         )
 
-        # Update phase to reading
         await db.update_session_phase(session_id, "reading")
 
         return {
@@ -246,7 +202,6 @@ async def save_calibration(session_id: str, request: SaveCalibrationRequest):
 async def save_gaze_data(session_id: str, request: SaveGazeDataRequest):
     """Save gaze tracking data"""
     try:
-        # Ensure database connection (lazy connect)
         await db.connect()
 
         gaze_data = request.dict()
@@ -266,7 +221,6 @@ async def save_gaze_data(session_id: str, request: SaveGazeDataRequest):
 async def complete_reading(session_id: str):
     """Mark reading phase as complete and move to questions"""
     try:
-        # Ensure database connection (lazy connect)
         await db.connect()
 
         await db.update_session_phase(session_id, "questions")
@@ -288,10 +242,8 @@ async def complete_reading(session_id: str):
 async def submit_answer(session_id: str, request: SubmitAnswerRequest):
     """Submit answer to a question"""
     try:
-        # Ensure database connection (lazy connect)
         await db.connect()
 
-        # Get question to check correct answer
         session = await db.get_session(session_id)
 
         if not session:
@@ -313,10 +265,8 @@ async def submit_answer(session_id: str, request: SubmitAnswerRequest):
                 detail="Question not found"
             )
 
-        # Check if answer is correct
-        is_correct = request.selected_answer == question["correctAnswer"]
+        is_correct = request.selected_answer == question["correct_answer"]
 
-        # Save response
         await db.save_response(
             session_id=session_id,
             question_id=request.question_id,
@@ -344,19 +294,10 @@ async def submit_answer(session_id: str, request: SubmitAnswerRequest):
 async def complete_session(session_id: str, request: CompleteSessionRequest):
     """
     Complete the test session and generate results
-
-    1. Get all gaze data
-    2. Get all responses
-    3. Analyze gaze data
-    4. Calculate scores
-    5. Save results
-    6. Return results
     """
     try:
-        # Ensure database connection (lazy connect)
         await db.connect()
 
-        # Get session
         session = await db.get_session(session_id)
 
         if not session:
@@ -365,16 +306,12 @@ async def complete_session(session_id: str, request: CompleteSessionRequest):
                 detail="Session not found"
             )
 
-        # Get gaze data
         reading_gaze = await db.get_gaze_data(session_id, "reading")
         question_gaze = await db.get_gaze_data(session_id, "questions")
         all_gaze = reading_gaze + question_gaze
 
-        # Get responses
         responses = await db.get_responses(session_id)
 
-        # Analyze gaze data (using passage bounds from session)
-        # TODO: Get actual passage bounds from frontend
         passage_bounds = {"x": 100, "y": 100, "width": 800, "height": 600}
 
         analyzer = GazeAnalyzer(
@@ -383,58 +320,45 @@ async def complete_session(session_id: str, request: CompleteSessionRequest):
             passage_bounds=passage_bounds
         )
 
-        # Calculate concentration score
         concentration_score, concentration_metrics = analyzer.calculate_concentration_score()
-
-        # Calculate gaze analysis
         gaze_analysis = analyzer.calculate_gaze_analysis()
 
-        # Calculate comprehension score
-        correct_count = sum(1 for r in responses if r["isCorrect"])
+        correct_count = sum(1 for r in responses if r["is_correct"])
         comprehension_score = int((correct_count / len(responses)) * 100) if responses else 0
 
-        # Determine overall grade
         overall_score = (comprehension_score + concentration_score) / 2
         overall_grade = _score_to_grade(overall_score)
 
-        # Generate analysis (strengths, improvements, recommendations)
         strengths, improvements, recommendations = _generate_analysis(
             concentration_metrics, gaze_analysis, comprehension_score
         )
 
-        # Save result
         result_data = {
-            "comprehensionScore": comprehension_score,
-            "concentrationScore": concentration_score,
-            "overallGrade": overall_grade,
-            # Concentration metrics
-            **{k: v for k, v in concentration_metrics.items()},
-            # Gaze analysis
-            **{k: v for k, v in gaze_analysis.items()},
-            # Analysis
+            "comprehension_score": comprehension_score,
+            "concentration_score": concentration_score,
+            "overall_grade": overall_grade,
+            **concentration_metrics,
+            **gaze_analysis,
             "strengths": strengths,
             "improvements": improvements,
             "recommendations": recommendations
         }
 
         result = await db.save_result(session_id, result_data)
-
-        # Mark session as completed
         await db.complete_session(session_id)
 
-        # Return response
         return TestResultResponse(
             id=result["id"],
-            session_id=result["sessionId"],
-            comprehension_score=result["comprehensionScore"],
-            concentration_score=result["concentrationScore"],
-            overall_grade=result["overallGrade"],
+            session_id=result["session_id"],
+            comprehension_score=result["comprehension_score"],
+            concentration_score=result["concentration_score"],
+            overall_grade=result["overall_grade"],
             concentration_metrics=ConcentrationMetricsResponse(**concentration_metrics),
             gaze_analysis=GazeAnalysisResponse(**gaze_analysis),
             strengths=result["strengths"],
             improvements=result["improvements"],
             recommendations=result["recommendations"],
-            created_at=result["createdAt"]
+            created_at=result["created_at"]
         )
 
     except HTTPException:
@@ -451,7 +375,6 @@ async def complete_session(session_id: str, request: CompleteSessionRequest):
 async def get_result(session_id: str):
     """Get test result for a session"""
     try:
-        # Ensure database connection (lazy connect)
         await db.connect()
 
         result = await db.get_result(session_id)
@@ -462,51 +385,49 @@ async def get_result(session_id: str):
                 detail="Result not found"
             )
 
-        # Extract concentration metrics
         concentration_metrics = ConcentrationMetricsResponse(
-            fixation_stability=result["fixationStability"],
-            reading_pattern_regularity=result["readingPatternRegularity"],
-            regression_frequency=result["regressionFrequency"],
-            focus_retention_rate=result["focusRetentionRate"],
-            reading_speed_consistency=result["readingSpeedConsistency"],
-            blink_frequency_score=result["blinkFrequencyScore"],
-            fixation_duration_score=result["fixationDurationScore"],
-            vertical_drift_score=result["verticalDriftScore"],
-            horizontal_regression_score=result["horizontalRegressionScore"],
-            sustained_attention_score=result["sustainedAttentionScore"]
+            fixation_stability=result["fixation_stability"],
+            reading_pattern_regularity=result["reading_pattern_regularity"],
+            regression_frequency=result["regression_frequency"],
+            focus_retention_rate=result["focus_retention_rate"],
+            reading_speed_consistency=result["reading_speed_consistency"],
+            blink_frequency_score=result["blink_frequency_score"],
+            fixation_duration_score=result["fixation_duration_score"],
+            vertical_drift_score=result["vertical_drift_score"],
+            horizontal_regression_score=result["horizontal_regression_score"],
+            sustained_attention_score=result["sustained_attention_score"]
         )
 
-        # Extract gaze analysis
         gaze_analysis = GazeAnalysisResponse(
-            avg_reading_speed_wpm=result["avgReadingSpeedWpm"],
-            total_fixation_count=result["totalFixationCount"],
-            avg_fixation_duration=result["avgFixationDuration"],
-            saccade_count=result["saccadeCount"],
-            avg_saccade_length=result["avgSaccadeLength"],
-            in_text_gaze_ratio=result["inTextGazeRatio"],
-            regression_count=result["regressionCount"],
-            line_drift_count=result["lineDriftCount"],
-            max_sustained_attention=result["maxSustainedAttention"],
-            distraction_index=result["distractionIndex"],
-            regression_accuracy_corr=result.get("regressionAccuracyCorr"),
-            fixation_accuracy_corr=result.get("fixationAccuracyCorr"),
-            speed_accuracy_corr=result.get("speedAccuracyCorr"),
-            option_gaze_distribution=result["optionGazeDistribution"],
-            revisit_frequency=result["revisitFrequency"]
+            avg_reading_speed_wpm=result["avg_reading_speed_wpm"],
+            total_fixation_count=result["total_fixation_count"],
+            avg_fixation_duration=result["avg_fixation_duration"],
+            saccade_count=result["saccade_count"],
+            avg_saccade_length=result["avg_saccade_length"],
+            in_text_gaze_ratio=result["in_text_gaze_ratio"],
+            regression_count=result["regression_count"],
+            line_drift_count=result["line_drift_count"],
+            max_sustained_attention=result["max_sustained_attention"],
+            distraction_index=result["distraction_index"],
+            regression_accuracy_corr=result.get("regression_accuracy_corr"),
+            fixation_accuracy_corr=result.get("fixation_accuracy_corr"),
+            speed_accuracy_corr=result.get("speed_accuracy_corr"),
+            option_gaze_distribution=result["option_gaze_distribution"],
+            revisit_frequency=result["revisit_frequency"]
         )
 
         return TestResultResponse(
             id=result["id"],
-            session_id=result["sessionId"],
-            comprehension_score=result["comprehensionScore"],
-            concentration_score=result["concentrationScore"],
-            overall_grade=result["overallGrade"],
+            session_id=result["session_id"],
+            comprehension_score=result["comprehension_score"],
+            concentration_score=result["concentration_score"],
+            overall_grade=result["overall_grade"],
             concentration_metrics=concentration_metrics,
             gaze_analysis=gaze_analysis,
             strengths=result["strengths"],
             improvements=result["improvements"],
             recommendations=result["recommendations"],
-            created_at=result["createdAt"]
+            created_at=result["created_at"]
         )
 
     except HTTPException:
@@ -554,7 +475,6 @@ def _generate_analysis(
     improvements = []
     recommendations = []
 
-    # Analyze concentration metrics
     for metric, value in concentration_metrics.items():
         if value >= 80:
             strengths.append({
@@ -569,7 +489,6 @@ def _generate_analysis(
                 "description": _get_metric_description(metric, "improvement")
             })
 
-    # Generate recommendations based on weaknesses
     if concentration_metrics.get("fixation_stability", 100) < 60:
         recommendations.append("시선 고정 안정성을 높이기 위해 읽기 속도를 조금 늦춰보세요.")
 
