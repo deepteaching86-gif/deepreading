@@ -14,7 +14,6 @@ from typing import Optional, List, Dict
 from datetime import datetime
 
 import psycopg2
-from psycopg2 import pool as pg_pool
 from psycopg2.extras import RealDictCursor, Json
 
 logger = logging.getLogger(__name__)
@@ -35,7 +34,6 @@ def _serialize_row(row: dict) -> dict:
 class PerceptionDatabase:
     """Database operations for perception test (psycopg2, no Prisma)."""
 
-    _pool: pg_pool.ThreadedConnectionPool = None
     _initialized = False
 
     def __init__(self):
@@ -44,24 +42,23 @@ class PerceptionDatabase:
     # ---- Connection pool ----
 
     @classmethod
-    def _get_pool(cls) -> pg_pool.ThreadedConnectionPool:
-        if cls._pool is None:
-            database_url = os.getenv("DATABASE_URL") or os.getenv("DIRECT_URL")
-            if not database_url:
-                raise RuntimeError("DATABASE_URL is not set")
-            cls._pool = pg_pool.ThreadedConnectionPool(1, 5, database_url)
-        return cls._pool
+    def _get_db_url(cls) -> str:
+        # Prefer DIRECT_URL (bypasses PgBouncer) for psycopg2 compatibility
+        url = os.getenv("DIRECT_URL") or os.getenv("DATABASE_URL")
+        if not url:
+            raise RuntimeError("DATABASE_URL / DIRECT_URL not set")
+        return url
 
     def _get_conn(self):
-        return self._get_pool().getconn()
+        """Create a fresh connection (no pool — avoids PgBouncer SET issues)."""
+        return psycopg2.connect(self._get_db_url())
 
     def _put_conn(self, conn):
-        # Ensure connection is not left in a transaction (PgBouncer compat)
+        """Close connection."""
         try:
-            conn.rollback()
+            conn.close()
         except Exception:
             pass
-        self._get_pool().putconn(conn)
 
     # ---- Lifecycle ----
 
@@ -72,9 +69,7 @@ class PerceptionDatabase:
             PerceptionDatabase._initialized = True
 
     async def disconnect(self):
-        if PerceptionDatabase._pool:
-            PerceptionDatabase._pool.closeall()
-            PerceptionDatabase._pool = None
+        pass  # connections are closed after each use
 
     def _sync_initialize(self):
         conn = self._get_conn()
