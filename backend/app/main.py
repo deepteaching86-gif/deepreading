@@ -31,22 +31,10 @@ except Exception as e:
 
 # Import Perception router (Visual Perception Test)
 try:
-    print("=" * 80)
-    print("ATTEMPTING TO LOAD VISUAL PERCEPTION TEST MODULE")
-    print("=" * 80)
     from app.perception.router import router as perception_router
-    print("=" * 80)
-    print("✅ Visual Perception Test module loaded successfully")
-    print("=" * 80)
+    print("✅ Visual Perception Test module loaded")
 except Exception as e:
-    print("=" * 80)
-    print(f"❌ Visual Perception Test module FAILED to load")
-    print(f"Error type: {type(e).__name__}")
-    print(f"Error message: {e}")
-    print("=" * 80)
-    import traceback
-    traceback.print_exc()
-    print("=" * 80)
+    print(f"⚠️  Visual Perception Test not available: {e}")
     perception_router = None
 
 # Create FastAPI app
@@ -56,13 +44,34 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# CORS middleware - Allow all origins for demo
+# CORS middleware - Restrict to known origins
+ALLOWED_ORIGINS = [
+    os.getenv("FRONTEND_URL", "https://playful-cocada-a89755.netlify.app"),
+    os.getenv("NODE_BACKEND_URL", "https://literacy-backend.onrender.com"),
+    "http://localhost:5173",
+    "http://localhost:5174",
+    "http://localhost:5175",
+    "http://localhost:3000",
+    "http://localhost:3001",
+]
+
+# Also allow any Netlify preview deploys
+def cors_origin_callback(origin: str) -> bool:
+    if not origin:
+        return True
+    if origin in ALLOWED_ORIGINS:
+        return True
+    if ".netlify.app" in origin:
+        return True
+    return False
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins for demo
-    allow_credentials=False,  # Must be False when allow_origins is "*"
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=ALLOWED_ORIGINS,
+    allow_origin_regex=r"https://.*\.netlify\.app",
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization", "X-Requested-With", "Accept", "Origin"],
 )
 
 # Include routers

@@ -21,8 +21,8 @@ import PerceptionAPI, {
   PerceptionTestResult
 } from '../../services/perceptionAPI';
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'https://literacy-english-test-backend.onrender.com';
-const NODE_BACKEND_URL = 'https://literacy-backend.onrender.com';
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || import.meta.env.VITE_ENGLISH_TEST_API_URL || 'http://localhost:8000';
+const NODE_BACKEND_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 type TestPhase = 'intro' | 'calibration' | 'reading' | 'questions' | 'results';
 

@@ -6,7 +6,7 @@
 
 import axios from 'axios';
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'https://literacy-english-test-backend.onrender.com';
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || import.meta.env.VITE_ENGLISH_TEST_API_URL || 'http://localhost:8000';
 
 // Types
 export interface PerceptionSession {

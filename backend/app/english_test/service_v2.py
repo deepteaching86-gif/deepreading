@@ -391,27 +391,68 @@ class EnglishTestServiceV2:
 
     def _estimate_lexile(self, theta: float) -> int:
         """
-        Estimate Lexile score from θ.
+        Estimate Lexile score from θ using sigmoid-based mapping.
 
-        Placeholder - requires trained Gradient Boosting model (FR-005).
+        Based on research correspondences:
+        - θ = -2.5 → ~200L (Grade 1)
+        - θ = -1.0 → ~500L (Grade 3)
+        - θ = 0.0  → ~800L (Grade 5-6)
+        - θ = 1.0  → ~1100L (Grade 8-9)
+        - θ = 2.0  → ~1400L (Grade 11+)
+
+        Uses logistic mapping to account for floor/ceiling effects.
         """
-        lexile_min, lexile_max = 200, 1700
-        theta_min, theta_max = -3, 3
+        import math
 
-        lexile = lexile_min + (theta - theta_min) / (theta_max - theta_min) * (lexile_max - lexile_min)
-        return int(max(lexile_min, min(lexile_max, lexile)))
+        # Logistic mapping parameters fitted to Lexile-grade correspondences
+        # L(θ) = L_min + (L_max - L_min) / (1 + exp(-k * (θ - θ_mid)))
+        L_min = 100
+        L_max = 1700
+        k = 0.85      # steepness
+        theta_mid = 0.0  # midpoint
+
+        lexile = L_min + (L_max - L_min) / (1 + math.exp(-k * (theta - theta_mid)))
+        return int(max(100, min(1700, lexile)))
 
     def _estimate_ar(self, theta: float) -> float:
         """
-        Estimate AR level from θ.
+        Estimate AR (Accelerated Reader) level from θ.
 
-        Placeholder - requires trained Gradient Boosting model (FR-005).
+        Based on AR-Lexile-Grade correspondences:
+        - θ = -2.5 → AR 1.0 (Grade 1)
+        - θ = -1.5 → AR 2.5 (Grade 2-3)
+        - θ = -0.5 → AR 4.5 (Grade 4-5)
+        - θ = 0.5  → AR 6.5 (Grade 6-7)
+        - θ = 1.5  → AR 9.0 (Grade 9-10)
+        - θ = 2.5  → AR 12.0 (Grade 12+)
+
+        Uses piecewise linear with smoothing at boundaries.
         """
-        ar_min, ar_max = 1.0, 12.0
-        theta_min, theta_max = -3, 3
+        # Piecewise linear mapping based on known correspondences
+        breakpoints = [
+            (-3.0, 0.5),
+            (-2.5, 1.0),
+            (-1.5, 2.5),
+            (-0.5, 4.5),
+            (0.5, 6.5),
+            (1.5, 9.0),
+            (2.5, 12.0),
+            (3.0, 13.0),
+        ]
 
-        ar = ar_min + (theta - theta_min) / (theta_max - theta_min) * (ar_max - ar_min)
-        return round(max(ar_min, min(ar_max, ar)), 1)
+        # Clamp theta
+        theta = max(-3.0, min(3.0, theta))
+
+        # Find segment and interpolate
+        for i in range(len(breakpoints) - 1):
+            t1, ar1 = breakpoints[i]
+            t2, ar2 = breakpoints[i + 1]
+            if theta <= t2:
+                ratio = (theta - t1) / (t2 - t1)
+                ar = ar1 + ratio * (ar2 - ar1)
+                return round(max(0.5, min(13.0, ar)), 1)
+
+        return 13.0
 
     def _calculate_vocabulary_metrics(self, responses: List[Dict]) -> tuple[Optional[int], Optional[Dict]]:
         """

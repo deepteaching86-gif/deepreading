@@ -9,7 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import VisionCalibration from '../../components/vision/VisionCalibration';
 import { VisionWebSocketClient, VisionAPI, GazeData } from '../../services/visionWebSocket';
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'https://literacy-english-test-backend.onrender.com';
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || import.meta.env.VITE_ENGLISH_TEST_API_URL || 'http://localhost:8000';
 
 type TestPhase = 'intro' | 'calibration' | 'testing' | 'complete';
 
