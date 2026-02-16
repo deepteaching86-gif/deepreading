@@ -43,8 +43,8 @@ class PerceptionDatabase:
 
     @classmethod
     def _get_db_url(cls) -> str:
-        # Prefer DIRECT_URL (bypasses PgBouncer) for psycopg2 compatibility
-        url = os.getenv("DIRECT_URL") or os.getenv("DATABASE_URL")
+        # Prefer DATABASE_URL (pooler/IPv4) — DIRECT_URL is IPv6-only, unreachable from Render
+        url = os.getenv("DATABASE_URL") or os.getenv("DIRECT_URL")
         if not url:
             raise RuntimeError("DATABASE_URL / DIRECT_URL not set")
         return url
