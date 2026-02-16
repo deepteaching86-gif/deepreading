@@ -1,5 +1,7 @@
+import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { warmUpServer } from './lib/axios';
 
 // Auth Components
 import ProtectedRoute from './components/auth/ProtectedRoute';
@@ -44,6 +46,11 @@ const queryClient = new QueryClient({
 });
 
 function App() {
+  // Wake up Render backend on app load (fire-and-forget)
+  useEffect(() => {
+    warmUpServer();
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>

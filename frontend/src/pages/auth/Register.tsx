@@ -1,8 +1,16 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import axios from '../../lib/axios';
+import axios, { isServerReady, warmUpServer } from '../../lib/axios';
 
 export default function Register() {
+  const [serverWarm, setServerWarm] = useState(isServerReady());
+
+  useEffect(() => {
+    if (!serverWarm) {
+      warmUpServer().then((ready) => setServerWarm(ready));
+    }
+  }, [serverWarm]);
+
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -72,6 +80,13 @@ export default function Register() {
           <h2 className="text-2xl font-semibold mb-6 text-card-foreground">
             계정 만들기
           </h2>
+
+          {!serverWarm && (
+            <div className="mb-4 p-3 bg-primary/10 border border-primary/20 rounded-md text-primary text-sm flex items-center gap-2">
+              <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent"></div>
+              서버 연결 준비 중... 잠시만 기다려주세요.
+            </div>
+          )}
 
           {error && (
             <div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-md text-destructive text-sm">

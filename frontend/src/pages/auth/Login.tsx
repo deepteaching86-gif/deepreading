@@ -1,16 +1,23 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
-import axios from '../../lib/axios';
+import axios, { isServerReady, warmUpServer } from '../../lib/axios';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [serverWarm, setServerWarm] = useState(isServerReady());
 
   const navigate = useNavigate();
   const { login } = useAuthStore();
+
+  useEffect(() => {
+    if (!serverWarm) {
+      warmUpServer().then((ready) => setServerWarm(ready));
+    }
+  }, [serverWarm]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,6 +66,13 @@ export default function Login() {
           <h2 className="text-2xl font-semibold mb-6 text-card-foreground">
             로그인
           </h2>
+
+          {!serverWarm && (
+            <div className="mb-4 p-3 bg-primary/10 border border-primary/20 rounded-md text-primary text-sm flex items-center gap-2">
+              <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent"></div>
+              서버 연결 준비 중... 잠시만 기다려주세요.
+            </div>
+          )}
 
           {error && (
             <div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-md text-destructive text-sm">
