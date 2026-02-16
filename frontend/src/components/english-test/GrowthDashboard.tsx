@@ -18,7 +18,8 @@ interface GrowthDashboardProps {
 }
 
 export const GrowthDashboard: React.FC<GrowthDashboardProps> = ({ data, onBack }) => {
-  const { sessions, theta_trend, domain_trends, total_tests } = data;
+  const { sessions: rawSessions, theta_trend, domain_trends, total_tests } = data;
+  const sessions = rawSessions ?? [];
 
   // Format sessions for chart
   const chartData = sessions
@@ -39,7 +40,7 @@ export const GrowthDashboard: React.FC<GrowthDashboardProps> = ({ data, onBack }
     return { text: 'Stable', color: 'text-gray-600', bg: 'bg-gray-100' };
   };
 
-  const overallTrend = trendLabel(theta_trend);
+  const overallTrend = trendLabel(theta_trend ?? 0);
 
   return (
     <div className="min-h-screen bg-background py-8 px-6">
@@ -149,7 +150,7 @@ export const GrowthDashboard: React.FC<GrowthDashboardProps> = ({ data, onBack }
             {/* Domain Trends */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
               {(['grammar', 'vocabulary', 'reading'] as const).map(domain => {
-                const trend = domain_trends[domain];
+                const trend = domain_trends?.[domain] ?? 0;
                 const info = trendLabel(trend);
                 const labels: Record<string, string> = {
                   grammar: 'Grammar',

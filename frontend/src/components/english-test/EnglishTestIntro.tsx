@@ -47,7 +47,7 @@ export const EnglishTestIntro: React.FC<EnglishTestIntroProps> = ({
     wakeUpBackend();
   }, []);
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-6">
+    <div lang="en" role="main" aria-label="English Proficiency Test Introduction" className="min-h-screen bg-background flex items-center justify-center p-6">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -99,11 +99,11 @@ export const EnglishTestIntro: React.FC<EnglishTestIntroProps> = ({
 
         {/* Instructions */}
         <div className="bg-muted rounded-lg p-6 mb-8">
-          <h3 className="font-semibold text-foreground mb-3 flex items-center">
+          <h2 className="font-semibold text-foreground mb-3 flex items-center">
             <span className="text-primary mr-2">ℹ️</span>
             시험 안내
-          </h3>
-          <ul className="space-y-2 text-sm text-muted-foreground">
+          </h2>
+          <ul role="list" aria-label="Test instructions" className="space-y-2 text-sm text-muted-foreground">
             <li className="flex items-start">
               <span className="text-primary mr-2">•</span>
               <span>문제의 난이도는 답변에 따라 자동으로 조정됩니다</span>
@@ -129,6 +129,7 @@ export const EnglishTestIntro: React.FC<EnglishTestIntroProps> = ({
           whileTap={{ scale: 0.98 }}
           onClick={onStart}
           disabled={isLoading}
+          aria-label="Start English proficiency test"
           className={`
             w-full py-4 rounded-xl font-semibold text-lg
             ${isLoading
@@ -171,7 +172,7 @@ const InfoCard: React.FC<InfoCardProps> = ({ icon, title, description }) => (
   <div className="flex items-center p-4 bg-muted rounded-lg">
     <span className="text-3xl mr-4">{icon}</span>
     <div>
-      <h4 className="font-semibold text-foreground">{title}</h4>
+      <h3 className="font-semibold text-foreground">{title}</h3>
       <p className="text-sm text-muted-foreground">{description}</p>
     </div>
   </div>

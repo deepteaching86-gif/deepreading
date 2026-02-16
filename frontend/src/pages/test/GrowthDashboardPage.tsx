@@ -10,9 +10,11 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getGrowthData, GrowthData } from '@/api/englishTestApi';
 import { GrowthDashboard } from '@/components/english-test/GrowthDashboard';
+import { useAuthStore } from '@/stores/authStore';
 
 const GrowthDashboardPage: React.FC = () => {
   const navigate = useNavigate();
+  const user = useAuthStore((state) => state.user);
   const [data, setData] = useState<GrowthData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -20,23 +22,13 @@ const GrowthDashboardPage: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Get user ID from localStorage (matches existing auth pattern)
-        const userStr = localStorage.getItem('user');
-        if (!userStr) {
+        if (!user?.id) {
           setError('User not found. Please log in again.');
           setLoading(false);
           return;
         }
-        const user = JSON.parse(userStr);
-        const userId = user.id || user.uid || user.user_id;
 
-        if (!userId) {
-          setError('User ID not found.');
-          setLoading(false);
-          return;
-        }
-
-        const growthData = await getGrowthData(userId);
+        const growthData = await getGrowthData(user.id);
         setData(growthData);
       } catch (err) {
         console.error('Failed to fetch growth data:', err);
@@ -47,7 +39,7 @@ const GrowthDashboardPage: React.FC = () => {
     };
 
     fetchData();
-  }, []);
+  }, [user?.id]);
 
   if (loading) {
     return (
