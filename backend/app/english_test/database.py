@@ -31,8 +31,9 @@ class EnglishTestDB:
         """
         Initialize database layer using DATABASE_URL from environment.
         """
-        # Prefer DIRECT_URL (bypasses PgBouncer) for psycopg2 compatibility
-        self.database_url = os.environ.get('DIRECT_URL') or os.environ.get('DATABASE_URL')
+        # Use DATABASE_URL (Supabase pooler) as primary - reachable from Render
+        # DIRECT_URL often uses IPv6 which is unreachable from some hosting providers
+        self.database_url = os.environ.get('DATABASE_URL') or os.environ.get('DIRECT_URL')
 
         if self.database_url:
             logger.info("Using DATABASE_URL from environment")
