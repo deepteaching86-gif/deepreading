@@ -7,79 +7,55 @@ Mirrors Prisma schema for English test tables.
 """
 
 import os
+import logging
 import socket
 from typing import Dict, List, Optional, Tuple
 from datetime import datetime
 import psycopg2
-from psycopg2 import pool
 from psycopg2.extras import RealDictCursor
 import json
+
+logger = logging.getLogger(__name__)
 
 
 class EnglishTestDB:
     """
     Database access layer for English Adaptive Test.
 
-    Uses connection pooling via psycopg2 to prevent connection exhaustion.
-    Schema mirrors Prisma definitions in schema.prisma.
+    Uses direct connections (no pool) for PgBouncer compatibility
+    and to avoid connection pool exhaustion on managed hosting.
+    Each operation creates a fresh connection and closes it after use.
     """
-
-    # Class-level connection pool (shared across all instances)
-    _connection_pool = None
 
     def __init__(self):
         """
-        Initialize database connection pool using DATABASE_URL from environment.
-        This ensures we use the correct credentials set by Render.
+        Initialize database layer using DATABASE_URL from environment.
         """
-        # Use DATABASE_URL from environment (set by Render from render.yaml)
-        database_url = os.environ.get('DATABASE_URL')
+        # Prefer DIRECT_URL (bypasses PgBouncer) for psycopg2 compatibility
+        self.database_url = os.environ.get('DIRECT_URL') or os.environ.get('DATABASE_URL')
 
-        if database_url:
-            print(f"✅ Using DATABASE_URL from environment")
-            self.database_url = database_url
+        if self.database_url:
+            logger.info("Using DATABASE_URL from environment")
         else:
-            # Fallback: This should never happen in production
-            print("⚠️ WARNING: DATABASE_URL not found in environment!")
-            print("⚠️ Please ensure DATABASE_URL is set in Render environment variables")
+            logger.error("DATABASE_URL not found in environment!")
             raise ValueError("DATABASE_URL environment variable is required")
 
-    def _ensure_pool_initialized(self):
-        """
-        Lazy initialization of connection pool.
-        Pool is created only when first connection is requested.
-        This prevents connection errors during module import.
-        """
-        if EnglishTestDB._connection_pool is None:
-            try:
-                print("🔧 Initializing connection pool (min=1, max=5)")
-                EnglishTestDB._connection_pool = pool.SimpleConnectionPool(
-                    minconn=1,
-                    maxconn=5,
-                    dsn=self.database_url
-                )
-                print("✅ Connection pool initialized successfully")
-            except Exception as e:
-                print(f"❌ Failed to initialize connection pool: {e}")
-                raise
-
     def _get_connection(self):
-        """Get database connection from pool"""
-        # Ensure pool is initialized before getting connection
-        self._ensure_pool_initialized()
-
+        """Create a fresh database connection (no pool)."""
         try:
-            return EnglishTestDB._connection_pool.getconn()
+            conn = psycopg2.connect(self.database_url)
+            return conn
         except Exception as e:
-            print(f"❌ Failed to get connection from pool: {e}")
+            logger.error(f"Failed to create connection: {e}")
             raise
 
     def _return_connection(self, conn):
-        """Return connection to pool"""
+        """Close the connection (replaces pool return)."""
         try:
-            EnglishTestDB._connection_pool.putconn(conn)
+            if conn and not conn.closed:
+                conn.close()
         except Exception as e:
-            print(f"⚠️ Failed to return connection to pool: {e}")
+            logger.warning(f"Failed to close connection: {e}")
 
     # ===== Session Methods =====
 
