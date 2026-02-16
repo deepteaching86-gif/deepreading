@@ -1,290 +1,592 @@
 /**
  * Vision Calibration Component
  *
- * 9-point calibration for accurate eye tracking
+ * Click-based 9-point calibration for client-side FaceMesh gaze tracking.
+ * - 9 calibration points (click + 1.5s sample collection)
+ * - 4-point verification step
+ * - Child-friendly UI with animations
+ * - Distance guide using iris-based estimation
  */
 
-import React, { useState, useRef, useEffect } from 'react';
-import { VisionWebSocketClient, VisionAPI, CalibrationPoint, GazeData } from '../../services/visionWebSocket';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { FaceMeshGazeService, GazePrediction } from '../../services/faceMeshGazeService';
+import CameraPreview from './CameraPreview';
 
 interface VisionCalibrationProps {
-  wsClient: VisionWebSocketClient;
+  gazeService: FaceMeshGazeService;
   sessionId: string;
-  backendUrl: string;
   onCalibrationComplete: (accuracy: number) => void;
   onCancel: () => void;
 }
 
 const CALIBRATION_POINTS = [
-  { x: 0.1, y: 0.1 }, // Top-left
-  { x: 0.5, y: 0.1 }, // Top-center
-  { x: 0.9, y: 0.1 }, // Top-right
-  { x: 0.1, y: 0.5 }, // Middle-left
-  { x: 0.5, y: 0.5 }, // Center
-  { x: 0.9, y: 0.5 }, // Middle-right
-  { x: 0.1, y: 0.9 }, // Bottom-left
-  { x: 0.5, y: 0.9 }, // Bottom-center
-  { x: 0.9, y: 0.9 }, // Bottom-right
+  { x: 0.1, y: 0.1 },
+  { x: 0.5, y: 0.1 },
+  { x: 0.9, y: 0.1 },
+  { x: 0.1, y: 0.5 },
+  { x: 0.5, y: 0.5 },
+  { x: 0.9, y: 0.5 },
+  { x: 0.1, y: 0.9 },
+  { x: 0.5, y: 0.9 },
+  { x: 0.9, y: 0.9 },
 ];
 
+const VERIFICATION_POINTS = [
+  { x: 0.3, y: 0.3 },
+  { x: 0.7, y: 0.3 },
+  { x: 0.3, y: 0.7 },
+  { x: 0.7, y: 0.7 },
+];
+
+type CalibrationPhase = 'guide' | 'collecting' | 'training' | 'verifying' | 'done';
+
 const VisionCalibration: React.FC<VisionCalibrationProps> = ({
-  wsClient,
-  sessionId,
-  backendUrl,
+  gazeService,
+  sessionId: _sessionId,
   onCalibrationComplete,
   onCancel,
 }) => {
+  const [phase, setPhase] = useState<CalibrationPhase>('guide');
   const [currentPointIndex, setCurrentPointIndex] = useState(0);
   const [isCollecting, setIsCollecting] = useState(false);
-  const [collectedPoints, setCollectedPoints] = useState<CalibrationPoint[]>([]);
-  const [gazePoints, setGazePoints] = useState<{ x: number; y: number }[]>([]);
-  const [isTraining, setIsTraining] = useState(false);
+  const [completedPoints, setCompletedPoints] = useState<number[]>([]);
+  const [distanceCm, setDistanceCm] = useState<number | null>(null);
+  const [faceDetected, setFaceDetected] = useState(false);
+  const [verificationIndex, setVerificationIndex] = useState(0);
+  const [, setVerificationErrors] = useState<number[]>([]);
+  const [accuracy, setAccuracy] = useState(0);
+  const [showPopAnimation, setShowPopAnimation] = useState(false);
 
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const visionAPI = useRef(new VisionAPI(backendUrl)).current;
+  const collectIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const verificationGazeRef = useRef<Array<{ x: number; y: number }>>([]);
+  const verificationErrorsRef = useRef<number[]>([]);
+  const verificationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Monitor face detection and distance during guide phase
   useEffect(() => {
-    // Initialize webcam
-    initializeWebcam();
+    const checkInterval = setInterval(() => {
+      const dist = gazeService.getDistanceCm();
+      setDistanceCm(dist);
+      setFaceDetected(dist !== null);
+    }, 500);
 
-    // Register gaze data callback
-    wsClient.onGaze((data: GazeData) => {
-      if (isCollecting) {
-        setGazePoints((prev) => [...prev, { x: data.x, y: data.y }]);
-      }
-    });
+    return () => clearInterval(checkInterval);
+  }, [gazeService]);
 
+  // Cleanup intervals and timers on unmount
+  useEffect(() => {
     return () => {
-      stopWebcam();
+      if (collectIntervalRef.current) {
+        clearInterval(collectIntervalRef.current);
+      }
+      if (verificationTimerRef.current) {
+        clearTimeout(verificationTimerRef.current);
+      }
     };
-  }, [wsClient, isCollecting]);
+  }, []);
 
-  const initializeWebcam = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          width: { ideal: 1280, max: 1920 },
-          height: { ideal: 720, max: 1080 },
-          facingMode: 'user',
-        },
-      });
-
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        await videoRef.current.play();
-
-        // Log detected camera resolution
-        const videoTrack = stream.getVideoTracks()[0];
-        const settings = videoTrack.getSettings();
-        console.log(`📹 Camera resolution: ${settings.width}x${settings.height} (adaptive)`);
-
-        // Start sending frames to backend
-        captureAndSendFrames();
-      }
-    } catch (error) {
-      console.error('Failed to access webcam:', error);
-      alert('웹캠 접근에 실패했습니다. 브라우저 설정을 확인해주세요.');
-    }
+  const handleStartCalibration = () => {
+    gazeService.clearCalibration();
+    setPhase('collecting');
+    setCurrentPointIndex(0);
+    setCompletedPoints([]);
   };
 
-  const captureAndSendFrames = () => {
-    const canvas = canvasRef.current;
-    const video = videoRef.current;
-
-    // ✅ FIX: Don't break the loop on early return
-    if (!canvas || !video) {
-      setTimeout(captureAndSendFrames, 33);
-      return;
-    }
-
-    const ctx = canvas.getContext('2d');
-    if (!ctx) {
-      setTimeout(captureAndSendFrames, 33);
-      return;
-    }
-
-    const sendFrame = () => {
-      // ✅ FIX: Keep loop alive even when disconnected
-      if (!wsClient.isConnected()) {
-        setTimeout(sendFrame, 33);
-        return;
-      }
-
-      // Update canvas size to match video dimensions
-      if (video.videoWidth > 0 && video.videoHeight > 0) {
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-      }
-
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      const imageData = canvas.toDataURL('image/jpeg', 0.8);
-
-      // Send frame WITH frame dimensions for resolution-independent tracking
-      wsClient.sendFrame(
-        imageData,
-        window.innerWidth,
-        window.innerHeight,
-        video.videoWidth,
-        video.videoHeight
-      );
-
-      // ✅ PERFORMANCE: 33ms = ~30 FPS (improved from requestAnimationFrame)
-      setTimeout(sendFrame, 33);
-    };
-
-    sendFrame();
-  };
-
-  const stopWebcam = () => {
-    if (videoRef.current && videoRef.current.srcObject) {
-      const stream = videoRef.current.srcObject as MediaStream;
-      stream.getTracks().forEach((track) => track.stop());
-    }
-  };
-
-  const handlePointClick = async () => {
+  const handlePointClick = useCallback(async () => {
     if (isCollecting) return;
 
     setIsCollecting(true);
-    setGazePoints([]);
 
-    // Collect gaze data for 2 seconds
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    const currentPoint = CALIBRATION_POINTS[currentPointIndex];
+    const screenX = currentPoint.x * window.innerWidth;
+    const screenY = currentPoint.y * window.innerHeight;
 
-    setIsCollecting(false);
+    // Collect samples every 100ms for 1.5 seconds
+    let sampleCount = 0;
+    const maxSamples = 15;
 
-    // Calculate average gaze position
-    if (gazePoints.length > 0) {
-      const avgX = gazePoints.reduce((sum, p) => sum + p.x, 0) / gazePoints.length;
-      const avgY = gazePoints.reduce((sum, p) => sum + p.y, 0) / gazePoints.length;
+    collectIntervalRef.current = setInterval(() => {
+      gazeService.collectCalibrationSample(screenX, screenY);
+      sampleCount++;
 
-      const currentPoint = CALIBRATION_POINTS[currentPointIndex];
-      const calibrationPoint: CalibrationPoint = {
-        screen_x: currentPoint.x * window.innerWidth,
-        screen_y: currentPoint.y * window.innerHeight,
-        gaze_x: avgX,
-        gaze_y: avgY,
-        timestamp: Date.now(),
-      };
+      if (sampleCount >= maxSamples) {
+        if (collectIntervalRef.current) {
+          clearInterval(collectIntervalRef.current);
+          collectIntervalRef.current = null;
+        }
 
-      const allPoints = [...collectedPoints, calibrationPoint];
-      setCollectedPoints(allPoints);
+        // Pop animation
+        setShowPopAnimation(true);
+        setTimeout(() => setShowPopAnimation(false), 400);
 
-      // Move to next point
-      if (currentPointIndex < CALIBRATION_POINTS.length - 1) {
-        setCurrentPointIndex(currentPointIndex + 1);
-      } else {
-        // Calibration complete - train the corrector
-        setIsTraining(true);
+        setIsCollecting(false);
+        setCompletedPoints(prev => [...prev, currentPointIndex]);
 
-        try {
-          console.log('🎯 Training calibration corrector with 9 points...');
-          const metrics = await visionAPI.trainCalibration(sessionId, allPoints);
-
-          console.log('✅ Calibration trained successfully:');
-          console.log(`   Error: ${metrics.error_mean.toFixed(1)}px ± ${metrics.error_std.toFixed(1)}px`);
-          console.log(`   Scale: X=${metrics.scale_x.toFixed(3)}, Y=${metrics.scale_y.toFixed(3)}`);
-          console.log(`   Offset: X=${metrics.offset_x.toFixed(1)}px, Y=${metrics.offset_y.toFixed(1)}px`);
-          console.log(`   Anatomical Y offset: ${metrics.anatomical_offset_y.toFixed(1)}px`);
-
-          // Convert error to accuracy (error_mean in pixels → accuracy 0-1)
-          // Assume 50px error = 0.95 accuracy, 100px = 0.5 accuracy
-          const accuracy = Math.max(0, 1 - metrics.error_mean / 200);
-
-          onCalibrationComplete(parseFloat(accuracy.toFixed(2)));
-        } catch (error) {
-          console.error('Failed to train calibration:', error);
-          alert('캘리브레이션 학습에 실패했습니다. 다시 시도해주세요.');
-          setIsTraining(false);
+        // Move to next point or start training
+        if (currentPointIndex < CALIBRATION_POINTS.length - 1) {
+          setCurrentPointIndex(prev => prev + 1);
+        } else {
+          // All 9 points collected - train
+          startTraining();
         }
       }
+    }, 100);
+  }, [currentPointIndex, isCollecting, gazeService]);
+
+  const startTraining = () => {
+    setPhase('training');
+
+    // Small delay to show training UI
+    setTimeout(() => {
+      const result = gazeService.trainCalibration();
+
+      if (result.accuracy >= 0 && result.meanError !== undefined) {
+        // Always proceed to verification - verification phase measures real accuracy
+        setPhase('verifying');
+        setVerificationIndex(0);
+        setVerificationErrors([]);
+        verificationErrorsRef.current = [];
+        startVerificationPoint(0);
+      } else {
+        // Training actually failed (exception) - allow retry
+        setPhase('guide');
+      }
+    }, 500);
+  };
+
+  const finishVerification = (errors: number[]) => {
+    const screenDiag = Math.sqrt(
+      Math.pow(window.innerWidth, 2) + Math.pow(window.innerHeight, 2)
+    );
+    const errorRef = screenDiag * 0.15;
+    const meanError = errors.reduce((s, e) => s + e, 0) / errors.length;
+    const finalAccuracy = Math.max(0, 1 - meanError / errorRef);
+    console.log(`📊 Verification: meanError=${meanError.toFixed(0)}px, accuracy=${(finalAccuracy * 100).toFixed(0)}%, errors=[${errors.map(e => e.toFixed(0)).join(',')}]px`);
+    setAccuracy(finalAccuracy);
+    setPhase('done');
+    gazeService.removeGazeListener();
+  };
+
+  const startVerificationPoint = (index: number) => {
+    // Reset filter so it doesn't carry residual from previous point/training
+    gazeService.resetSmoothFilter();
+    verificationGazeRef.current = [];
+
+    // Register gaze listener for verification
+    gazeService.onGaze((prediction: GazePrediction) => {
+      if (prediction.confidence > 0.1) {
+        verificationGazeRef.current.push({ x: prediction.x, y: prediction.y });
+      }
+    });
+
+    // Phase 1: 500ms settling delay for user to fixate on point + filter convergence
+    verificationTimerRef.current = setTimeout(() => {
+      // Discard settling period gaze data
+      verificationGazeRef.current = [];
+
+      // Phase 2: 1 second of actual gaze collection
+      verificationTimerRef.current = setTimeout(() => {
+        const gazePoints = verificationGazeRef.current;
+        const verifyPoint = VERIFICATION_POINTS[index];
+        const targetX = verifyPoint.x * window.innerWidth;
+        const targetY = verifyPoint.y * window.innerHeight;
+
+        const screenDiag = Math.sqrt(
+          Math.pow(window.innerWidth, 2) + Math.pow(window.innerHeight, 2)
+        );
+        const errorRef = screenDiag * 0.15;
+
+        let error: number;
+        if (gazePoints.length > 0) {
+          const avgX = gazePoints.reduce((s, p) => s + p.x, 0) / gazePoints.length;
+          const avgY = gazePoints.reduce((s, p) => s + p.y, 0) / gazePoints.length;
+          error = Math.sqrt(Math.pow(avgX - targetX, 2) + Math.pow(avgY - targetY, 2));
+          console.log(`  🔵 Verify[${index}]: target=(${targetX.toFixed(0)},${targetY.toFixed(0)}), gaze=(${avgX.toFixed(0)},${avgY.toFixed(0)}), error=${error.toFixed(0)}px, samples=${gazePoints.length}`);
+        } else {
+          error = errorRef;
+          console.log(`  🔵 Verify[${index}]: NO GAZE DATA - using default error=${errorRef.toFixed(0)}px`);
+        }
+
+        // Accumulate via ref (not state updater) to avoid React double-invocation
+        verificationErrorsRef.current.push(error);
+        setVerificationErrors([...verificationErrorsRef.current]);
+
+        if (index >= VERIFICATION_POINTS.length - 1) {
+          finishVerification(verificationErrorsRef.current);
+        } else {
+          setVerificationIndex(index + 1);
+          startVerificationPoint(index + 1);
+        }
+      }, 1000);
+    }, 500);
+  };
+
+  const handleAcceptCalibration = () => {
+    onCalibrationComplete(parseFloat(accuracy.toFixed(2)));
+  };
+
+  const handleRetryCalibration = () => {
+    gazeService.clearCalibration();
+    setPhase('guide');
+    setCurrentPointIndex(0);
+    setCompletedPoints([]);
+    setVerificationIndex(0);
+    setVerificationErrors([]);
+    verificationErrorsRef.current = [];
+    setAccuracy(0);
+    if (verificationTimerRef.current) {
+      clearTimeout(verificationTimerRef.current);
+      verificationTimerRef.current = null;
     }
   };
 
-  const currentPoint = CALIBRATION_POINTS[currentPointIndex];
+  // Distance status (40-70cm optimal range for gaze tracking)
+  const distanceStatus = distanceCm
+    ? distanceCm >= 40 && distanceCm <= 70
+      ? 'good'
+      : distanceCm < 40
+      ? 'close'
+      : 'far'
+    : 'unknown';
+
+  // Show head movement hint after 5th calibration point
+  const showHeadMovementHint = phase === 'collecting' && currentPointIndex >= 5 && !isCollecting;
 
   return (
     <div className="fixed inset-0 bg-gray-900 z-50 flex flex-col items-center justify-center">
-      {/* Hidden video and canvas for frame capture */}
-      <video
-        ref={videoRef}
-        className="hidden"
-        width={640}
-        height={480}
-        autoPlay
-        playsInline
-        muted
-      />
-      <canvas ref={canvasRef} width={640} height={480} className="hidden" />
-
-      {/* Calibration instructions */}
-      <div className="absolute top-8 left-0 right-0 text-center">
-        <h1 className="text-3xl font-bold text-white mb-2">시선 추적 캘리브레이션</h1>
-        {isTraining ? (
-          <>
-            <p className="text-green-400 text-xl">
-              🎯 캘리브레이션 학습 중...
+      {/* Guide Phase */}
+      {phase === 'guide' && (
+        <>
+          <div className="absolute top-8 left-0 right-0 text-center">
+            <h1 className="text-3xl font-bold text-white mb-2">
+              시선 추적 캘리브레이션
+            </h1>
+            <p className="text-gray-300 mb-4">
+              화면의 점을 클릭하면 1.5초간 시선을 측정합니다
             </p>
-            <p className="text-gray-300 mt-2">
-              개인별 시선 보정 계수를 계산하고 있습니다
-            </p>
-          </>
-        ) : (
-          <>
-            <p className="text-gray-300">
-              화면에 나타나는 점을 클릭하고 2초간 응시해주세요
-            </p>
-            <p className="text-gray-400 mt-2">
-              진행: {currentPointIndex + 1} / {CALIBRATION_POINTS.length}
-            </p>
-          </>
-        )}
-      </div>
+          </div>
 
-      {/* Calibration point */}
-      <button
-        onClick={handlePointClick}
-        disabled={isCollecting}
-        className={`absolute w-12 h-12 rounded-full transition-all duration-200 ${
-          isCollecting
-            ? 'bg-red-500 scale-150 animate-pulse'
-            : 'bg-blue-500 hover:bg-blue-400 hover:scale-110'
-        }`}
-        style={{
-          left: `${currentPoint.x * 100}%`,
-          top: `${currentPoint.y * 100}%`,
-          transform: 'translate(-50%, -50%)',
-        }}
-      >
-        <div className="w-2 h-2 bg-white rounded-full mx-auto" />
-      </button>
+          {/* Face detection & distance guide */}
+          <div className="bg-gray-800 rounded-xl p-8 max-w-md w-full mx-4">
+            <div className="space-y-4">
+              {/* Face detection status */}
+              <div className="flex items-center gap-3">
+                <div
+                  className={`w-4 h-4 rounded-full ${
+                    faceDetected ? 'bg-green-500' : 'bg-red-500'
+                  } animate-pulse`}
+                />
+                <span className="text-white">
+                  {faceDetected ? '얼굴이 감지되었습니다' : '얼굴을 카메라에 보여주세요'}
+                </span>
+              </div>
 
-      {/* Cancel button */}
-      <div className="absolute bottom-8 left-0 right-0 text-center">
-        <button
-          onClick={onCancel}
-          className="px-6 py-3 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors"
-        >
-          취소
-        </button>
-      </div>
+              {/* Distance indicator */}
+              <div className="flex items-center gap-3">
+                <div
+                  className={`w-4 h-4 rounded-full ${
+                    distanceStatus === 'good'
+                      ? 'bg-green-500'
+                      : distanceStatus === 'unknown'
+                      ? 'bg-gray-500'
+                      : 'bg-yellow-500'
+                  }`}
+                />
+                <span className="text-white">
+                  {distanceCm
+                    ? `거리: ${distanceCm.toFixed(0)}cm`
+                    : '거리 측정 중...'}
+                  {distanceStatus === 'close' && ' (조금 더 뒤로)'}
+                  {distanceStatus === 'far' && ' (조금 더 가까이)'}
+                  {distanceStatus === 'good' && ' (적절한 거리)'}
+                </span>
+              </div>
 
-      {/* Progress indicator */}
-      <div className="absolute bottom-24 left-0 right-0 flex justify-center gap-2">
-        {CALIBRATION_POINTS.map((_, index) => (
-          <div
-            key={index}
-            className={`w-3 h-3 rounded-full ${
-              index < currentPointIndex
-                ? 'bg-green-500'
-                : index === currentPointIndex
-                ? 'bg-blue-500 animate-pulse'
-                : 'bg-gray-600'
+              {/* Distance bar (30-90cm range, 40-70cm green zone) */}
+              <div className="relative h-3 bg-gray-700 rounded-full overflow-hidden">
+                <div
+                  className="absolute h-full bg-green-500/30 rounded-full"
+                  style={{ left: '16.7%', width: '50%' }}
+                />
+                {distanceCm && (
+                  <div
+                    className={`absolute h-full w-2 rounded-full transition-all ${
+                      distanceStatus === 'good' ? 'bg-green-500' : 'bg-yellow-500'
+                    }`}
+                    style={{
+                      left: `${Math.max(0, Math.min(100, ((distanceCm - 30) / 60) * 100))}%`,
+                    }}
+                  />
+                )}
+                <div className="absolute top-0 left-0 w-full flex justify-between px-1 text-[10px] text-gray-500">
+                  <span>30cm</span>
+                  <span>60cm</span>
+                  <span>90cm</span>
+                </div>
+              </div>
+
+              <p className="text-gray-400 text-sm text-center mt-2">
+                40-70cm 거리에서 정면을 바라봐주세요 (권장 범위)
+              </p>
+            </div>
+
+            <button
+              onClick={handleStartCalibration}
+              disabled={!faceDetected}
+              className={`w-full mt-6 px-6 py-3 rounded-lg font-semibold transition-colors ${
+                faceDetected
+                  ? 'bg-purple-600 text-white hover:bg-purple-700'
+                  : 'bg-gray-600 text-gray-400 cursor-not-allowed'
+              }`}
+            >
+              {faceDetected ? '캘리브레이션 시작' : '얼굴 감지 대기 중...'}
+            </button>
+          </div>
+
+          <div className="absolute bottom-8 text-center">
+            <button
+              onClick={onCancel}
+              className="px-6 py-3 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors"
+            >
+              취소
+            </button>
+          </div>
+        </>
+      )}
+
+      {/* Collecting Phase - 9-point calibration */}
+      {phase === 'collecting' && (
+        <>
+          <div className="absolute top-8 left-0 right-0 text-center z-10">
+            <h1 className="text-2xl font-bold text-white mb-2">
+              점을 클릭하고 응시해주세요
+            </h1>
+            <p className="text-gray-400">
+              {currentPointIndex + 1} / {CALIBRATION_POINTS.length}
+            </p>
+            {showHeadMovementHint && (
+              <p className="text-yellow-300 text-sm mt-2 animate-pulse">
+                자연스럽게 머리를 약간 돌려가며 점을 봐주세요
+              </p>
+            )}
+          </div>
+
+          {/* Calibration point */}
+          <button
+            onClick={handlePointClick}
+            disabled={isCollecting}
+            className={`absolute transition-all duration-300 ${
+              isCollecting
+                ? 'scale-150'
+                : 'hover:scale-110'
             }`}
-          />
-        ))}
-      </div>
+            style={{
+              left: `${CALIBRATION_POINTS[currentPointIndex].x * 100}%`,
+              top: `${CALIBRATION_POINTS[currentPointIndex].y * 100}%`,
+              transform: 'translate(-50%, -50%)',
+            }}
+          >
+            <div
+              className={`w-14 h-14 rounded-full flex items-center justify-center transition-all ${
+                isCollecting
+                  ? 'bg-red-500 animate-pulse'
+                  : 'bg-blue-500 hover:bg-blue-400 shadow-lg shadow-blue-500/50'
+              }`}
+            >
+              {isCollecting ? (
+                <div className="w-3 h-3 bg-white rounded-full animate-ping" />
+              ) : (
+                <div className="w-3 h-3 bg-white rounded-full" />
+              )}
+            </div>
+          </button>
+
+          {/* Pop animation on completion */}
+          {showPopAnimation && completedPoints.length > 0 && (
+            <div
+              className="absolute text-3xl animate-bounce pointer-events-none"
+              style={{
+                left: `${CALIBRATION_POINTS[completedPoints[completedPoints.length - 1]].x * 100}%`,
+                top: `${CALIBRATION_POINTS[completedPoints[completedPoints.length - 1]].y * 100}%`,
+                transform: 'translate(-50%, -50%)',
+              }}
+            >
+              &#11088;
+            </div>
+          )}
+
+          {/* Progress indicator */}
+          <div className="absolute bottom-8 left-0 right-0 flex justify-center gap-3">
+            {CALIBRATION_POINTS.map((_, index) => (
+              <div key={index} className="flex flex-col items-center gap-1">
+                <div
+                  className={`w-4 h-4 rounded-full transition-all ${
+                    completedPoints.includes(index)
+                      ? 'bg-green-500 scale-110'
+                      : index === currentPointIndex
+                      ? 'bg-blue-500 animate-pulse'
+                      : 'bg-gray-600'
+                  }`}
+                />
+                {completedPoints.includes(index) && (
+                  <span className="text-xs text-green-400">&#10003;</span>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* Cancel */}
+          <div className="absolute bottom-24 text-center w-full">
+            <button
+              onClick={onCancel}
+              className="px-4 py-2 text-gray-500 hover:text-white transition-colors text-sm"
+            >
+              취소
+            </button>
+          </div>
+        </>
+      )}
+
+      {/* Training Phase */}
+      {phase === 'training' && (
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-white mb-2">
+            Ridge Regression 학습 중...
+          </h2>
+          <p className="text-gray-300">
+            머리 자세 + 거리 + 시선 데이터로 보정 모델을 학습합니다
+          </p>
+        </div>
+      )}
+
+      {/* Verification Phase */}
+      {phase === 'verifying' && (
+        <>
+          <div className="absolute top-8 left-0 right-0 text-center z-10">
+            <h1 className="text-2xl font-bold text-white mb-2">
+              정확도 검증 중
+            </h1>
+            <p className="text-gray-400">
+              점을 응시해주세요 ({verificationIndex + 1} / {VERIFICATION_POINTS.length})
+            </p>
+          </div>
+
+          {/* Verification point */}
+          <div
+            className="absolute"
+            style={{
+              left: `${VERIFICATION_POINTS[verificationIndex].x * 100}%`,
+              top: `${VERIFICATION_POINTS[verificationIndex].y * 100}%`,
+              transform: 'translate(-50%, -50%)',
+            }}
+          >
+            <div className="w-10 h-10 rounded-full bg-yellow-500 animate-pulse flex items-center justify-center shadow-lg shadow-yellow-500/50">
+              <div className="w-2 h-2 bg-white rounded-full" />
+            </div>
+          </div>
+
+          {/* Verification progress */}
+          <div className="absolute bottom-8 left-0 right-0 flex justify-center gap-3">
+            {VERIFICATION_POINTS.map((_, index) => (
+              <div
+                key={index}
+                className={`w-4 h-4 rounded-full ${
+                  index < verificationIndex
+                    ? 'bg-green-500'
+                    : index === verificationIndex
+                    ? 'bg-yellow-500 animate-pulse'
+                    : 'bg-gray-600'
+                }`}
+              />
+            ))}
+          </div>
+        </>
+      )}
+
+      {/* Done Phase - Show Results */}
+      {phase === 'done' && (
+        <div className="bg-gray-800 rounded-xl p-8 max-w-md w-full mx-4 text-center">
+          <div className="text-5xl mb-4">
+            {accuracy >= 0.6 ? '&#127881;' : accuracy >= 0.4 ? '&#128077;' : '&#128533;'}
+          </div>
+          <h2 className="text-2xl font-bold text-white mb-2">
+            캘리브레이션 완료
+          </h2>
+          <div className="text-lg text-gray-300 mb-4">
+            정확도:{' '}
+            <span
+              className={`font-bold ${
+                accuracy >= 0.6
+                  ? 'text-green-400'
+                  : accuracy >= 0.4
+                  ? 'text-yellow-400'
+                  : 'text-red-400'
+              }`}
+            >
+              {(accuracy * 100).toFixed(0)}%
+            </span>
+          </div>
+
+          {accuracy < 0.4 && (
+            <p className="text-yellow-400 text-sm mb-4">
+              정확도가 낮습니다. 재캘리브레이션을 권장합니다.
+            </p>
+          )}
+
+          <div className="flex gap-4">
+            {accuracy < 0.4 ? (
+              <>
+                <button
+                  onClick={handleRetryCalibration}
+                  className="flex-1 px-6 py-3 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors font-semibold"
+                >
+                  다시 하기
+                </button>
+                <button
+                  onClick={handleAcceptCalibration}
+                  className="flex-1 px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-500 transition-colors"
+                >
+                  그냥 진행
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={handleAcceptCalibration}
+                  className="flex-1 px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-semibold"
+                >
+                  시작하기
+                </button>
+                <button
+                  onClick={handleRetryCalibration}
+                  className="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-500 transition-colors"
+                >
+                  다시 하기
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Camera Preview PiP - dynamically repositioned to avoid current calibration point */}
+      {(phase === 'guide' || phase === 'collecting' || phase === 'verifying') && (
+        <CameraPreview
+          gazeService={gazeService}
+          visible={true}
+          position={
+            phase === 'collecting'
+              ? (CALIBRATION_POINTS[currentPointIndex].y >= 0.5
+                  ? (CALIBRATION_POINTS[currentPointIndex].x >= 0.5 ? 'top-left' : 'top-right')
+                  : (CALIBRATION_POINTS[currentPointIndex].x >= 0.5 ? 'bottom-left' : 'bottom-right'))
+              : 'bottom-right'
+          }
+          showIris={true}
+          showEyeContours={true}
+          width={280}
+        />
+      )}
     </div>
   );
 };

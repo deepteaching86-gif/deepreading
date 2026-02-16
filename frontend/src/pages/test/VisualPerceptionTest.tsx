@@ -7,6 +7,8 @@
  * 3. Reading - Read passage with gaze tracking
  * 4. Questions - Answer comprehension questions with gaze tracking
  * 5. Results - Display comprehensive test results
+ *
+ * Uses client-side MediaPipe FaceMesh for gaze tracking (no server-side dependency).
  */
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -14,7 +16,8 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuthStore } from '../../stores/authStore';
 import VisionCalibration from '../../components/vision/VisionCalibration';
-import { VisionWebSocketClient } from '../../services/visionWebSocket';
+import CameraPreview from '../../components/vision/CameraPreview';
+import { FaceMeshGazeService } from '../../services/faceMeshGazeService';
 import PerceptionAPI, {
   PerceptionSession,
   PerceptionQuestion,
@@ -32,13 +35,12 @@ const VisualPerceptionTest: React.FC = () => {
   const [phase, setPhase] = useState<TestPhase>('intro');
 
   // API clients
-  const [wsClient] = useState(() => new VisionWebSocketClient(BACKEND_URL));
   const [perceptionAPI] = useState(() => new PerceptionAPI(BACKEND_URL));
+  const gazeServiceRef = useRef<FaceMeshGazeService | null>(null);
 
   // Session data
   const [_session, setSession] = useState<PerceptionSession | null>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
-  const [_isConnected, setIsConnected] = useState(false);
 
   // Reading phase
   const [passageContent, setPassageContent] = useState<string>('');
@@ -58,14 +60,20 @@ const VisualPerceptionTest: React.FC = () => {
   // Gaze tracking
   const [currentGaze, setCurrentGaze] = useState<{ x: number; y: number } | null>(null);
   const [visionAvailable, setVisionAvailable] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(false);
   const gazeBufferRef = useRef<any[]>([]);
+  const phaseRef = useRef<TestPhase>('intro');
+
+  // Keep phaseRef in sync
+  useEffect(() => {
+    phaseRef.current = phase;
+  }, [phase]);
 
   useEffect(() => {
-    // Check API availability
     checkAPIAvailability();
 
     return () => {
-      wsClient.disconnect();
+      gazeServiceRef.current?.stopTracking();
     };
   }, []);
 
@@ -78,12 +86,13 @@ const VisualPerceptionTest: React.FC = () => {
 
   const handleStart = async () => {
     try {
-      // Check if user is logged in
       if (!user || !user.id) {
         alert('로그인이 필요합니다.');
         navigate('/login');
         return;
       }
+
+      setIsInitializing(true);
 
       // Get student profile from Node.js backend
       const profileRes = await axios.get(`${NODE_BACKEND_URL}/api/v1/students/me/profile`, {
@@ -107,43 +116,55 @@ const VisualPerceptionTest: React.FC = () => {
         setQuestions(newSession.questions);
       }
 
-      // Connect WebSocket (optional - test proceeds without vision tracking)
+      // Initialize FaceMesh gaze tracking (optional - test proceeds without it)
       try {
-        await wsClient.connect(newSession.id);
-        setIsConnected(true);
-        setVisionAvailable(true);
+        const service = new FaceMeshGazeService();
+        gazeServiceRef.current = service;
+        const initialized = await service.initialize();
 
-        // Register gaze callback
-        wsClient.onGaze((data: any) => {
-          setCurrentGaze({ x: data.x, y: data.y });
+        if (initialized) {
+          await service.startTracking();
+          setVisionAvailable(true);
 
-          // Buffer gaze data
-          gazeBufferRef.current.push({
-            phase: phase === 'reading' ? 'reading' : 'questions',
-            gaze_x: data.x,
-            gaze_y: data.y,
-            confidence: data.confidence || 0.8,
-            timestamp: new Date()
+          // Register gaze callback
+          service.onGaze((prediction) => {
+            if (prediction.confidence > 0.1) {
+              setCurrentGaze({ x: prediction.x, y: prediction.y });
+            }
+
+            // Buffer gaze data for backend
+            gazeBufferRef.current.push({
+              phase: phaseRef.current === 'reading' ? 'reading' : 'questions',
+              gaze_x: prediction.x,
+              gaze_y: prediction.y,
+              confidence: prediction.confidence,
+              head_pitch: prediction.headPose?.pitch,
+              head_yaw: prediction.headPose?.yaw,
+              head_roll: prediction.headPose?.roll,
+              timestamp: new Date()
+            });
+
+            if (gazeBufferRef.current.length >= 10) {
+              sendBufferedGazeData();
+            }
           });
 
-          // Send buffered data periodically (every 10 points)
-          if (gazeBufferRef.current.length >= 10) {
-            sendBufferedGazeData();
-          }
-        });
-
-        // Move to calibration (with vision tracking)
-        setPhase('calibration');
-      } catch (wsError) {
-        console.warn('Vision tracking unavailable, proceeding without gaze tracking:', wsError);
-        setIsConnected(false);
+          setIsInitializing(false);
+          setPhase('calibration');
+        } else {
+          throw new Error('MediaPipe initialization failed');
+        }
+      } catch (gazeError) {
+        console.warn('Vision tracking unavailable, proceeding without gaze tracking:', gazeError);
         setVisionAvailable(false);
+        setIsInitializing(false);
         // Skip calibration and go directly to reading
         setPhase('reading');
         setReadingStartTime(Date.now());
       }
     } catch (error) {
       console.error('Failed to start test:', error);
+      setIsInitializing(false);
       alert('테스트 시작에 실패했습니다.');
     }
   };
@@ -154,7 +175,6 @@ const VisualPerceptionTest: React.FC = () => {
     const buffer = [...gazeBufferRef.current];
     gazeBufferRef.current = [];
 
-    // Send all buffered points
     for (const gazeData of buffer) {
       await perceptionAPI.saveGazeData(sessionId, gazeData);
     }
@@ -167,6 +187,30 @@ const VisualPerceptionTest: React.FC = () => {
       // Save calibration
       await perceptionAPI.saveCalibration(sessionId, [], accuracy);
 
+      // Re-register gaze listener for reading/questions phases
+      if (gazeServiceRef.current) {
+        gazeServiceRef.current.onGaze((prediction) => {
+          if (prediction.confidence > 0.1) {
+            setCurrentGaze({ x: prediction.x, y: prediction.y });
+          }
+
+          gazeBufferRef.current.push({
+            phase: phaseRef.current === 'reading' ? 'reading' : 'questions',
+            gaze_x: prediction.x,
+            gaze_y: prediction.y,
+            confidence: prediction.confidence,
+            head_pitch: prediction.headPose?.pitch,
+            head_yaw: prediction.headPose?.yaw,
+            head_roll: prediction.headPose?.roll,
+            timestamp: new Date()
+          });
+
+          if (gazeBufferRef.current.length >= 10) {
+            sendBufferedGazeData();
+          }
+        });
+      }
+
       // Move to reading phase
       setPhase('reading');
       setReadingStartTime(Date.now());
@@ -176,7 +220,9 @@ const VisualPerceptionTest: React.FC = () => {
   };
 
   const handleCalibrationCancel = () => {
-    wsClient.disconnect();
+    gazeServiceRef.current?.stopTracking();
+    gazeServiceRef.current = null;
+    setVisionAvailable(false);
     setPhase('intro');
   };
 
@@ -184,16 +230,10 @@ const VisualPerceptionTest: React.FC = () => {
     if (!sessionId) return;
 
     try {
-      // Send any remaining gaze data
       await sendBufferedGazeData();
-
-      // Mark reading as complete
       await perceptionAPI.completeReading(sessionId);
 
-      // Fade out passage
       setShowPassage(false);
-
-      // Wait for fade animation then move to questions
       setTimeout(() => {
         setPhase('questions');
         setQuestionStartTime(Date.now());
@@ -211,7 +251,6 @@ const VisualPerceptionTest: React.FC = () => {
     const responseTime = Date.now() - questionStartTime;
 
     try {
-      // Submit answer
       await perceptionAPI.submitAnswer(
         sessionId,
         question.id,
@@ -219,15 +258,12 @@ const VisualPerceptionTest: React.FC = () => {
         responseTime
       );
 
-      // Save answer locally
       setAnswers(prev => ({ ...prev, [question.id]: answer }));
 
-      // Move to next question or complete test
       if (currentQuestionIndex < questions.length - 1) {
         setCurrentQuestionIndex(prev => prev + 1);
         setQuestionStartTime(Date.now());
       } else {
-        // All questions answered - complete test
         await completeTest();
       }
     } catch (error) {
@@ -240,17 +276,14 @@ const VisualPerceptionTest: React.FC = () => {
     if (!sessionId) return;
 
     try {
-      // Send any remaining gaze data
       await sendBufferedGazeData();
-
-      // Complete session and get results
       const result = await perceptionAPI.completeSession(sessionId);
       setTestResult(result);
 
-      // Disconnect WebSocket
-      wsClient.disconnect();
+      // Stop gaze tracking
+      gazeServiceRef.current?.stopTracking();
+      gazeServiceRef.current = null;
 
-      // Move to results
       setPhase('results');
     } catch (error) {
       console.error('Failed to complete test:', error);
@@ -296,9 +329,21 @@ const VisualPerceptionTest: React.FC = () => {
             <div className="flex gap-4">
               <button
                 onClick={handleStart}
-                className="flex-1 px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-semibold shadow-md"
+                disabled={isInitializing}
+                className={`flex-1 px-6 py-3 rounded-lg font-semibold shadow-md transition-colors ${
+                  isInitializing
+                    ? 'bg-purple-400 text-white cursor-wait'
+                    : 'bg-purple-600 text-white hover:bg-purple-700'
+                }`}
               >
-                시작하기
+                {isInitializing ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    카메라 초기화 중...
+                  </span>
+                ) : (
+                  '시작하기'
+                )}
               </button>
               <button
                 onClick={handleExit}
@@ -312,11 +357,10 @@ const VisualPerceptionTest: React.FC = () => {
       )}
 
       {/* Calibration Phase */}
-      {phase === 'calibration' && sessionId && (
+      {phase === 'calibration' && sessionId && gazeServiceRef.current && (
         <VisionCalibration
-          wsClient={wsClient}
+          gazeService={gazeServiceRef.current}
           sessionId={sessionId}
-          backendUrl={BACKEND_URL}
           onCalibrationComplete={handleCalibrationComplete}
           onCancel={handleCalibrationCancel}
         />
@@ -326,7 +370,7 @@ const VisualPerceptionTest: React.FC = () => {
       {phase === 'reading' && (
         <div className="fixed inset-0 bg-white">
           {/* Gaze visualization */}
-          {currentGaze && (
+          {currentGaze && visionAvailable && (
             <div
               className="fixed w-3 h-3 bg-red-500 rounded-full pointer-events-none transition-all duration-100 opacity-50"
               style={{
@@ -347,7 +391,7 @@ const VisualPerceptionTest: React.FC = () => {
               <h1 className="text-2xl font-bold mb-6 text-center">{passageTitle}</h1>
 
               <div className="bg-white border-2 border-gray-300 rounded-lg p-10 mb-6 shadow-lg">
-                <p className="text-lg leading-loose whitespace-pre-line">
+                <p className="text-2xl leading-[2.5] whitespace-pre-line tracking-wide">
                   {passageContent}
                 </p>
               </div>
@@ -375,7 +419,7 @@ const VisualPerceptionTest: React.FC = () => {
       {phase === 'questions' && questions.length > 0 && (
         <div className="fixed inset-0 bg-white">
           {/* Gaze visualization */}
-          {currentGaze && (
+          {currentGaze && visionAvailable && (
             <div
               className="fixed w-3 h-3 bg-blue-500 rounded-full pointer-events-none transition-all duration-100 opacity-50"
               style={{
@@ -488,7 +532,7 @@ const VisualPerceptionTest: React.FC = () => {
                     <ul className="space-y-2">
                       {testResult.strengths.map((strength, index) => (
                         <li key={index} className="text-sm text-green-800">
-                          • {strength.description}
+                          &bull; {strength.description}
                         </li>
                       ))}
                     </ul>
@@ -501,7 +545,7 @@ const VisualPerceptionTest: React.FC = () => {
                     <ul className="space-y-2">
                       {testResult.improvements.map((improvement, index) => (
                         <li key={index} className="text-sm text-orange-800">
-                          • {improvement.description}
+                          &bull; {improvement.description}
                         </li>
                       ))}
                     </ul>
@@ -535,11 +579,22 @@ const VisualPerceptionTest: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Camera Preview PiP during reading & questions */}
+      {(phase === 'reading' || phase === 'questions') && visionAvailable && gazeServiceRef.current && (
+        <CameraPreview
+          gazeService={gazeServiceRef.current}
+          visible={true}
+          position="top-right"
+          showIris={true}
+          showEyeContours={true}
+          width={240}
+        />
+      )}
     </div>
   );
 };
 
-// Helper function to get Korean metric names
 function getMetricName(key: string): string {
   const names: { [key: string]: string } = {
     fixation_stability: '시선 고정 안정성',

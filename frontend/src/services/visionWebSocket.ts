@@ -1,7 +1,11 @@
 /**
  * Vision Tracking WebSocket Client
  *
- * Real-time eye tracking communication with backend Vision API
+ * @deprecated This module is replaced by faceMeshGazeService.ts which uses
+ * client-side MediaPipe FaceMesh for gaze tracking without server-side dependency.
+ * The GazeData and CalibrationPoint type exports are retained for backward compatibility.
+ *
+ * Real-time eye tracking communication with backend Vision API (legacy)
  */
 
 export interface GazeData {

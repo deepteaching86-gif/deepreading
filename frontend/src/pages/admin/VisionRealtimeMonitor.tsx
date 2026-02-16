@@ -2,128 +2,98 @@
  * Vision Realtime Monitor (Admin)
  *
  * Admin page to verify eye tracking functionality in real-time
- * Shows live gaze tracking, connection status, and quality metrics
+ * Uses client-side MediaPipe FaceMesh for gaze tracking
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { VisionWebSocketClient, GazeData } from '../../services/visionWebSocket';
 import VisionCalibration from '../../components/vision/VisionCalibration';
-
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || import.meta.env.VITE_ENGLISH_TEST_API_URL || 'http://localhost:8000';
+import { FaceMeshGazeService, GazePrediction } from '../../services/faceMeshGazeService';
 
 type MonitorPhase = 'intro' | 'calibration' | 'monitoring';
 
 const VisionRealtimeMonitor: React.FC = () => {
   const navigate = useNavigate();
   const [phase, setPhase] = useState<MonitorPhase>('intro');
-  const [wsClient] = useState(() => new VisionWebSocketClient(BACKEND_URL));
-  const [sessionId, setSessionId] = useState<string | null>(null);
-  const [isConnected, setIsConnected] = useState(false);
+  const gazeServiceRef = useRef<FaceMeshGazeService | null>(null);
+  const [sessionId] = useState<string>('admin-monitor-' + Date.now());
   const [currentGaze, setCurrentGaze] = useState<{ x: number; y: number } | null>(null);
   const [gazeHistory, setGazeHistory] = useState<{ x: number; y: number }[]>([]);
   const [trackingQuality, setTrackingQuality] = useState<number>(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [debugImage, setDebugImage] = useState<string | null>(null);
+  const [isInitializing, setIsInitializing] = useState(false);
   const gazeCountRef = useRef(0);
-
-  useEffect(() => {
-    return () => {
-      wsClient.disconnect();
-    };
-  }, []);
 
   const handleStartMonitoring = async () => {
     try {
-      // Start session with admin test ID
-      const response = await fetch(`${BACKEND_URL}/api/vision/sessions`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          student_id: 'admin-monitor',
-          template_id: 'realtime-monitor',
-          device_info: {
-            userAgent: navigator.userAgent,
-            screenWidth: window.screen.width,
-            screenHeight: window.screen.height,
-          },
-        }),
-      });
+      setIsInitializing(true);
+      setErrorMessage(null);
 
-      if (!response.ok) {
-        throw new Error('Failed to start monitoring session');
+      const service = new FaceMeshGazeService();
+      gazeServiceRef.current = service;
+
+      const initialized = await service.initialize();
+      if (!initialized) {
+        throw new Error('MediaPipe initialization failed');
       }
 
-      const data = await response.json();
-      const newSessionId = data.id;
-      setSessionId(newSessionId);
-
-      // Connect WebSocket
-      await wsClient.connect(newSessionId);
-      setIsConnected(true);
-
-      // Register gaze callback
-      wsClient.onGaze((data: GazeData) => {
-        setCurrentGaze({ x: data.x, y: data.y });
-
-        // Update tracking quality based on confidence
-        setTrackingQuality(data.confidence * 100);
-
-        // Store debug image if available
-        if (data.debugImage) {
-          setDebugImage(data.debugImage);
-        }
-
-        // Keep history of last 50 points for trail effect
-        setGazeHistory(prev => {
-          const newHistory = [...prev, { x: data.x, y: data.y }];
-          return newHistory.slice(-50);
-        });
-
-        gazeCountRef.current++;
-      });
-
-      // Register error callback
-      wsClient.onError((error: string) => {
-        setErrorMessage(error);
-      });
+      await service.startTracking();
 
       // Start calibration
       setPhase('calibration');
     } catch (error) {
       console.error('Failed to start monitoring:', error);
-      alert('모니터링 시작에 실패했습니다.');
+      setErrorMessage('MediaPipe 초기화에 실패했습니다. 웹캠 권한을 확인해주세요.');
+      gazeServiceRef.current?.stopTracking();
+      gazeServiceRef.current = null;
+    } finally {
+      setIsInitializing(false);
     }
   };
 
+  const registerGazeListener = () => {
+    const service = gazeServiceRef.current;
+    if (!service) return;
+
+    service.onGaze((prediction: GazePrediction) => {
+      setCurrentGaze({ x: prediction.x, y: prediction.y });
+      setTrackingQuality(prediction.confidence * 100);
+
+      setGazeHistory(prev => {
+        const newHistory = [...prev, { x: prediction.x, y: prediction.y }];
+        return newHistory.slice(-50);
+      });
+
+      gazeCountRef.current++;
+    });
+  };
+
   const handleCalibrationComplete = async (_accuracy: number) => {
-    // Move to monitoring phase
+    // Re-register gaze listener for monitoring phase
+    registerGazeListener();
     setPhase('monitoring');
   };
 
   const handleCalibrationCancel = () => {
-    wsClient.disconnect();
+    gazeServiceRef.current?.stopTracking();
+    gazeServiceRef.current = null;
     setPhase('intro');
-    setIsConnected(false);
   };
 
   const handleStopMonitoring = () => {
-    wsClient.disconnect();
+    gazeServiceRef.current?.stopTracking();
+    gazeServiceRef.current = null;
     setPhase('intro');
-    setIsConnected(false);
     setCurrentGaze(null);
     setGazeHistory([]);
-    setDebugImage(null);
   };
 
   const handleExit = () => {
-    wsClient.disconnect();
+    gazeServiceRef.current?.stopTracking();
+    gazeServiceRef.current = null;
     navigate('/admin/dashboard');
   };
 
-  // Calculate tracking statistics
   const gazeCount = gazeCountRef.current;
   const avgQuality = trackingQuality.toFixed(1);
 
@@ -138,7 +108,7 @@ const VisionRealtimeMonitor: React.FC = () => {
               <h1 className="text-3xl font-bold">실시간 Eye Tracking (브라우저)</h1>
             </div>
             <p className="text-gray-600 mb-6">
-              MediaPipe 60fps 로컬 처리 - 시지각 트래커 작동 확인
+              MediaPipe FaceMesh 브라우저 내 처리 - 시지각 트래커 작동 확인
             </p>
 
             <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
@@ -147,8 +117,7 @@ const VisionRealtimeMonitor: React.FC = () => {
                 <li>실시간 시선 위치 추적 (빨간 점)</li>
                 <li>시선 이동 궤적 표시 (50개 포인트)</li>
                 <li>추적 품질 실시간 표시</li>
-                <li>WebSocket 연결 상태 모니터링</li>
-                <li>디버그 시각화 (활성화 시)</li>
+                <li>클라이언트 사이드 MediaPipe 처리</li>
               </ul>
             </div>
 
@@ -161,12 +130,19 @@ const VisionRealtimeMonitor: React.FC = () => {
               </ul>
             </div>
 
+            {errorMessage && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                <p className="text-red-700">{errorMessage}</p>
+              </div>
+            )}
+
             <div className="flex gap-4">
               <button
                 onClick={handleStartMonitoring}
-                className="flex-1 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-semibold shadow-md"
+                disabled={isInitializing}
+                className="flex-1 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-semibold shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                모니터링 시작
+                {isInitializing ? '초기화 중...' : '모니터링 시작'}
               </button>
               <button
                 onClick={handleExit}
@@ -180,11 +156,10 @@ const VisionRealtimeMonitor: React.FC = () => {
       )}
 
       {/* Calibration Phase */}
-      {phase === 'calibration' && sessionId && (
+      {phase === 'calibration' && gazeServiceRef.current && (
         <VisionCalibration
-          wsClient={wsClient}
+          gazeService={gazeServiceRef.current}
           sessionId={sessionId}
-          backendUrl={BACKEND_URL}
           onCalibrationComplete={handleCalibrationComplete}
           onCancel={handleCalibrationCancel}
         />
@@ -229,8 +204,8 @@ const VisionRealtimeMonitor: React.FC = () => {
           <div className="fixed top-0 left-0 right-0 bg-black bg-opacity-80 text-white p-4 flex items-center justify-between">
             <div className="flex items-center gap-6">
               <div className="flex items-center gap-2">
-                <div className={`w-3 h-3 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                <span className="font-semibold">{isConnected ? 'WebSocket 연결됨' : 'WebSocket 연결 끊김'}</span>
+                <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                <span className="font-semibold">MediaPipe 활성</span>
               </div>
               <div className="text-sm">
                 <span className="text-gray-400">추적 품질:</span>
@@ -249,25 +224,6 @@ const VisionRealtimeMonitor: React.FC = () => {
               모니터링 중지
             </button>
           </div>
-
-          {/* Error Message */}
-          {errorMessage && (
-            <div className="fixed top-20 left-1/2 transform -translate-x-1/2 bg-yellow-600 text-white px-6 py-3 rounded-lg shadow-lg">
-              ⚠️ {errorMessage}
-            </div>
-          )}
-
-          {/* Debug Image (if available) */}
-          {debugImage && (
-            <div className="fixed bottom-4 right-4 bg-black bg-opacity-80 p-2 rounded-lg">
-              <div className="text-white text-xs mb-1">Debug View:</div>
-              <img
-                src={`data:image/jpeg;base64,${debugImage}`}
-                alt="Debug"
-                className="w-64 h-auto rounded"
-              />
-            </div>
-          )}
 
           {/* Instructions */}
           <div className="fixed bottom-4 left-4 bg-black bg-opacity-80 text-white p-4 rounded-lg max-w-md">

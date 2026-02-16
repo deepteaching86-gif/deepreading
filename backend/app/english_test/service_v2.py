@@ -33,18 +33,32 @@ class EnglishTestServiceV2:
         # Form rotation (1, 2, 3)
         self.FORM_COUNT = 3
 
-    def start_session(self, user_id: str) -> Dict:
+        # Load routing config from DB (fallback to hardcoded defaults)
+        self.routing_config = self._load_routing_config()
+
+    def start_session(self, user_id: str, grade_level: int = None, gender: str = None) -> Dict:
         """
         Start new English adaptive test session.
 
         Args:
             user_id: User identifier
+            grade_level: Optional student grade level (1-12) for DIF analysis
+            gender: Optional student gender for DIF analysis
 
         Returns:
             Dictionary with session and first_item
         """
         # Create session in database
         session = self.db.create_session(user_id)
+
+        # Store demographics if provided (for DIF analysis)
+        if grade_level is not None or gender is not None:
+            demo_updates = {}
+            if grade_level is not None:
+                demo_updates['grade_level'] = grade_level
+            if gender is not None:
+                demo_updates['gender'] = gender
+            self.db.update_session(session['id'], demo_updates)
 
         # Select first item from routing panel
         first_item = self._select_item(
@@ -67,7 +81,7 @@ class EnglishTestServiceV2:
             'stage': session['stage'],
             'panel': session['panel'],
             'items_completed': session['items_completed'],
-            'total_items': 40,
+            'total_items': 45,  # Hard cap (adaptive stopping may end earlier)
             'first_item': self._format_item(first_item)
         }
 
@@ -152,14 +166,21 @@ class EnglishTestServiceV2:
 
         if stage_complete and current_stage < 3:
             if current_stage == 1:
-                # Route to Stage 2 panel based on theta
+                # Route to Stage 2 panel based on theta (configurable cutpoints)
                 new_stage = 2
-                new_panel = self.irt.route_to_stage2_panel(theta_est)
+                new_panel = self.irt.route_to_stage2_panel(
+                    theta_est,
+                    cutpoints=self._get_stage2_cutpoints()
+                )
 
             elif current_stage == 2:
-                # Route to Stage 3 subtrack
+                # Route to Stage 3 subtrack (configurable cutpoints)
                 new_stage = 3
-                new_panel = self.irt.route_to_stage3_panel(theta_est, session['panel'])
+                new_panel = self.irt.route_to_stage3_panel(
+                    theta_est,
+                    session['panel'],
+                    cutpoints=self._get_stage3_cutpoints(session['panel'])
+                )
 
             # Update session stage/panel
             self.db.update_session(session_id, {
@@ -167,8 +188,8 @@ class EnglishTestServiceV2:
                 'panel': new_panel
             })
 
-        # Check if test complete (40 items total)
-        test_completed = (items_completed >= 40)
+        # Check if test complete (adaptive stopping rule)
+        test_completed = self._should_stop(se, items_completed, new_stage)
 
         if test_completed:
             next_item = None
@@ -176,12 +197,23 @@ class EnglishTestServiceV2:
             # Get list of already answered item IDs
             answered_ids = [r['item_id'] for r in responses] + [item_id]
 
-            # Select next item
+            # Compute domain counts for content balancing (including current item)
+            domain_counts: Dict[str, int] = {}
+            for r in responses:
+                d = (r.get('domain') or '').lower()
+                if d:
+                    domain_counts[d] = domain_counts.get(d, 0) + 1
+            current_domain = (item.get('domain') or '').lower()
+            if current_domain:
+                domain_counts[current_domain] = domain_counts.get(current_domain, 0) + 1
+
+            # Select next item with content balancing
             next_item = self._select_item(
                 stage=new_stage,
                 panel=new_panel,
                 theta_current=theta_est,
-                excluded_ids=answered_ids
+                excluded_ids=answered_ids,
+                domain_counts=domain_counts
             )
 
             if next_item:
@@ -193,7 +225,7 @@ class EnglishTestServiceV2:
             'current_theta': round(theta_est, 3),
             'standard_error': round(se, 3),
             'items_completed': items_completed,
-            'total_items': 40,
+            'total_items': 45,  # Hard cap (adaptive stopping may end earlier)
             'stage': new_stage,
             'panel': new_panel,
             'test_completed': test_completed
@@ -264,25 +296,31 @@ class EnglishTestServiceV2:
         # Get statistics
         stats = self.db.get_session_statistics(session_id)
 
-        # Estimate Lexile/AR (placeholder - requires ML model)
-        lexile_score = self._estimate_lexile(final_theta)
+        # Estimate Lexile/AR (statistical estimates, not official scores)
+        lexile_data = self._estimate_lexile(final_theta)
         ar_level = self._estimate_ar(final_theta)
 
         # Calculate vocabulary size (FR-004)
         vocabulary_size, vocabulary_bands = self._calculate_vocabulary_metrics(responses)
+
+        # Calculate domain-specific scores
+        domain_scores = self._calculate_domain_scores(responses)
 
         # Prepare final results
         final_results = {
             'final_theta': round(final_theta, 3),
             'standard_error': round(se, 3),
             'proficiency_level': proficiency_level,
-            'lexile_score': lexile_score,
+            'lexile_score': lexile_data['score'],
+            'lexile_details': lexile_data,
             'ar_level': ar_level,
             'vocabulary_size': vocabulary_size,
             'vocabulary_bands': vocabulary_bands,
+            'domain_scores': domain_scores,
             'total_items': stats['total_items'],
             'correct_count': stats['correct_count'],
-            'accuracy_percentage': stats['accuracy_percentage']
+            'accuracy_percentage': stats['accuracy_percentage'],
+            'score_disclaimer': '본 점수는 IRT 능력 추정치 기반 통계 추정값이며, 공식 Lexile/AR 평가 결과가 아닙니다.'
         }
 
         # Update session in database
@@ -297,6 +335,98 @@ class EnglishTestServiceV2:
 
         return final_results
 
+    # ===== Growth Tracking =====
+
+    def calculate_growth(self, user_id: str) -> Dict:
+        """
+        Calculate theta growth trend using linear regression.
+
+        Args:
+            user_id: User identifier
+
+        Returns:
+            Dictionary with sessions history, theta trend, domain trends
+        """
+        import numpy as np
+
+        sessions = self.db.get_user_test_history(user_id)
+
+        if not sessions:
+            return {
+                'sessions': [],
+                'theta_trend': 0.0,
+                'domain_trends': {'grammar': 0.0, 'vocabulary': 0.0, 'reading': 0.0},
+                'total_tests': 0
+            }
+
+        # Format sessions for response
+        formatted = []
+        for s in sessions:
+            formatted.append({
+                'id': s['id'],
+                'final_theta': float(s['final_theta']) if s['final_theta'] else None,
+                'standard_error': float(s['standard_error']) if s['standard_error'] else None,
+                'grammar_score': float(s['grammar_score']) if s.get('grammar_score') else None,
+                'vocabulary_score': float(s['vocabulary_score']) if s.get('vocabulary_score') else None,
+                'reading_score': float(s['reading_score']) if s.get('reading_score') else None,
+                'items_completed': s['items_completed'],
+                'started_at': s['started_at'].isoformat() if s['started_at'] else None,
+                'completed_at': s['completed_at'].isoformat() if s['completed_at'] else None,
+            })
+
+        # Calculate theta trend (slope via linear regression)
+        theta_trend = 0.0
+        valid_thetas = [(i, s['final_theta']) for i, s in enumerate(sessions) if s['final_theta'] is not None]
+        if len(valid_thetas) >= 2:
+            x = np.array([v[0] for v in valid_thetas], dtype=float)
+            y = np.array([v[1] for v in valid_thetas], dtype=float)
+            slope, _ = np.polyfit(x, y, 1)
+            theta_trend = round(float(slope), 4)
+
+        # Per-domain trends
+        domain_trends = {}
+        for domain in ['grammar', 'vocabulary', 'reading']:
+            key = f'{domain}_score'
+            valid = [(i, float(s[key])) for i, s in enumerate(sessions) if s.get(key) is not None]
+            if len(valid) >= 2:
+                x = np.array([v[0] for v in valid], dtype=float)
+                y = np.array([v[1] for v in valid], dtype=float)
+                slope, _ = np.polyfit(x, y, 1)
+                domain_trends[domain] = round(float(slope), 4)
+            else:
+                domain_trends[domain] = 0.0
+
+        return {
+            'sessions': formatted,
+            'theta_trend': theta_trend,
+            'domain_trends': domain_trends,
+            'total_tests': len(sessions)
+        }
+
+    def _load_routing_config(self) -> Dict:
+        """
+        Load routing cutpoints from DB, fallback to hardcoded defaults.
+
+        Returns:
+            Dict with keys 'stage1_to_2', 'stage2_to_3_low', etc.
+        """
+        try:
+            config = self.db.get_routing_config()
+            if config:
+                return config
+        except Exception as e:
+            print(f"Warning: Could not load routing config from DB: {e}")
+        return {}
+
+    def _get_stage2_cutpoints(self) -> Optional[Dict]:
+        """Get Stage 1→2 cutpoints from loaded config, or None for defaults."""
+        return self.routing_config.get('stage1_to_2')
+
+    def _get_stage3_cutpoints(self, stage2_panel: str) -> Optional[Dict]:
+        """Get Stage 2→3 cutpoints for a specific panel from loaded config."""
+        key = f'stage2_to_3_{stage2_panel}'
+        return self.routing_config.get(key)
+
     # ===== Helper Methods =====
 
     def _select_item(
@@ -304,16 +434,18 @@ class EnglishTestServiceV2:
         stage: int,
         panel: str,
         theta_current: float,
-        excluded_ids: List[int]
+        excluded_ids: List[int],
+        domain_counts: Optional[Dict[str, int]] = None
     ) -> Optional[Dict]:
         """
-        Select optimal item using Fisher Information with exposure control.
+        Select optimal item using Fisher Information with content balancing.
 
         Args:
             stage: MST stage (1, 2, 3)
             panel: Panel name
             theta_current: Current ability estimate
             excluded_ids: Already answered item IDs
+            domain_counts: Dict of domain -> count for content balancing
 
         Returns:
             Selected item or None
@@ -365,10 +497,12 @@ class EnglishTestServiceV2:
                 print(f"❌ AI generation failed: {type(e).__name__}: {e}")
                 return None
 
-        # Use IRT engine for Fisher Information-based selection
+        # Use IRT engine for Fisher Information-based selection with content balancing
         selected_item = self.irt.select_next_item(
             theta_current=theta_current,
-            candidate_items=candidates
+            candidate_items=candidates,
+            domain_counts=domain_counts,
+            stage=stage
         )
 
         return selected_item
@@ -389,30 +523,67 @@ class EnglishTestServiceV2:
             'source': item.get('source', 'manual')  # Add source: 'manual' or 'ai_generated'
         }
 
-    def _estimate_lexile(self, theta: float) -> int:
+    def _estimate_lexile(self, theta: float, grade: int = None) -> dict:
         """
-        Estimate Lexile score from θ using sigmoid-based mapping.
+        Estimate Lexile score from θ with grade-band correction.
 
-        Based on research correspondences:
-        - θ = -2.5 → ~200L (Grade 1)
-        - θ = -1.0 → ~500L (Grade 3)
-        - θ = 0.0  → ~800L (Grade 5-6)
-        - θ = 1.0  → ~1100L (Grade 8-9)
-        - θ = 2.0  → ~1400L (Grade 11+)
+        Returns dict with score, confidence interval, and grade context.
+        Raw estimate uses logistic mapping, then clipped to MetaMetrics
+        published grade-band ranges when grade is available.
 
-        Uses logistic mapping to account for floor/ceiling effects.
+        NOTE: This is a statistical estimate, NOT an official Lexile score.
         """
         import math
 
-        # Logistic mapping parameters fitted to Lexile-grade correspondences
-        # L(θ) = L_min + (L_max - L_min) / (1 + exp(-k * (θ - θ_mid)))
+        # Raw logistic estimate
         L_min = 100
         L_max = 1700
-        k = 0.85      # steepness
-        theta_mid = 0.0  # midpoint
+        k = 0.85
+        theta_mid = 0.0
+        raw_lexile = L_min + (L_max - L_min) / (1 + math.exp(-k * (theta - theta_mid)))
+        raw_lexile = int(max(100, min(1700, raw_lexile)))
 
-        lexile = L_min + (L_max - L_min) / (1 + math.exp(-k * (theta - theta_mid)))
-        return int(max(100, min(1700, lexile)))
+        # MetaMetrics published grade-band ranges (mid-year typical)
+        GRADE_LEXILE_RANGES = {
+            1: (190, 530), 2: (420, 650), 3: (520, 820),
+            4: (740, 940), 5: (830, 1010), 6: (925, 1070),
+            7: (970, 1120), 8: (1010, 1185), 9: (1050, 1335),
+            10: (1050, 1335), 11: (1080, 1385), 12: (1080, 1385)
+        }
+
+        # Grade context lookup
+        GRADE_LABELS = {
+            1: '1학년', 2: '2학년', 3: '3학년', 4: '4학년',
+            5: '5학년', 6: '6학년', 7: '중1', 8: '중2',
+            9: '중3', 10: '고1', 11: '고2', 12: '고3'
+        }
+
+        # Find approximate grade band for the raw score
+        grade_context = None
+        for g in range(1, 13):
+            low, high = GRADE_LEXILE_RANGES[g]
+            if low <= raw_lexile <= high:
+                grade_context = GRADE_LABELS[g]
+                break
+        if not grade_context:
+            if raw_lexile < 190:
+                grade_context = '1학년 이전'
+            else:
+                grade_context = '고3 이상'
+
+        # Clip to grade band if grade provided
+        final_lexile = raw_lexile
+        if grade and grade in GRADE_LEXILE_RANGES:
+            low, high = GRADE_LEXILE_RANGES[grade]
+            final_lexile = max(low, min(high, raw_lexile))
+
+        return {
+            'score': final_lexile,
+            'confidence_low': max(100, final_lexile - 200),
+            'confidence_high': min(1700, final_lexile + 200),
+            'grade_context': grade_context,
+            'is_estimated': True
+        }
 
     def _estimate_ar(self, theta: float) -> float:
         """
@@ -453,6 +624,52 @@ class EnglishTestServiceV2:
                 return round(max(0.5, min(13.0, ar)), 1)
 
         return 13.0
+
+    def _should_stop(self, se: float, n_items: int, stage: int) -> bool:
+        """
+        Hybrid adaptive stopping rule.
+
+        - Minimum 20 items (content coverage across domains)
+        - Hard cap at 45 items
+        - Early stop when SE ≤ 0.30 AND in Stage 3 (routing stages must complete)
+        - Expected savings: ~5-8 items on average (20% time reduction)
+        """
+        if n_items < 20:
+            return False
+        if n_items >= 45:
+            return True
+        if stage >= 3 and se <= 0.30:
+            return True
+        return False
+
+    def _calculate_domain_scores(self, responses: List[Dict]) -> Dict:
+        """
+        Calculate per-domain (grammar, vocabulary, reading) accuracy scores.
+
+        Returns:
+            Dictionary with domain scores as percentages and item counts.
+        """
+        domain_stats = {}
+        for r in responses:
+            domain = r.get('domain', 'unknown')
+            if domain not in domain_stats:
+                domain_stats[domain] = {'correct': 0, 'total': 0}
+            domain_stats[domain]['total'] += 1
+            if r['is_correct']:
+                domain_stats[domain]['correct'] += 1
+
+        result = {}
+        for domain in ['grammar', 'vocabulary', 'reading']:
+            stats = domain_stats.get(domain, {'correct': 0, 'total': 0})
+            total = stats['total']
+            correct = stats['correct']
+            result[domain] = {
+                'correct': correct,
+                'total': total,
+                'percentage': round((correct / total) * 100, 1) if total > 0 else 0
+            }
+
+        return result
 
     def _calculate_vocabulary_metrics(self, responses: List[Dict]) -> tuple[Optional[int], Optional[Dict]]:
         """

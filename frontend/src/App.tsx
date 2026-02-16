@@ -27,10 +27,12 @@ import Unauthorized from './pages/Unauthorized';
 
 // English Adaptive Test
 import EnglishTestPage from './pages/test/EnglishTestPage';
+import GrowthDashboardPage from './pages/test/GrowthDashboardPage';
 
 // Visual Perception Test
 import VisualPerceptionTest from './pages/test/VisualPerceptionTest';
 import VisionRealtimeMonitor from './pages/admin/VisionRealtimeMonitor';
+import VisionTest from './pages/test/VisionTest'; // DEV: temporary unprotected route
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -50,6 +52,8 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/unauthorized" element={<Unauthorized />} />
+          {/* DEV: Temporary unprotected vision test route */}
+          <Route path="/dev/vision-test" element={<VisionTest />} />
 
           {/* Student Routes */}
           <Route
@@ -99,6 +103,16 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['student']}>
                 <EnglishTestPage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* English Growth Dashboard */}
+          <Route
+            path="/test/english/growth"
+            element={
+              <ProtectedRoute allowedRoles={['student', 'parent', 'teacher', 'admin']}>
+                <GrowthDashboardPage />
               </ProtectedRoute>
             }
           />

@@ -435,6 +435,340 @@ class EnglishTestDB:
             cursor.close()
             self._return_connection(conn)
 
+    # ===== Item Insert/Update Methods =====
+
+    def insert_item(self, item: Dict) -> Dict:
+        """
+        Insert a new item into the database.
+
+        Args:
+            item: Item dictionary with required fields
+
+        Returns:
+            Inserted item dictionary
+        """
+        conn = self._get_connection()
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+
+        try:
+            cursor.execute("""
+                INSERT INTO items (
+                    stage, panel, form_id, domain, stem, options, correct_answer,
+                    skill_tag, difficulty, discrimination, guessing,
+                    passage_id, status, calibration_status, source, created_at
+                )
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
+                RETURNING *;
+            """, (
+                item['stage'],
+                item['panel'],
+                item.get('form_id', 1),
+                item['domain'],
+                item['stem'],
+                json.dumps(item['options']) if isinstance(item['options'], dict) else item['options'],
+                item['correct_answer'],
+                item.get('skill_tag'),
+                item.get('difficulty'),
+                item.get('discrimination'),
+                item.get('guessing', 0.25),
+                item.get('passage_id'),
+                item.get('status', 'active'),
+                item.get('calibration_status', 'uncalibrated'),
+                item.get('source', 'ai_generated'),
+            ))
+
+            result = dict(cursor.fetchone())
+            conn.commit()
+            return result
+
+        finally:
+            cursor.close()
+            self._return_connection(conn)
+
+    def update_item_calibration(
+        self,
+        item_id: int,
+        discrimination: float,
+        difficulty: float,
+        guessing: float,
+        point_biserial: float,
+        calibration_n: int,
+        calibration_status: str
+    ) -> Dict:
+        """
+        Update item IRT parameters after calibration.
+
+        Args:
+            item_id: Item ID
+            discrimination: Calibrated a parameter
+            difficulty: Calibrated b parameter
+            guessing: Calibrated c parameter
+            point_biserial: Point-biserial correlation
+            calibration_n: Number of responses used
+            calibration_status: 'provisional', 'calibrated', or 'flagged'
+
+        Returns:
+            Updated item dictionary
+        """
+        conn = self._get_connection()
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+
+        try:
+            cursor.execute("""
+                UPDATE items
+                SET discrimination = %s,
+                    difficulty = %s,
+                    guessing = %s,
+                    point_biserial = %s,
+                    calibration_n = %s,
+                    calibration_status = %s,
+                    calibrated_at = NOW(),
+                    updated_at = NOW()
+                WHERE id = %s
+                RETURNING *;
+            """, (
+                float(discrimination),
+                float(difficulty),
+                float(guessing),
+                float(point_biserial),
+                int(calibration_n),
+                calibration_status,
+                item_id
+            ))
+
+            result = cursor.fetchone()
+            conn.commit()
+            return dict(result) if result else None
+
+        finally:
+            cursor.close()
+            self._return_connection(conn)
+
+    def get_response_matrix(self, min_responses_per_item: int = 30) -> Tuple[List[Dict], List[List[Optional[bool]]]]:
+        """
+        Extract response matrix for IRT calibration.
+
+        Returns items with sufficient responses and their response data
+        as a (students x items) boolean matrix.
+
+        Args:
+            min_responses_per_item: Minimum responses required per item
+
+        Returns:
+            Tuple of (items_list, response_matrix) where response_matrix[i][j]
+            is True/False/None for student i on item j
+        """
+        conn = self._get_connection()
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+
+        try:
+            # Get items with sufficient responses
+            cursor.execute("""
+                SELECT i.id, i.discrimination, i.difficulty, i.guessing,
+                       i.domain, i.stage, i.panel, i.calibration_status,
+                       COUNT(r.id) as response_count,
+                       AVG(CASE WHEN r.is_correct THEN 1.0 ELSE 0.0 END) as correct_rate
+                FROM items i
+                JOIN english_test_responses r ON r.item_id = i.id
+                WHERE i.status = 'active'
+                GROUP BY i.id
+                HAVING COUNT(r.id) >= %s
+                ORDER BY i.id;
+            """, (min_responses_per_item,))
+
+            items = [dict(row) for row in cursor.fetchall()]
+
+            if not items:
+                return [], []
+
+            item_ids = [item['id'] for item in items]
+
+            # Get all session IDs that completed the test
+            cursor.execute("""
+                SELECT DISTINCT session_id
+                FROM english_test_responses
+                WHERE item_id = ANY(%s)
+                ORDER BY session_id;
+            """, (item_ids,))
+
+            session_ids = [row['session_id'] for row in cursor.fetchall()]
+
+            # Build response matrix
+            cursor.execute("""
+                SELECT session_id, item_id, is_correct
+                FROM english_test_responses
+                WHERE item_id = ANY(%s)
+                ORDER BY session_id, item_id;
+            """, (item_ids,))
+
+            responses = cursor.fetchall()
+
+            # Create lookup: (session_id, item_id) -> is_correct
+            resp_lookup = {}
+            for r in responses:
+                resp_lookup[(r['session_id'], r['item_id'])] = r['is_correct']
+
+            # Build matrix: rows=sessions, cols=items
+            item_id_to_idx = {iid: idx for idx, iid in enumerate(item_ids)}
+            matrix = []
+            for sid in session_ids:
+                row = [None] * len(item_ids)
+                for iid in item_ids:
+                    key = (sid, iid)
+                    if key in resp_lookup:
+                        row[item_id_to_idx[iid]] = resp_lookup[key]
+                matrix.append(row)
+
+            return items, matrix
+
+        finally:
+            cursor.close()
+            self._return_connection(conn)
+
+    def get_item_statistics(self, item_id: int) -> Dict:
+        """
+        Get response statistics for a single item.
+
+        Args:
+            item_id: Item ID
+
+        Returns:
+            Dict with response_count, correct_rate, point_biserial estimate
+        """
+        conn = self._get_connection()
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+
+        try:
+            cursor.execute("""
+                SELECT
+                    COUNT(*) as response_count,
+                    AVG(CASE WHEN is_correct THEN 1.0 ELSE 0.0 END) as correct_rate,
+                    AVG(response_time) as avg_response_time
+                FROM english_test_responses
+                WHERE item_id = %s;
+            """, (item_id,))
+
+            result = dict(cursor.fetchone())
+            return {
+                'response_count': int(result['response_count']) if result['response_count'] else 0,
+                'correct_rate': round(float(result['correct_rate']), 4) if result['correct_rate'] else None,
+                'avg_response_time': round(float(result['avg_response_time']), 0) if result['avg_response_time'] else None,
+            }
+
+        finally:
+            cursor.close()
+            self._return_connection(conn)
+
+    def get_calibration_summary(self) -> Dict:
+        """
+        Get summary of item calibration status across the item bank.
+
+        Returns:
+            Dict with counts per calibration_status and overall statistics
+        """
+        conn = self._get_connection()
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+
+        try:
+            cursor.execute("""
+                SELECT
+                    COALESCE(calibration_status::text, 'uncalibrated') as cal_status,
+                    COUNT(*) as count,
+                    AVG(calibration_n) as avg_calibration_n
+                FROM items
+                WHERE status = 'active'
+                GROUP BY calibration_status
+                ORDER BY cal_status;
+            """)
+
+            rows = [dict(r) for r in cursor.fetchall()]
+            summary = {}
+            total = 0
+            for row in rows:
+                summary[row['cal_status']] = {
+                    'count': row['count'],
+                    'avg_n': round(float(row['avg_calibration_n']), 0) if row['avg_calibration_n'] else 0
+                }
+                total += row['count']
+
+            summary['total_active'] = total
+            return summary
+
+        finally:
+            cursor.close()
+            self._return_connection(conn)
+
+    # ===== Growth Tracking Methods =====
+
+    def get_user_test_history(self, user_id: str) -> List[Dict]:
+        """Get all completed sessions for a user, ordered by date."""
+        conn = self._get_connection()
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+
+        try:
+            cursor.execute("""
+                SELECT id, final_theta, standard_error, proficiency_level,
+                       grammar_score, vocabulary_score, reading_score,
+                       items_completed, started_at, completed_at
+                FROM english_test_sessions
+                WHERE user_id = %s AND status = 'completed'
+                ORDER BY started_at ASC;
+            """, (user_id,))
+
+            return [dict(row) for row in cursor.fetchall()]
+
+        finally:
+            cursor.close()
+            self._return_connection(conn)
+
+    # ===== Routing Config Methods =====
+
+    def get_routing_config(self) -> Dict:
+        """Load active MST routing cutpoints from mst_routing_config table."""
+        conn = self._get_connection()
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+
+        try:
+            cursor.execute("""
+                SELECT stage_transition, cutpoints, description
+                FROM mst_routing_config
+                WHERE is_active = true
+                ORDER BY stage_transition;
+            """)
+
+            rows = [dict(row) for row in cursor.fetchall()]
+            config = {}
+            for row in rows:
+                config[row['stage_transition']] = row['cutpoints']
+            return config
+
+        finally:
+            cursor.close()
+            self._return_connection(conn)
+
+    def update_routing_config(self, stage_transition: str, cutpoints: dict) -> Dict:
+        """Update cutpoints for a specific stage transition."""
+        conn = self._get_connection()
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+
+        try:
+            cursor.execute("""
+                UPDATE mst_routing_config
+                SET cutpoints = %s, updated_at = NOW()
+                WHERE stage_transition = %s AND is_active = true
+                RETURNING *;
+            """, (json.dumps(cutpoints), stage_transition))
+
+            result = cursor.fetchone()
+            conn.commit()
+            if not result:
+                raise ValueError(f"No active config found for {stage_transition}")
+            return dict(result)
+
+        finally:
+            cursor.close()
+            self._return_connection(conn)
+
     # ===== Utility Methods =====
 
     def get_session_statistics(self, session_id: int) -> Dict:

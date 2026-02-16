@@ -35,6 +35,8 @@ def get_service() -> EnglishTestServiceV2:
 class StartTestRequest(BaseModel):
     """Request to start a new English adaptive test session"""
     user_id: str = Field(..., description="User UUID")
+    grade_level: Optional[int] = Field(None, description="Student grade level (1-12)")
+    gender: Optional[str] = Field(None, description="Student gender for DIF analysis")
 
 
 class StartTestResponse(BaseModel):
@@ -125,7 +127,11 @@ async def start_test(request: StartTestRequest):
         service = get_service()
         logger.info("✅ Service instance created")
 
-        result = service.start_session(request.user_id)
+        result = service.start_session(
+            request.user_id,
+            grade_level=request.grade_level,
+            gender=request.gender
+        )
         logger.info(f"✅ Session started: {result.get('session_id')}")
 
         return StartTestResponse(
@@ -227,6 +233,24 @@ async def finalize_test(request: FinalizeTestRequest):
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to finalize test: {str(e)}")
+
+
+@router.get("/growth/{user_id}")
+async def get_growth_data(user_id: str):
+    """
+    Get growth tracking data for a student.
+
+    Returns test history and growth analysis (theta trend, domain trends).
+    """
+    try:
+        service = get_service()
+        growth_data = service.calculate_growth(user_id)
+        return growth_data
+
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get growth data: {str(e)}")
 
 
 @router.get("/health")

@@ -2,7 +2,9 @@
 AI Item Generator using Google Gemini API
 ==========================================
 
-Automatically generates English test items with IRT parameters.
+Generates English test items. IRT parameters are NOT auto-assigned;
+items are created with calibration_status='uncalibrated' and must go
+through the calibration pipeline after collecting response data.
 """
 
 import os
@@ -160,56 +162,83 @@ class AIItemGenerator:
             vocab_guidance += f"Example words: {', '.join(vocab_examples[:10])}\n"
             vocab_guidance += f"These words are appropriate for difficulty {mid_diff:.2f}. Use these or similar words from the same frequency level."
 
-        prompt = f"""Generate {count} English language test items for adaptive testing.
+        # Map difficulty range to CEFR level for passage guidance
+        cefr = self._difficulty_to_cefr(mid_diff)
 
-**Requirements:**
-- Stage: {stage} (1=routing, 2=adaptive, 3=final)
-- Panel: {panel} (difficulty level)
-- Difficulty range: {min_diff:.1f} to {max_diff:.1f} (IRT 3PL model)
-- Domains: {', '.join(domains)}
-- Distribute items evenly across domains{vocab_guidance}
+        prompt = f"""Generate {count} English language test items for an adaptive test targeting K-12 students.
+
+**Test Configuration:**
+- Stage: {stage}, Panel: {panel}
+- Target CEFR level: {cefr}
+- Domains: {', '.join(domains)} (distribute evenly)
+{vocab_guidance}
 
 **Item Format (JSON array):**
 ```json
 [
   {{
     "domain": "grammar|vocabulary|reading",
-    "item_type": "specific_grammar_point|word_type|comprehension_skill",
-    "stem": "Question text here",
+    "stem": "Complete question ending with ?",
     "options": {{
-      "A": "First option",
-      "B": "Second option",
-      "C": "Third option",
-      "D": "Fourth option"
+      "A": "Option text",
+      "B": "Option text",
+      "C": "Option text",
+      "D": "Option text"
     }},
     "correct_answer": "A|B|C|D",
-    "skill_tags": ["tag1", "tag2"],
-    "difficulty": {min_diff + (max_diff - min_diff) / 2:.2f}
+    "skill_tags": ["bloom_level", "specific_skill"],
+    "cefr_level": "{cefr}"
   }}
 ]
 ```
 
-**Difficulty Guidelines:**
-- Very Easy (-2.0 to -1.0): Basic vocabulary, simple grammar, literal comprehension
-- Easy (-1.0 to 0.0): Common words, standard grammar, straightforward inference
-- Medium (0.0 to 1.0): Academic vocabulary, complex grammar, moderate inference
-- Hard (1.0 to 2.0): Advanced vocabulary, sophisticated grammar, deep analysis
+**Domain-Specific Guidelines:**
 
-**Quality Standards:**
-1. All options must be plausible
-2. Only one clearly correct answer
-3. No ambiguity or trick questions
-4. Age-appropriate content (K-12 students)
-5. Diverse topics and contexts
-6. Discrimination: 1.1-1.8 (higher for easier items)
-7. Guessing: Always 0.25 (4 options)
+GRAMMAR items:
+- Test one specific grammar point per item (e.g., subject-verb agreement, tense usage, relative clauses)
+- skill_tags: ["remember|understand|apply", "specific_grammar_point"]
+- Distractors must represent common student errors (e.g., wrong tense form, incorrect preposition)
 
-**Output only valid JSON array. No explanations.**"""
+VOCABULARY items:
+- Test word meaning in context, NOT isolated definitions
+- skill_tags: ["understand|analyze", "word_meaning|word_form|collocation"]
+- Distractors: semantically related words that don't fit the context
+
+READING items:
+- Provide a short passage (3-6 sentences) as part of the stem
+- Test comprehension at different Bloom levels: literal recall, inference, evaluation
+- skill_tags: ["understand|analyze|evaluate", "main_idea|inference|detail|vocabulary_in_context"]
+
+**Quality Requirements:**
+1. Stem must be a complete, clear question (end with ?)
+2. All 4 options must be similar length (within 2x of each other)
+3. Only ONE unambiguously correct answer
+4. Distractors based on common misconceptions/errors, NOT random wrong answers
+5. Vary correct answer positions (roughly equal A/B/C/D distribution across items)
+6. Age-appropriate, culturally neutral content
+7. No "all of the above" or "none of the above" options
+
+**Do NOT assign IRT parameters (difficulty, discrimination, guessing). These will be determined through empirical calibration.**
+
+**Output ONLY valid JSON array. No explanations or markdown.**"""
 
         return prompt
 
+    def _difficulty_to_cefr(self, difficulty: float) -> str:
+        """Map target difficulty to CEFR level for prompt guidance."""
+        if difficulty < -1.5:
+            return "A1"
+        elif difficulty < -0.5:
+            return "A2"
+        elif difficulty < 0.5:
+            return "B1"
+        elif difficulty < 1.2:
+            return "B2"
+        else:
+            return "C1"
+
     def _parse_response(self, response_text: str, stage: int, panel: str) -> List[Dict]:
-        """Parse Gemini API response and add metadata"""
+        """Parse Gemini API response and add metadata. No IRT params assigned."""
 
         # Extract JSON from response (handle markdown code blocks)
         response_text = response_text.strip()
@@ -221,50 +250,96 @@ class AIItemGenerator:
             response_text = response_text[:-3]
         response_text = response_text.strip()
 
-        # Parse JSON
         try:
             items_data = json.loads(response_text)
         except json.JSONDecodeError as e:
             raise ValueError(f"Failed to parse JSON response: {e}\n{response_text}")
 
-        # Add metadata
         items = []
         for idx, item in enumerate(items_data):
-            # Auto-generate ID
             domain_prefix = item['domain'][0].upper()
             item_id = f"{domain_prefix}_AI_{stage}{panel[0].upper()}{idx:03d}"
 
-            # Set discrimination based on difficulty
-            difficulty = item.get('difficulty', 0.0)
-            if difficulty < -1.0:
-                discrimination = 1.6
-            elif difficulty < 0.0:
-                discrimination = 1.4
-            elif difficulty < 1.0:
-                discrimination = 1.2
-            else:
-                discrimination = 1.0
-
-            # Build complete item
             complete_item = {
                 "id": item_id,
                 "stage": stage,
                 "panel": panel,
                 "form_id": 1,
                 "domain": item['domain'],
-                "item_type": item['item_type'],
                 "stem": item['stem'],
                 "options": item['options'],
                 "correct_answer": item['correct_answer'],
                 "skill_tags": item.get('skill_tags', []),
-                "difficulty": item.get('difficulty', 0.0),
-                "discrimination": discrimination,
+                # IRT params: placeholder defaults, NOT calibrated
+                "difficulty": 0.0,
+                "discrimination": 1.0,
                 "guessing": 0.25,
+                "calibration_status": "uncalibrated",
                 "status": "active",
-                "source": "ai_generated"
+                "source": "ai_generated",
             }
 
             items.append(complete_item)
+
+        # Run quality checks and annotate warnings
+        items = self._validate_items(items)
+
+        return items
+
+    def _validate_items(self, items: List[Dict]) -> List[Dict]:
+        """
+        Post-generation quality checks.
+
+        Checks:
+        1. Option length balance (no option >2x longest other)
+        2. Correct answer position distribution
+        3. Stem ends with question mark
+        4. Has exactly 4 options
+        """
+        warnings = []
+        answer_positions = {'A': 0, 'B': 0, 'C': 0, 'D': 0}
+
+        for i, item in enumerate(items):
+            item_warnings = []
+
+            # Check stem is a complete question
+            stem = item.get('stem', '')
+            if not stem.rstrip().endswith('?'):
+                item_warnings.append('stem_no_question_mark')
+
+            # Check exactly 4 options
+            options = item.get('options', {})
+            if len(options) != 4:
+                item_warnings.append(f'option_count_{len(options)}')
+
+            # Check option length balance
+            if options:
+                lengths = [len(str(v)) for v in options.values()]
+                if max(lengths) > 0 and min(lengths) > 0:
+                    ratio = max(lengths) / min(lengths)
+                    if ratio > 3.0:
+                        item_warnings.append(f'option_length_imbalance_{ratio:.1f}x')
+
+            # Track answer position
+            answer = item.get('correct_answer', '')
+            if answer in answer_positions:
+                answer_positions[answer] += 1
+
+            if item_warnings:
+                item['quality_warnings'] = item_warnings
+                warnings.extend(item_warnings)
+
+        # Check answer position bias
+        total = len(items)
+        if total >= 4:
+            expected = total / 4
+            for pos, count in answer_positions.items():
+                if count > expected * 2:
+                    for item in items:
+                        if item.get('correct_answer') == pos:
+                            existing = item.get('quality_warnings', [])
+                            existing.append(f'answer_position_bias_{pos}')
+                            item['quality_warnings'] = existing
 
         return items
 

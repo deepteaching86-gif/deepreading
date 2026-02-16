@@ -95,12 +95,33 @@ export interface SessionStatus {
   panel: string;
 }
 
+export interface LexileDetails {
+  score: number;
+  confidence_low: number;
+  confidence_high: number;
+  grade_context: string;
+  is_estimated: boolean;
+}
+
+export interface DomainScore {
+  correct: number;
+  total: number;
+  percentage: number;
+}
+
+export interface DomainScores {
+  grammar: DomainScore;
+  vocabulary: DomainScore;
+  reading: DomainScore;
+}
+
 export interface FinalResults {
   session_id: number;
   final_theta: number;
   standard_error: number;
   proficiency_level: number;
   lexile_score: number | null;
+  lexile_details: LexileDetails | null;
   ar_level: number | null;
   vocabulary_size: number | null;
   vocabulary_bands: {
@@ -108,10 +129,33 @@ export interface FinalResults {
     pseudowords: { correct: number; total: number; accuracy: number };
     confidence: string;
   } | null;
+  domain_scores: DomainScores | null;
   total_items: number;
   correct_count: number;
   accuracy_percentage: number;
   completed_at: string;
+  score_disclaimer: string | null;
+}
+
+// ===== Growth Tracking Types =====
+
+export interface GrowthSession {
+  id: number;
+  final_theta: number | null;
+  standard_error: number | null;
+  grammar_score: number | null;
+  vocabulary_score: number | null;
+  reading_score: number | null;
+  items_completed: number;
+  started_at: string | null;
+  completed_at: string | null;
+}
+
+export interface GrowthData {
+  sessions: GrowthSession[];
+  theta_trend: number;
+  domain_trends: { grammar: number; vocabulary: number; reading: number };
+  total_tests: number;
 }
 
 // ===== API Functions =====
@@ -200,10 +244,24 @@ export const checkHealth = async (): Promise<{ status: string; service: string }
   }
 };
 
+/**
+ * Get growth tracking data for a student
+ */
+export const getGrowthData = async (userId: string): Promise<GrowthData> => {
+  try {
+    const response = await apiClient.get<GrowthData>(`/api/english-test/growth/${userId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Failed to get growth data:', error);
+    throw error;
+  }
+};
+
 export default {
   startEnglishTest,
   submitResponse,
   getSessionStatus,
   finalizeTest,
   checkHealth,
+  getGrowthData,
 };

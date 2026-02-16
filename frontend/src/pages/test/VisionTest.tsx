@@ -1,94 +1,82 @@
 /**
  * Vision Test Page
  *
- * Main page for Vision tracking test with calibration and real-time visualization
+ * Standalone page for Vision tracking test with calibration and real-time visualization
+ * Uses client-side MediaPipe FaceMesh for gaze tracking
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import VisionCalibration from '../../components/vision/VisionCalibration';
-import { VisionWebSocketClient, VisionAPI, GazeData } from '../../services/visionWebSocket';
-
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || import.meta.env.VITE_ENGLISH_TEST_API_URL || 'http://localhost:8000';
+import { FaceMeshGazeService, GazePrediction } from '../../services/faceMeshGazeService';
 
 type TestPhase = 'intro' | 'calibration' | 'testing' | 'complete';
 
 const VisionTest: React.FC = () => {
   const navigate = useNavigate();
   const [phase, setPhase] = useState<TestPhase>('intro');
-  const [wsClient] = useState(() => new VisionWebSocketClient(BACKEND_URL));
-  const [visionAPI] = useState(() => new VisionAPI(BACKEND_URL));
-  const [sessionId, setSessionId] = useState<string | null>(null);
-  const [isConnected, setIsConnected] = useState(false);
+  const gazeServiceRef = useRef<FaceMeshGazeService | null>(null);
+  const [sessionId] = useState<string>('vision-test-' + Date.now());
   const [currentGaze, setCurrentGaze] = useState<{ x: number; y: number } | null>(null);
   const [calibrationAccuracy, setCalibrationAccuracy] = useState<number | null>(null);
-
-  useEffect(() => {
-    // Check Vision API availability
-    checkAPIAvailability();
-
-    return () => {
-      wsClient.disconnect();
-    };
-  }, []);
-
-  const checkAPIAvailability = async () => {
-    const available = await visionAPI.testConnection();
-    if (!available) {
-      alert('Vision API에 연결할 수 없습니다. 관리자에게 문의하세요.');
-    }
-  };
+  const [isInitializing, setIsInitializing] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleStart = async () => {
     try {
-      // Start Vision session
-      const newSessionId = await visionAPI.startSession('test-student', 'vision-test-v1');
-      setSessionId(newSessionId);
+      setIsInitializing(true);
+      setErrorMessage(null);
 
-      // Connect WebSocket
-      await wsClient.connect(newSessionId);
-      setIsConnected(true);
+      const service = new FaceMeshGazeService();
+      gazeServiceRef.current = service;
 
-      // Register gaze callback
-      wsClient.onGaze((data: GazeData) => {
-        setCurrentGaze({ x: data.x, y: data.y });
-      });
+      const initialized = await service.initialize();
+      if (!initialized) {
+        throw new Error('MediaPipe initialization failed');
+      }
 
-      // Start calibration
+      await service.startTracking();
       setPhase('calibration');
     } catch (error) {
       console.error('Failed to start Vision test:', error);
-      alert('Vision 테스트 시작에 실패했습니다.');
+      setErrorMessage('MediaPipe 초기화에 실패했습니다. 웹캠 권한을 확인해주세요.');
+      gazeServiceRef.current?.stopTracking();
+      gazeServiceRef.current = null;
+    } finally {
+      setIsInitializing(false);
     }
+  };
+
+  const registerGazeListener = () => {
+    const service = gazeServiceRef.current;
+    if (!service) return;
+
+    service.onGaze((prediction: GazePrediction) => {
+      setCurrentGaze({ x: prediction.x, y: prediction.y });
+    });
   };
 
   const handleCalibrationComplete = async (accuracy: number) => {
     setCalibrationAccuracy(accuracy);
-
-    // Save calibration to backend
-    if (sessionId) {
-      try {
-        await visionAPI.saveCalibration(sessionId, [], accuracy);
-      } catch (error) {
-        console.error('Failed to save calibration:', error);
-      }
-    }
-
-    // Move to testing phase
+    registerGazeListener();
     setPhase('testing');
   };
 
   const handleCalibrationCancel = () => {
-    wsClient.disconnect();
+    gazeServiceRef.current?.stopTracking();
+    gazeServiceRef.current = null;
     setPhase('intro');
   };
 
   const handleTestComplete = () => {
-    wsClient.disconnect();
+    gazeServiceRef.current?.stopTracking();
+    gazeServiceRef.current = null;
     setPhase('complete');
   };
 
   const handleExit = () => {
+    gazeServiceRef.current?.stopTracking();
+    gazeServiceRef.current = null;
     navigate('/dashboard');
   };
 
@@ -122,12 +110,19 @@ const VisionTest: React.FC = () => {
               </ol>
             </div>
 
+            {errorMessage && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                <p className="text-red-700">{errorMessage}</p>
+              </div>
+            )}
+
             <div className="flex gap-4">
               <button
                 onClick={handleStart}
-                className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold"
+                disabled={isInitializing}
+                className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                시작하기
+                {isInitializing ? '초기화 중...' : '시작하기'}
               </button>
               <button
                 onClick={handleExit}
@@ -136,19 +131,14 @@ const VisionTest: React.FC = () => {
                 취소
               </button>
             </div>
-
-            <div className="mt-6 text-sm text-gray-500">
-              <p>• WebSocket 연결: {isConnected ? '✅ 연결됨' : '⚪ 대기 중'}</p>
-            </div>
           </div>
         </div>
       )}
 
-      {phase === 'calibration' && sessionId && (
+      {phase === 'calibration' && gazeServiceRef.current && (
         <VisionCalibration
-          wsClient={wsClient}
+          gazeService={gazeServiceRef.current}
           sessionId={sessionId}
-          backendUrl={BACKEND_URL}
           onCalibrationComplete={handleCalibrationComplete}
           onCancel={handleCalibrationCancel}
         />

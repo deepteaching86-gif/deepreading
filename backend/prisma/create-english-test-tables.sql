@@ -20,6 +20,12 @@ EXCEPTION
   WHEN duplicate_object THEN null;
 END $$;
 
+DO $$ BEGIN
+  CREATE TYPE "CalibrationStatus" AS ENUM ('uncalibrated', 'provisional', 'calibrated', 'flagged');
+EXCEPTION
+  WHEN duplicate_object THEN null;
+END $$;
+
 -- Passages table
 CREATE TABLE IF NOT EXISTS "passages" (
   "id" SERIAL PRIMARY KEY,
@@ -63,6 +69,10 @@ CREATE TABLE IF NOT EXISTS "items" (
   "point_biserial" DOUBLE PRECISION,
   "correct_rate" DOUBLE PRECISION,
   "status" "ItemStatus" DEFAULT 'active',
+
+  -- Calibration Tracking
+  "calibration_status" "CalibrationStatus" DEFAULT 'uncalibrated',
+  "calibration_n" INTEGER DEFAULT 0,
 
   -- Timestamps
   "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
