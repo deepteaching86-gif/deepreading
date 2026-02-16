@@ -34,7 +34,7 @@ def get_service() -> EnglishTestServiceV2:
 
 class StartTestRequest(BaseModel):
     """Request to start a new English adaptive test session"""
-    user_id: str = Field(..., description="User UUID")
+    user_id: str = Field(..., min_length=1, description="User UUID")
     grade_level: Optional[int] = Field(None, description="Student grade level (1-12)")
     gender: Optional[str] = Field(None, description="Student gender for DIF analysis")
 
@@ -186,7 +186,13 @@ async def submit_response(request: SubmitResponseRequest):
         logger.error(f"📋 Traceback: {traceback.format_exc()}")
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
-        logger.error(f"❌ Unexpected error submitting response: {type(e).__name__}: {str(e)}")
+        # Check for duplicate item submission (IntegrityError from unique_session_item constraint)
+        error_type = type(e).__name__
+        error_str = str(e).lower()
+        if error_type == 'IntegrityError' or 'unique' in error_str or 'duplicate' in error_str:
+            logger.warning(f"⚠️ Duplicate submission: session={request.session_id}, item={request.item_id}")
+            raise HTTPException(status_code=409, detail="This item has already been answered in this session")
+        logger.error(f"❌ Unexpected error submitting response: {error_type}: {str(e)}")
         logger.error(f"📋 Full traceback: {traceback.format_exc()}")
         logger.error(f"📝 Request details: session_id={request.session_id}, item_id={request.item_id}, answer={request.selected_answer}")
         raise HTTPException(status_code=500, detail=f"Failed to submit response: {str(e)}")
