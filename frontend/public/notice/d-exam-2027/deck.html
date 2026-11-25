@@ -1,0 +1,994 @@
+<title>2027 D단계 승급시험 학부모 안내</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="딥독융합논술학원 2027 D단계 승급시험 학부모 안내: 희망 수업 시간대 조사, 단계별 수업과 시험 이후 진급 경로">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@500;700&display=swap">
+<style>
+/* Layout: one full-height "page" per slide on large screens (scroll-snap + keyboard),
+   a continuous reading column on phones. Plum ink from the DEEP textbook covers. */
+:root{
+  --bg:#FBF9FC; --bg-2:#F3EDF5; --surface:#FFFEFF;
+  --ink:#2A1A31; --ink-2:#5E5266; --line:#DDD0E2;
+  --plum:#63286B; --plum-soft:#EDE3F1; --on-plum:#FBF6FC;
+  --band:#34203C; --band-ink:#F5EDF8; --band-muted:#CDB9D6; --band-line:#5A4362;
+  --gold:#8F5C14; --gold-soft:#F5EAD9;
+  --shadow:0 1px 2px rgba(52,32,60,.06),0 8px 24px rgba(52,32,60,.07);
+  --f-display:"Noto Serif KR","Nanum Myeongjo",Georgia,serif;
+  --f-body:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --step-0:clamp(.95rem,.9rem + .2vw,1.06rem);
+  --step-1:clamp(1.08rem,1rem + .4vw,1.28rem);
+  --step-2:clamp(1.35rem,1.15rem + .9vw,1.9rem);
+  --step-3:clamp(1.75rem,1.4rem + 1.6vw,2.75rem);
+  --step-4:clamp(2.2rem,1.6rem + 2.8vw,4rem);
+  --radius:14px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#17111B; --bg-2:#1F1724; --surface:#261C2C;
+  --ink:#F1E9F4; --ink-2:#B9AABF; --line:#3E3045;
+  --plum:#CFA6DD; --plum-soft:#35243D; --on-plum:#1E1424;
+  --band:#2B1C32; --band-ink:#F5EDF8; --band-muted:#C7B3D0; --band-line:#4D3A55;
+  --gold:#E3B464; --gold-soft:#3A2E1C;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25);
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#17111B; --bg-2:#1F1724; --surface:#261C2C;
+  --ink:#F1E9F4; --ink-2:#B9AABF; --line:#3E3045;
+  --plum:#CFA6DD; --plum-soft:#35243D; --on-plum:#1E1424;
+  --band:#2B1C32; --band-ink:#F5EDF8; --band-muted:#C7B3D0; --band-line:#4D3A55;
+  --gold:#E3B464; --gold-soft:#3A2E1C;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25);
+  color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:var(--step-0);line-height:1.7;word-break:keep-all;overflow-wrap:break-word;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--bg)}
+h1,h2,h3,p{margin:0}
+h1,h2{font-family:var(--f-display);font-weight:700;letter-spacing:-.01em;text-wrap:balance;line-height:1.3}
+h3{font-size:var(--step-1);font-weight:700;line-height:1.4}
+button{font:inherit;color:inherit}
+a{color:var(--plum)}
+:focus-visible{outline:2px solid var(--plum);outline-offset:3px;border-radius:6px}
+.num{font-variant-numeric:tabular-nums}
+
+/* ---------- slides ---------- */
+.slide{position:relative;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:64px 40px;border-top:1px solid var(--line);scroll-margin-top:0}
+.slide.alt{background:var(--bg-2)}
+.slide.band{background:var(--band);color:var(--band-ink);border-top-color:var(--band)}
+.frame{width:100%;max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:clamp(20px,3vw,36px);min-height:100%}
+.head{display:flex;flex-direction:column;gap:8px}
+.eyebrow{font-size:.8rem;font-weight:700;letter-spacing:.12em;color:var(--plum);text-transform:uppercase}
+.band .eyebrow{color:var(--band-muted)}
+.head h2{font-size:var(--step-3)}
+.lede{color:var(--ink-2);font-size:var(--step-1);max-width:46em}
+.band .lede{color:var(--band-muted)}
+.foot{margin-top:auto;padding-top:20px;display:flex;flex-direction:row-reverse;justify-content:flex-end;gap:14px;font-size:.75rem;color:var(--ink-2);letter-spacing:.02em}
+.band .foot{color:var(--band-muted)}
+.src{font-size:.8rem;color:var(--ink-2)}
+.band .src{color:var(--band-muted)}
+
+@media (min-width:900px) and (min-height:620px){
+  html{scroll-snap-type:y proximity}
+  .slide{min-height:100vh;min-height:100svh;padding-block:clamp(56px,8vh,96px) 28px;scroll-snap-align:start;display:flex;flex-direction:column}
+  .slide>.frame{flex:1}
+}
+
+/* ---------- fixed chrome ---------- */
+.progress{position:fixed;left:0;right:0;top:env(safe-area-inset-top,0px);height:3px;z-index:40;background:transparent}
+.progress i{display:block;height:100%;width:0;background:var(--plum);transition:width .3s}
+.dock{position:fixed;z-index:40;right:calc(14px + env(safe-area-inset-right,0px));bottom:calc(14px + env(safe-area-inset-bottom,0px));display:flex;align-items:center;gap:2px;padding:4px;border-radius:999px;background:var(--surface);border:1px solid var(--line);box-shadow:var(--shadow)}
+.dock button{border:0;background:transparent;min-width:40px;height:40px;border-radius:999px;cursor:pointer;display:grid;place-items:center;color:var(--ink)}
+.dock button:hover{background:var(--plum-soft)}
+.dock .count{font-size:.85rem;padding:0 6px;color:var(--ink-2);min-width:58px;text-align:center}
+.dock svg{width:20px;height:20px}
+.rail{position:fixed;z-index:39;right:calc(18px + env(safe-area-inset-right,0px));top:50%;transform:translateY(-50%);display:none;flex-direction:column;gap:10px}
+.rail a{display:block;width:10px;height:10px;border-radius:50%;border:1.5px solid var(--ink-2);opacity:.55;position:relative}
+.rail a[aria-current="true"]{background:var(--plum);border-color:var(--plum);opacity:1;transform:scale(1.25)}
+.rail a span{position:absolute;right:20px;top:50%;transform:translateY(-50%);white-space:nowrap;font-size:.78rem;background:var(--surface);color:var(--ink);border:1px solid var(--line);padding:2px 8px;border-radius:6px;opacity:0;pointer-events:none;transition:opacity .15s}
+.rail a:hover span,.rail a:focus-visible span{opacity:1}
+@media (min-width:1100px) and (min-height:620px){.rail{display:flex}}
+
+.toc{position:fixed;inset:0;z-index:50;background:rgba(20,12,24,.45);display:flex;justify-content:flex-end}
+.toc-panel{width:min(380px,100%);height:100%;background:var(--surface);padding:calc(24px + env(safe-area-inset-top,0px)) max(20px,env(safe-area-inset-right,0px)) 24px 20px;overflow:auto;display:flex;flex-direction:column;gap:6px}
+.toc-panel header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.toc-panel header b{font-family:var(--f-display);font-size:1.2rem}
+.toc-panel ol{list-style:none;margin:0;padding:0;counter-reset:t}
+.toc-panel li a{display:flex;gap:12px;padding:10px 8px;border-radius:8px;color:var(--ink);text-decoration:none;align-items:baseline}
+.toc-panel li a:hover{background:var(--plum-soft)}
+.toc-panel li a[aria-current="true"]{background:var(--plum-soft);font-weight:700}
+.toc-panel li small{color:var(--ink-2);font-variant-numeric:tabular-nums;min-width:22px}
+.icon-btn{border:1px solid var(--line);background:transparent;border-radius:999px;width:40px;height:40px;cursor:pointer;display:grid;place-items:center}
+
+/* ---------- shared bits ---------- */
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:.8rem;font-weight:700;padding:3px 10px;border-radius:999px;background:var(--plum-soft);color:var(--plum);white-space:nowrap}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:20px}
+.quote{font-family:var(--f-display);font-weight:500;font-size:var(--step-1);line-height:1.65;color:var(--ink)}
+.band .quote{color:var(--band-ink)}
+.qref{font-size:.78rem;color:var(--ink-2);margin-top:6px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:52px;padding:0 24px;border-radius:999px;font-weight:700;text-decoration:none;border:0;cursor:pointer;font-size:1.05rem}
+.btn-primary{background:var(--plum);color:var(--on-plum)}
+.band .btn-primary{background:var(--band-ink);color:var(--band)}
+.btn-ghost{background:transparent;border:1.5px solid currentColor;color:inherit}
+.btn svg{width:20px;height:20px}
+.grid-2{display:grid;gap:20px}
+@media (min-width:760px){.grid-2{grid-template-columns:1fr 1fr}}
+
+/* ---------- cover ---------- */
+#cover{border-top:0;background:var(--bg)}
+.cover-grid{display:grid;gap:28px;align-items:center;flex:1}
+@media (min-width:860px){.cover-grid{grid-template-columns:1.05fr 1fr}}
+.logo{height:28px;width:auto;align-self:flex-start}
+:root[data-theme="dark"] .logo{filter:brightness(0) invert(.88)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .logo{filter:brightness(0) invert(.88)}}
+.cover-title{font-size:var(--step-4);line-height:1.2}
+.cover-title em{font-style:normal;color:var(--plum)}
+.cover-sub{font-size:var(--step-1);color:var(--ink-2)}
+.cover-meta{display:flex;flex-direction:column;gap:2px;color:var(--ink-2);font-size:.95rem}
+.cover-img{width:100%;height:auto;aspect-ratio:16/10;object-fit:cover;border-radius:20px;max-width:100%}
+.keydates{display:flex;flex-wrap:wrap;gap:10px}
+.keydate{display:flex;flex-direction:column;padding:12px 16px;border-radius:12px;background:var(--surface);border:1px solid var(--line);min-width:150px}
+.keydate b{font-size:1.05rem}
+.keydate span{font-size:.82rem;color:var(--ink-2)}
+.keydate .dd{font-size:.78rem;font-weight:700;color:var(--plum)}
+
+/* ---------- reply (statement band) ---------- */
+.timeline{list-style:none;margin:0;padding:0;display:grid;gap:0}
+.tl-step{display:grid;grid-template-columns:28px 1fr;gap:14px;position:relative;padding-bottom:22px}
+.tl-step:last-child{padding-bottom:0}
+.tl-step::before{content:"";position:absolute;left:13px;top:26px;bottom:0;width:2px;background:var(--band-line)}
+.tl-step:last-child::before{display:none}
+.tl-dot{width:28px;height:28px;border-radius:50%;border:2px solid var(--band-muted);display:grid;place-items:center;background:var(--band);z-index:1}
+.tl-step.done .tl-dot{background:var(--band-muted);border-color:var(--band-muted)}
+.tl-step.done .tl-dot::after{content:"";width:8px;height:12px;border:solid var(--band);border-width:0 2.5px 2.5px 0;transform:translateY(-1px) rotate(45deg)}
+.tl-step.now .tl-dot{background:var(--band-ink);border-color:var(--band-ink);box-shadow:0 0 0 6px rgba(245,237,248,.16)}
+.tl-date{font-size:.85rem;color:var(--band-muted);font-variant-numeric:tabular-nums}
+.tl-title{font-weight:700;font-size:var(--step-1);display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.tl-title .state{font-size:.75rem;padding:2px 9px;border-radius:999px;border:1px solid var(--band-muted);color:var(--band-ink);font-weight:700}
+.tl-step.now .state{background:var(--band-ink);color:var(--band);border-color:var(--band-ink)}
+.tl-desc{font-size:.92rem;color:var(--band-muted)}
+.reply-grid{display:grid;gap:28px}
+@media (min-width:900px){.reply-grid{grid-template-columns:1.1fr .9fr;gap:48px}}
+.reply-card{border:1px solid var(--band-line);border-radius:20px;padding:24px;display:flex;flex-direction:column;gap:18px;background:rgba(255,255,255,.03)}
+.countdown{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.countdown b{font-family:var(--f-display);font-size:clamp(2.6rem,2rem + 3vw,4.2rem);line-height:1;font-variant-numeric:tabular-nums}
+.countdown span{color:var(--band-muted)}
+.checklist{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.checklist li{display:grid;grid-template-columns:22px 1fr;gap:10px;align-items:start;font-size:.95rem}
+.checklist li svg{width:20px;height:20px;margin-top:4px;color:var(--band-muted)}
+.qr-row{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.qr{width:112px;height:112px;padding:8px;background:#FFFFFF;border-radius:12px;flex:none}
+.qr svg{display:block;width:100%;height:100%}
+.qr-row p{font-size:.85rem;color:var(--band-muted);flex:1;min-width:160px}
+.linkline{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:.85rem;color:var(--band-muted)}
+.linkline code{font-family:ui-monospace,Menlo,monospace;color:var(--band-ink);user-select:all}
+.linkline button{border:1px solid var(--band-line);background:transparent;color:var(--band-ink);border-radius:999px;padding:4px 12px;cursor:pointer;font-size:.8rem}
+
+/* ---------- welcome ---------- */
+.welcome-grid{display:grid;gap:28px;align-items:start}
+@media (min-width:860px){.welcome-grid{grid-template-columns:1fr 1.1fr;gap:56px}}
+.big-quote{font-family:var(--f-display);font-size:var(--step-3);line-height:1.4;font-weight:700}
+.big-quote span{color:var(--plum)}
+.outcomes{display:grid;gap:0;border-top:1px solid var(--line)}
+.outcome{display:grid;grid-template-columns:auto 1fr;gap:4px 16px;padding:16px 0;border-bottom:1px solid var(--line);align-items:center}
+.outcome .tag{grid-row:span 2;width:64px;height:64px;border-radius:14px;display:grid;place-items:center;font-weight:700;font-size:.95rem;text-align:center;line-height:1.15;background:var(--plum-soft);color:var(--plum)}
+.outcome.is-d .tag{background:var(--plum);color:var(--on-plum)}
+.outcome b{font-size:var(--step-1)}
+.outcome p{color:var(--ink-2);font-size:.95rem}
+
+/* ---------- stage map ---------- */
+.stairs{display:grid;grid-template-columns:repeat(5,1fr);gap:clamp(6px,1.2vw,14px);align-items:end;height:clamp(240px,38vh,340px);padding-top:56px}
+.stair{position:relative;height:var(--h);border-radius:12px 12px 4px 4px;background:var(--plum-soft);display:flex;flex-direction:column;justify-content:flex-start;align-items:center;padding-top:14px;transform-origin:bottom;animation:rise .7s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--i)*90ms)}
+.stair b{font-family:var(--f-display);font-size:clamp(1.2rem,.9rem + 1.8vw,2.4rem);color:var(--plum);line-height:1}
+.stair.cur{background:color-mix(in srgb,var(--plum) 22%,var(--surface));outline:2px dashed var(--plum);outline-offset:-2px}
+.stair.top{background:var(--plum)}
+.stair.top b{color:var(--on-plum)}
+.stair .flag{position:absolute;bottom:calc(100% + 8px);font-size:.75rem;font-weight:700;white-space:nowrap;padding:3px 8px;border-radius:999px}
+.stair.cur .flag{background:var(--surface);color:var(--plum);border:1px solid var(--plum)}
+.stair.top .flag{background:var(--plum);color:var(--on-plum)}
+@keyframes rise{from{transform:scaleY(.15);opacity:.2}to{transform:none;opacity:1}}
+.stair-legend{display:flex;flex-wrap:wrap;gap:10px 20px;font-size:.9rem;color:var(--ink-2)}
+.stair-legend i{display:inline-block;width:14px;height:14px;border-radius:4px;vertical-align:-2px;margin-right:6px}
+@media (max-width:520px){.stair .flag{font-size:.66rem;padding:2px 6px}.stair.cur .flag{bottom:calc(100% + 6px)}}
+
+/* ---------- pillars ---------- */
+.pillars{display:grid;gap:16px}
+@media (min-width:760px){.pillars{grid-template-columns:repeat(3,1fr)}}
+.pillar{border-top:3px solid var(--plum);padding:20px 4px 0;display:flex;flex-direction:column;gap:10px}
+.pillar svg{width:36px;height:36px;color:var(--plum)}
+.pillar h3{font-size:var(--step-2);font-family:var(--f-display)}
+.pillar p{color:var(--ink-2)}
+.statement{font-family:var(--f-display);font-size:var(--step-2);line-height:1.5;font-weight:700;max-width:30em}
+
+/* ---------- lenses (radial) ---------- */
+.lens-wrap{display:grid;gap:20px}
+.lens-map{position:relative;display:grid;gap:12px}
+.lens-core{position:relative;white-space:nowrap;display:grid;place-items:center;text-align:center;padding:18px;border-radius:999px;background:var(--plum);color:var(--on-plum);font-family:var(--f-display);font-weight:700;font-size:var(--step-2);line-height:1.2}
+.lens-core small{display:block;font-family:var(--f-body);font-weight:500;font-size:.8rem;opacity:.85;margin-top:4px}
+.lens-lines{display:none}
+.lens{all:unset;box-sizing:border-box;position:relative;cursor:pointer;background:var(--surface);border:1.5px solid var(--line);border-radius:var(--radius);padding:16px 18px;display:grid;grid-template-columns:auto 1fr;gap:2px 14px;align-items:center;transition:border-color .2s,background-color .2s}
+.lens:hover{border-color:var(--plum)}
+.lens:focus-visible{outline:2px solid var(--plum);outline-offset:3px}
+.lens .n{grid-row:span 2;font-family:var(--f-display);font-size:1.6rem;color:var(--plum);font-weight:700}
+.lens b{font-size:1.1rem}
+.lens span{font-size:.88rem;color:var(--ink-2)}
+.lens[aria-selected="true"]{background:var(--plum);border-color:var(--plum)}
+.lens[aria-selected="true"] .n,.lens[aria-selected="true"] b,.lens[aria-selected="true"] span{color:var(--on-plum)}
+.lens-detail{border-left:3px solid var(--plum);padding:6px 0 6px 18px;display:flex;flex-direction:column;gap:8px;min-height:150px}
+.lens-detail .kind{font-size:.8rem;font-weight:700;color:var(--plum);letter-spacing:.04em}
+@media (min-width:900px){
+  .lens-wrap{grid-template-columns:1.15fr .85fr;align-items:center;gap:40px}
+  .lens-map{grid-template-columns:1fr 160px 1fr;grid-template-rows:auto auto auto;gap:18px 26px;align-items:center}
+  .lens-core{grid-column:2;grid-row:2;width:160px;height:160px;font-size:1.3rem}
+  .lens[data-pos="1"]{grid-column:1;grid-row:1}
+  .lens[data-pos="2"]{grid-column:3;grid-row:1}
+  .lens[data-pos="3"]{grid-column:1;grid-row:3}
+  .lens[data-pos="4"]{grid-column:3;grid-row:3}
+  .lens-lines{display:block;position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+  .lens-lines line{stroke:var(--line);stroke-width:2;stroke-dasharray:4 5}
+  .lens-lines line.on{stroke:var(--plum);stroke-dasharray:none}
+}
+
+/* ---------- step flows ---------- */
+.flow{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+@media (min-width:640px){.flow{grid-template-columns:repeat(3,1fr)}}
+@media (min-width:980px){.flow{grid-template-columns:repeat(var(--n),1fr);gap:0}}
+.flow li{display:flex}
+.flow button{all:unset;box-sizing:border-box;cursor:pointer;flex:1;display:flex;flex-direction:column;gap:2px;padding:12px 14px;background:var(--surface);border:1.5px solid var(--line);border-radius:12px;position:relative;transition:background-color .2s,border-color .2s}
+.flow button:hover{border-color:var(--plum)}
+.flow button:focus-visible{outline:2px solid var(--plum);outline-offset:2px}
+.flow small{font-size:.72rem;font-weight:700;color:var(--plum);letter-spacing:.06em;font-variant-numeric:tabular-nums}
+.flow b{font-size:1rem;line-height:1.35}
+.flow button[aria-selected="true"]{background:var(--plum);border-color:var(--plum)}
+.flow button[aria-selected="true"] small,.flow button[aria-selected="true"] b{color:var(--on-plum)}
+@media (min-width:980px){
+  .flow li+li button{margin-left:18px}
+  .flow li+li button::before{content:"";position:absolute;left:-17px;top:50%;width:14px;height:14px;transform:translateY(-50%);background:linear-gradient(var(--plum),var(--plum)) left center/10px 2px no-repeat;}
+  .flow li+li button::after{content:"";position:absolute;left:-9px;top:50%;width:7px;height:7px;border:solid var(--plum);border-width:2px 2px 0 0;transform:translateY(-50%) rotate(45deg)}
+}
+.flow-detail{display:grid;gap:16px}
+@media (min-width:860px){.flow-detail{grid-template-columns:1fr 1fr;gap:32px}}
+.flow-detail .what{display:flex;flex-direction:column;gap:6px}
+.flow-detail .what h3{font-family:var(--f-display);font-size:var(--step-2)}
+.flow-detail .what p{color:var(--ink-2)}
+.exemplar{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:20px 22px}
+.exemplar .kind{font-size:.78rem;font-weight:700;color:var(--plum);margin-bottom:6px;letter-spacing:.04em}
+.glossary{display:grid;gap:10px}
+@media (min-width:760px){.glossary{grid-template-columns:1fr 1fr}}
+.glossary div{padding:12px 16px;border-radius:12px;background:var(--plum-soft);font-size:.92rem}
+.glossary b{color:var(--plum)}
+
+/* ---------- skills ---------- */
+.skills{display:grid;gap:0;border-top:1px solid var(--line)}
+.skill{display:grid;gap:6px 24px;padding:20px 0;border-bottom:1px solid var(--line);grid-template-columns:52px 1fr}
+.skill .n{font-family:var(--f-display);font-size:1.8rem;color:var(--plum);opacity:.55;line-height:1}
+.skill h3{font-family:var(--f-display);font-size:var(--step-2);color:var(--plum)}
+.skill .body{grid-column:2;color:var(--ink-2)}
+.skill .body .quote{font-size:1.05rem}
+@media (min-width:860px){.skill{grid-template-columns:72px 200px 1fr;align-items:baseline}.skill .body{grid-column:3}}
+.skills-wrap{display:grid;gap:24px}
+@media (min-width:1000px){.skills-wrap{grid-template-columns:1fr 240px;align-items:stretch}}
+.goal{border-radius:var(--radius);background:var(--band);color:var(--band-ink);padding:22px;display:flex;flex-direction:column;justify-content:center;gap:10px}
+.goal b{font-family:var(--f-display);font-size:var(--step-2);line-height:1.3}
+.goal p{color:var(--band-muted);font-size:.9rem}
+.goal .mini{display:flex;gap:6px;flex-wrap:wrap}
+.goal .mini span{font-size:.8rem;border:1px solid var(--band-line);border-radius:999px;padding:2px 10px}
+
+/* ---------- Pre-D themes ---------- */
+.pred-grid{display:grid;gap:24px}
+@media (min-width:900px){.pred-grid{grid-template-columns:1.4fr 1fr;gap:40px;align-items:center}}
+.themes{display:grid;gap:12px}
+@media (min-width:560px){.themes{grid-template-columns:1fr 1fr}}
+.theme{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:18px;display:flex;flex-direction:column;gap:10px}
+.theme .code{font-size:.72rem;font-weight:700;color:var(--ink-2);letter-spacing:.06em}
+.theme h3{font-family:var(--f-display);color:var(--plum)}
+.theme .to{display:flex;gap:8px;align-items:center;font-size:.92rem}
+.theme .to svg{width:16px;height:16px;flex:none;color:var(--plum)}
+.pred-img{width:100%;height:auto;border-radius:20px;aspect-ratio:4/5;object-fit:cover;max-width:100%}
+@media (max-width:899px){.pred-img{aspect-ratio:16/9;max-height:260px}}
+
+/* ---------- compare ---------- */
+.compare{display:grid;gap:0;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:var(--surface)}
+.cmp-row{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--line)}
+.cmp-row:first-child{border-top:0}
+.cmp-row>div{padding:14px 16px;min-width:0}
+.cmp-row .lab{grid-column:1/-1;background:var(--bg-2);font-weight:700;font-size:.85rem;color:var(--ink-2);padding:8px 16px}
+.cmp-row .d{background:var(--plum-soft)}
+.cmp-head>div{font-weight:700;font-size:var(--step-1)}
+.cmp-head .d{background:var(--plum);color:var(--on-plum)}
+.cmp-head .lab{display:none}
+@media (min-width:760px){
+  .cmp-row{grid-template-columns:180px 1fr 1fr}
+  .cmp-row .lab{grid-column:auto;background:transparent;font-size:1rem;color:var(--ink);padding:18px 20px}
+  .cmp-row>div{padding:18px 20px}
+  .cmp-head .lab{display:block;color:var(--ink-2);font-size:.9rem}
+}
+.cmp-note{font-weight:700;color:var(--plum)}
+
+/* ---------- paths ---------- */
+.paths{display:grid;gap:14px}
+.path{display:grid;gap:10px;padding:16px;border-radius:var(--radius);background:var(--surface);border:1px solid var(--line)}
+.path .who{display:flex;flex-direction:column;gap:4px}
+.path .who b{font-size:var(--step-1);display:flex;gap:8px;align-items:center}
+.path .who p{font-size:.88rem;color:var(--ink-2)}
+.legs{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.leg{border-radius:10px;padding:10px 12px;background:var(--plum-soft);font-size:.9rem;line-height:1.45;position:relative}
+.leg small{display:block;font-size:.72rem;font-weight:700;color:var(--plum);letter-spacing:.04em}
+.path.p-d .leg:first-child{background:var(--plum);color:var(--on-plum)}
+.path.p-d .leg:first-child small{color:var(--on-plum)}
+.finish{border-radius:var(--radius);background:var(--band);color:var(--band-ink);padding:18px;display:flex;flex-direction:column;justify-content:center;gap:4px;text-align:center}
+.finish b{font-family:var(--f-display);font-size:var(--step-2)}
+.finish span{font-size:.85rem;color:var(--band-muted)}
+.paths-head{display:none}
+@media (min-width:980px){
+  .paths{grid-template-columns:210px 1fr 1fr 190px;gap:12px 14px;align-items:stretch}
+  .paths-head{display:contents}
+  .paths-head span{font-size:.78rem;font-weight:700;letter-spacing:.06em;color:var(--ink-2);padding-left:4px}
+  .path{display:contents}
+  .path .who{padding:14px 0;border-top:1px solid var(--line)}
+  .legs{display:contents}
+  .leg{display:flex;flex-direction:column;justify-content:center;margin:8px 0;padding:12px 16px}
+  .leg:not(:last-child)::after{content:"";position:absolute;right:-14px;top:50%;width:14px;height:2px;background:var(--plum);opacity:.5}
+  .leg:last-child::after{content:"";position:absolute;right:-14px;top:50%;width:14px;height:2px;background:var(--plum);opacity:.5}
+  .finish{grid-column:4;grid-row:2/span 3;margin:8px 0}
+}
+
+/* ---------- scoring ---------- */
+.score-bar{display:flex;height:64px;border-radius:12px;overflow:hidden;gap:2px;background:var(--bg)}
+.seg{flex:var(--p) 1 0;background:var(--plum);color:var(--on-plum);display:grid;place-items:center;font-size:.8rem;font-weight:700;font-variant-numeric:tabular-nums;transition:opacity .2s;cursor:default;min-width:0;overflow:hidden}
+.seg.poem{background:var(--gold);color:var(--bg)}
+.score-bar.hl .seg:not(.on){opacity:.28}
+.score-split{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:6px 20px}
+.score-split .t{display:flex;align-items:baseline;gap:10px}
+.score-split b{font-family:var(--f-display);font-size:var(--step-3);color:var(--plum);line-height:1}
+.score-split .poem b{color:var(--gold)}
+.score-split .poem{flex-direction:row}
+.score-cols{display:grid;gap:24px}
+@media (min-width:860px){.score-cols{grid-template-columns:1.4fr 1fr;gap:48px}}
+.crit{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+.crit li{display:grid;grid-template-columns:minmax(0,9.5em) 1fr 2.2em;gap:12px;align-items:center;padding:6px 8px;border-radius:8px;cursor:default;font-size:.95rem}
+.crit li:hover,.crit li.on{background:var(--plum-soft)}
+.crit .bar{height:10px;border-radius:999px;background:var(--bg-2);overflow:hidden}
+.crit .bar i{display:block;height:100%;width:calc(var(--p) / 15 * 100%);background:var(--plum);border-radius:999px}
+.crit.poem .bar i{background:var(--gold)}
+.crit .pt{text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
+.crit-title{font-weight:700;margin-bottom:6px;display:flex;justify-content:space-between}
+.extra{border:1.5px dashed var(--line);border-radius:12px;padding:12px 16px;font-size:.92rem;margin-top:14px}
+.extra b{display:block}
+.extra span{color:var(--ink-2);font-size:.85rem}
+
+/* ---------- exam ---------- */
+.tabs{display:flex;gap:6px;flex-wrap:wrap}
+.tabs button{all:unset;box-sizing:border-box;cursor:pointer;padding:8px 14px;border-radius:999px;border:1.5px solid var(--line);font-size:.92rem;font-weight:500}
+.tabs button:hover{border-color:var(--plum)}
+.tabs button:focus-visible{outline:2px solid var(--plum);outline-offset:2px}
+.tabs button[aria-selected="true"]{background:var(--plum);border-color:var(--plum);color:var(--on-plum);font-weight:700}
+.paper{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:clamp(18px,3vw,36px)}
+.paper-scroll{max-height:none}
+@media (min-width:900px) and (min-height:620px){.paper-scroll{max-height:52vh;overflow:auto;padding-right:8px}}
+.paper .ptitle{font-weight:700;margin-bottom:12px;display:flex;gap:10px;flex-wrap:wrap;align-items:baseline}
+.paper .ptitle span{font-size:.82rem;color:var(--ink-2);font-weight:500}
+.prose{font-family:var(--f-display);font-weight:500;font-size:1.02rem;line-height:1.95;max-width:44em}
+.prose p+p{margin-top:.9em}
+.poem-text{font-family:var(--f-display);font-weight:500;font-size:1.05rem;line-height:2;white-space:pre-line}
+.poem-head{display:flex;align-items:baseline;gap:14px;margin-bottom:10px}
+.poem-head b{font-family:var(--f-display);font-size:var(--step-2);color:var(--plum)}
+.task{border-left:3px solid var(--plum);padding-left:18px}
+.task .quote{font-size:var(--step-1)}
+.thumbs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;max-width:640px}
+.thumbs button{all:unset;cursor:zoom-in;border-radius:8px;overflow:hidden;border:1px solid var(--line);background:#FFFFFF;display:block}
+.thumbs button:focus-visible{outline:2px solid var(--plum);outline-offset:2px}
+.thumbs img{display:block;width:100%;height:auto}
+.lightbox{position:fixed;inset:0;z-index:60;background:rgba(15,8,18,.85);display:grid;place-items:center;padding:calc(16px + env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) calc(16px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.lightbox img{max-height:100%;max-width:min(100%,820px);width:auto;height:auto;border-radius:8px;background:#FFFFFF}
+.lightbox .close{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));right:calc(12px + env(safe-area-inset-right,0px));border:0;background:#FFFFFF;color:#2A1A31;width:44px;height:44px;border-radius:50%;cursor:pointer;font-size:1.4rem}
+
+/* ---------- closing ---------- */
+.closing{display:grid;gap:32px;align-items:center;flex:1}
+@media (min-width:900px){.closing{grid-template-columns:1.2fr .8fr}}
+.closing h2{font-size:var(--step-4)}
+.cta-row{display:flex;gap:12px;flex-wrap:wrap}
+
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+</style>
+
+<div class="progress" aria-hidden="true"><i id="progressBar"></i></div>
+<nav class="rail" id="rail" aria-label="슬라이드 바로가기"></nav>
+
+<main id="deck">
+
+<!-- 01 COVER -->
+<section class="slide" id="cover" data-label="표지">
+  <div class="frame">
+    <img class="logo" src="img/logo.png" alt="DEEP" width="144" height="46">
+    <div class="cover-grid">
+      <div class="head" style="gap:20px">
+        <p class="eyebrow">2027 D단계 승급시험 학부모 안내</p>
+        <h1 class="cover-title">D단계, 생각을 완성하는<br><em>마지막 단계</em></h1>
+        <p class="cover-sub">시험을 치른 아이의 다음 배움과 1월부터 시작되는 새 반 배정을 안내드립니다.</p>
+        <div class="keydates" aria-label="주요 일정">
+          <div class="keydate"><span>희망 수업 시간대 회신 마감</span><b>11월 30일(월)</b><span class="dd" data-dday="deadline"></span></div>
+          <div class="keydate"><span>최종 승급 결과·반별 스케줄 안내</span><b>12월 1일(화)</b><span class="dd" data-dday="result"></span></div>
+          <div class="keydate"><span>새 반 수업 시작</span><b>2027년 1월</b></div>
+        </div>
+        <div class="cover-meta"><b style="color:var(--ink)">딥독융합논술학원</b><span>2026년 11월</span></div>
+      </div>
+      <img class="cover-img" src="img/cover.jpg" alt="펼쳐진 책이 보라색 양장본 위에 놓여 있는 모습" width="1600" height="900">
+    </div>
+    <div class="foot"><span>공부 그릇을 키우는 사고력 논술 | DEEP</span><span class="num">01</span></div>
+  </div>
+</section>
+
+<!-- 02 REPLY / SCHEDULE -->
+<section class="slide band" id="reply" data-label="회신 요청·일정">
+  <div class="frame">
+    <div class="head">
+      <p class="eyebrow">꼭 확인해 주세요</p>
+      <h2>희망 수업 시간대를 11월 30일까지 알려 주세요</h2>
+      <p class="lede">시험을 치른 아이들은 결과에 따라 1월부터 새로운 반으로 이동합니다. 최종 반 배정은 D단계 시험 결과에 따라 성적순으로 이루어집니다.</p>
+    </div>
+    <div class="reply-grid">
+      <ol class="timeline" id="timeline">
+        <li class="tl-step" data-step="exam"><div class="tl-dot"></div><div><p class="tl-date">11월</p><p class="tl-title">D단계 승급시험 응시 <span class="state"></span></p><p class="tl-desc">논제 글쓰기 80점 + 시 해석 20점</p></div></li>
+        <li class="tl-step" data-step="survey"><div class="tl-dot"></div><div><p class="tl-date">~ 11월 30일(월)</p><p class="tl-title">희망 수업 시간대 조사 <span class="state"></span></p><p class="tl-desc">마지막 페이지까지 작성 후 <b>제출</b> 버튼을 눌러야 신청이 완료됩니다.</p></div></li>
+        <li class="tl-step" data-step="result"><div class="tl-dot"></div><div><p class="tl-date">12월 1일(화)</p><p class="tl-title">최종 승급 결과·반별 수업 스케줄 안내 <span class="state"></span></p><p class="tl-desc">반 배정은 시험 결과에 따라 성적순으로 진행합니다. 결과는 각 가정에 따로 안내드립니다.</p></div></li>
+        <li class="tl-step" data-step="start"><div class="tl-dot"></div><div><p class="tl-date">2027년 1월</p><p class="tl-title">새 반에서 수업 시작 <span class="state"></span></p><p class="tl-desc">D단계 · Pre-D단계 · C단계 통합반</p></div></li>
+      </ol>
+      <div class="reply-card">
+        <div class="countdown"><b id="ddayBig">D-5</b><span id="ddayText">신청 마감 11월 30일(월)까지</span></div>
+        <ul class="checklist">
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12l4 4 10-10"/></svg><span>희망 수업 시간대를 고릅니다.</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12l4 4 10-10"/></svg><span>설문의 마지막 페이지까지 작성합니다.</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12l4 4 10-10"/></svg><span><b>제출</b> 버튼을 눌러야 신청이 완료됩니다.</span></li>
+        </ul>
+        <a class="btn btn-primary" href="https://forms.gle/zKKTpTcoSN8FB8Zr9" target="_blank" rel="noopener">희망 시간대 신청하기
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8"/></svg></a>
+        <div class="qr-row">
+          <div class="qr" role="img" aria-label="신청 설문 링크 QR 코드"><svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 29 29" class="segno"><path class="qrline" stroke="#000" d="M0 0.5h7m2 0h1m2 0h3m1 0h1m2 0h1m2 0h7m-29 1h1m5 0h1m1 0h1m1 0h1m1 0h1m1 0h2m1 0h1m1 0h1m2 0h1m5 0h1m-29 1h1m1 0h3m1 0h1m2 0h1m3 0h2m1 0h1m1 0h1m3 0h1m1 0h3m1 0h1m-29 1h1m1 0h3m1 0h1m2 0h1m3 0h3m1 0h4m1 0h1m1 0h3m1 0h1m-29 1h1m1 0h3m1 0h1m1 0h1m2 0h2m1 0h1m1 0h1m5 0h1m1 0h3m1 0h1m-29 1h1m5 0h1m2 0h1m1 0h1m1 0h1m1 0h6m1 0h1m5 0h1m-29 1h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7m-20 1h2m1 0h4m1 0h1m-18 1h1m1 0h1m1 0h1m1 0h1m4 0h2m1 0h2m1 0h1m1 0h2m3 0h1m2 0h1m-27 1h5m2 0h1m2 0h2m1 0h1m2 0h1m1 0h2m1 0h1m2 0h1m2 0h1m-29 1h1m1 0h1m1 0h3m2 0h3m1 0h1m2 0h3m3 0h3m1 0h3m-27 1h2m5 0h2m1 0h1m4 0h2m3 0h1m1 0h1m2 0h1m-25 1h1m2 0h2m2 0h3m4 0h1m1 0h2m1 0h1m2 0h1m1 0h2m-21 1h2m1 0h1m1 0h1m2 0h1m2 0h4m2 0h1m2 0h1m-29 1h3m1 0h1m1 0h1m1 0h1m3 0h1m1 0h1m1 0h2m2 0h2m3 0h1m1 0h2m-29 1h6m3 0h2m1 0h3m2 0h2m2 0h3m1 0h1m1 0h1m-28 1h1m1 0h2m1 0h2m1 0h1m5 0h2m3 0h1m1 0h3m1 0h1m1 0h2m-24 1h1m2 0h4m2 0h5m1 0h3m2 0h2m1 0h1m-29 1h1m1 0h1m1 0h4m4 0h2m2 0h3m2 0h3m3 0h2m-28 1h1m2 0h2m1 0h2m2 0h2m2 0h1m1 0h2m1 0h1m1 0h1m1 0h2m1 0h1m-28 1h1m2 0h1m2 0h2m1 0h3m3 0h1m3 0h6m-17 1h1m4 0h1m5 0h2m3 0h1m1 0h3m-29 1h7m2 0h2m3 0h1m1 0h2m1 0h2m1 0h1m1 0h2m1 0h2m-29 1h1m5 0h1m3 0h5m2 0h1m1 0h2m3 0h2m2 0h1m-29 1h1m1 0h3m1 0h1m1 0h3m3 0h1m1 0h3m1 0h5m3 0h1m-29 1h1m1 0h3m1 0h1m2 0h1m1 0h2m1 0h3m1 0h1m4 0h2m1 0h3m-29 1h1m1 0h3m1 0h1m1 0h1m3 0h2m2 0h1m1 0h3m2 0h3m2 0h1m-29 1h1m5 0h1m5 0h1m1 0h1m1 0h2m1 0h2m1 0h3m2 0h1m-28 1h7m1 0h1m1 0h1m1 0h3m1 0h1m2 0h2m1 0h3m2 0h2"/></svg></div>
+          <p>발표 화면을 보고 계시다면 휴대폰 카메라로 QR 코드를 비추어 바로 신청하실 수 있습니다.</p>
+        </div>
+        <div class="linkline"><code id="formLink">forms.gle/zKKTpTcoSN8FB8Zr9</code><button type="button" id="copyLink">링크 복사</button></div>
+      </div>
+    </div>
+    <div class="foot"><span>공부 그릇을 키우는 사고력 논술 | DEEP</span><span class="num">02</span></div>
+  </div>
+</section>
+
+<!-- 03 WELCOME -->
+<section class="slide" id="welcome" data-label="다음 배움">
+  <div class="frame">
+    <div class="head"><p class="eyebrow">시험 이후</p><h2>아이의 다음 배움을 함께 준비합니다</h2></div>
+    <div class="welcome-grid">
+      <div style="display:flex;flex-direction:column;gap:18px">
+        <p class="big-quote">시험을 치른 아이들의<br><span>도전과 노력</span>을<br>격려해 주세요.</p>
+        <p class="lede">각 가정에 결과를 따로 안내드리고, 아이에게 맞는 다음 단계를 설명드립니다.</p>
+      </div>
+      <div class="outcomes">
+        <div class="outcome is-d"><div class="tag">D</div><b>D단계</b><p>마지막 단계에서 배우는 것</p></div>
+        <div class="outcome"><div class="tag">Pre-D</div><b>Pre-D단계</b><p>생각의 깊이와 글의 구조 다지기</p></div>
+        <div class="outcome"><div class="tag">C<br>통합</div><b>C단계 통합반</b><p>기초를 다지며 다음 승급 준비</p></div>
+        <div class="outcome"><div class="tag" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12h14M13 6l6 6-6 6"/></svg></div><b>진급 경로</b><p>Pre-D 수료 후 다음 해 D단계 승급</p></div>
+      </div>
+    </div>
+    <div class="foot"><span>공부 그릇을 키우는 사고력 논술 | DEEP</span><span class="num">03</span></div>
+  </div>
+</section>
+
+<!-- 04 STAGES -->
+<section class="slide alt" id="stages" data-label="단계 지도">
+  <div class="frame">
+    <div class="head"><p class="eyebrow">딥독의 단계 지도</p><h2>이번 응시 학생은 C단계와 Pre-D단계에서 공부하고 있습니다</h2></div>
+    <div class="stairs" role="img" aria-label="딥독의 단계: A, B, C, Pre-D, D 순서로 올라갑니다. C와 Pre-D는 현재 응시 단계, D는 딥독의 마지막 단계입니다.">
+      <div class="stair" style="--h:30%;--i:0"><b>A</b></div>
+      <div class="stair" style="--h:45%;--i:1"><b>B</b></div>
+      <div class="stair cur" style="--h:60%;--i:2"><span class="flag">현재 응시</span><b>C</b></div>
+      <div class="stair cur" style="--h:78%;--i:3"><span class="flag">현재 응시</span><b>Pre-D</b></div>
+      <div class="stair top" style="--h:100%;--i:4"><span class="flag">마지막 단계</span><b>D</b></div>
+    </div>
+    <div class="stair-legend">
+      <span><i style="background:var(--plum-soft);outline:2px dashed var(--plum);outline-offset:-2px"></i>현재 응시 단계 (중1~중3)</span>
+      <span><i style="background:var(--plum)"></i>딥독 과정의 마지막 단계</span>
+    </div>
+    <p class="lede">시험 결과에 따라 D단계로 승급하거나, 다음 승급을 위한 훈련을 이어 갑니다.</p>
+    <div class="foot"><span>공부 그릇을 키우는 사고력 논술 | DEEP</span><span class="num">04</span></div>
+  </div>
+</section>
+
+<!-- 05 D STAGE -->
+<section class="slide" id="d-stage" data-label="D단계란">
+  <div class="frame">
+    <div class="head"><p class="eyebrow">D단계</p><h2>D단계는 근거로 자기 생각을 세우는 단계</h2></div>
+    <p class="statement">문학의 질문을 사회와 역사로 넓혀, 한 편의 글과 자신의 말로 논증합니다.</p>
+    <div class="pillars">
+      <div class="pillar">
+        <svg viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="13" cy="15" r="8"/><circle cx="23" cy="15" r="8"/><circle cx="18" cy="23" r="8"/></svg>
+        <h3>융합 논술</h3><p>문학과 시사, 역사를 하나의 논제로 연결합니다.</p>
+      </div>
+      <div class="pillar">
+        <svg viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M18 5v26M8 31h20M6 12h24M6 12l-4 9h8zM30 12l-4 9h8z"/></svg>
+        <h3>근거 있는 주장</h3><p>제시문의 내용을 바탕으로 자기 관점을 세웁니다.</p>
+      </div>
+      <div class="pillar">
+        <svg viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="13" y="4" width="10" height="17" rx="5"/><path d="M8 17a10 10 0 0020 0M18 27v5M12 32h12"/></svg>
+        <h3>말로 하는 논증</h3><p>구술면접과 1분 스피치로 판단의 이유를 설명합니다.</p>
+      </div>
+    </div>
+    <div class="foot"><span>공부 그릇을 키우는 사고력 논술 | DEEP</span><span class="num">05</span></div>
+  </div>
+</section>
+
+<!-- 06 LENSES -->
+<section class="slide alt" id="lenses" data-label="한 작품, 네 질문">
+  <div class="frame">
+    <div class="head"><p class="eyebrow">D단계 교재 사례 · 「꺼삐딴 리」 4차시</p><h2>한 작품을 네 개의 질문으로 읽습니다</h2></div>
+    <div class="lens-wrap">
+      <div class="lens-map" role="tablist" aria-label="네 개의 질문">
+        <svg class="lens-lines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+          <line data-l="1" x1="50" y1="50" x2="22" y2="16"/><line data-l="2" x1="50" y1="50" x2="78" y2="16"/>
+          <line data-l="3" x1="50" y1="50" x2="22" y2="84"/><line data-l="4" x1="50" y1="50" x2="78" y2="84"/>
+        </svg>
+        <div class="lens-core">「꺼삐딴 리」<small>같은 인물 · 같은 사건</small></div>
+        <button class="lens" role="tab" data-pos="1" aria-selected="true" aria-controls="lensDetail"><span class="n">01</span><b>전문직 윤리</b><span>공적 책임과 개인의 이익 · D-1-1</span></button>
+        <button class="lens" role="tab" data-pos="2" aria-selected="false" aria-controls="lensDetail"><span class="n">02</span><b>언어와 정체성</b><span>사피어-워프 가설과 모국어의 의미 · D-1-2</span></button>
+        <button class="lens" role="tab" data-pos="3" aria-selected="false" aria-controls="lensDetail"><span class="n">03</span><b>문화재 반환</b><span>소유권과 보존·활용 · D-1-3</span></button>
+        <button class="lens" role="tab" data-pos="4" aria-selected="false" aria-controls="lensDetail"><span class="n">04</span><b>시간의 발명</b><span>시계와 인간의 삶 · D-1-4</span></button>
+      </div>
+      <div class="lens-detail" id="lensDetail" role="tabpanel" aria-live="polite"></div>
+    </div>
+    <p class="cmp-note">같은 인물과 사건을 다른 관점으로 읽으며 생각의 폭을 넓힙니다.</p>
+    <div class="foot"><span>공부 그릇을 키우는 사고력 논술 | DEEP</span><span class="num">06</span></div>
+  </div>
+</section>
+
+<!-- 07 LESSON FLOW -->
+<section class="slide" id="lesson" data-label="한 차시의 흐름">
+  <div class="frame">
+    <div class="head"><p class="eyebrow">D단계 한 차시의 흐름</p><h2>읽은 내용을 논술과 말하기로 완성합니다</h2><p class="lede">단계를 눌러 각 활동을 살펴보세요.</p></div>
+    <ol class="flow" id="dFlow" role="tablist" aria-label="D단계 한 차시의 흐름" style="--n:6"></ol>
+    <div class="flow-detail" id="dFlowDetail" role="tabpanel" aria-live="polite"></div>
+    <div class="glossary">
+      <div><b>구조화</b> 글의 뼈대를 그리는 연습입니다.</div>
+      <div><b>복원</b> 내용을 자기 말로 되살리는 연습입니다.</div>
+    </div>
+    <div class="foot"><span>공부 그릇을 키우는 사고력 논술 | DEEP</span><span class="num">07</span></div>
+  </div>
+</section>
+
+<!-- 08 SKILLS -->
+<section class="slide alt" id="skills" data-label="기르는 힘">
+  <div class="frame">
+    <div class="head"><p class="eyebrow">D단계에서 기르는 힘</p><h2>대입 논술과 면접으로 이어질 읽기·쓰기·말하기의 기초 체력</h2></div>
+    <div class="skills-wrap">
+      <div class="skills">
+        <div class="skill"><span class="n">01</span><h3>함께 읽기</h3><div class="body">여러 제시문의 공통점과 차이를 찾습니다.</div></div>
+        <div class="skill"><span class="n">02</span><h3>판단하기</h3><div class="body"><p class="quote">“개인이 소장한 문화재에 대해 국가가 반환을 요구할 수 있는가?”</p><p class="qref">D-1-3 구술면접</p></div></div>
+        <div class="skill"><span class="n">03</span><h3>설명하기</h3><div class="body"><p class="quote">“시계는 단순한 도구를 넘어 인간의 사고방식과 생활 패턴을 어떻게 변화시켰는가?”</p><p class="qref">D-1-4 구술면접</p></div></div>
+      </div>
+      <div class="goal">
+        <p style="color:var(--band-muted);font-size:.8rem;font-weight:700;letter-spacing:.08em">이어지는 곳</p>
+        <b>대입 논술 · 면접의 기초 체력</b>
+        <div class="mini"><span>읽기</span><span>쓰기</span><span>말하기</span></div>
+        <p>읽기, 판단, 논증을 반복하는 경험이 수업의 지향점입니다.</p>
+      </div>
+    </div>
+    <div class="foot"><span>공부 그릇을 키우는 사고력 논술 | DEEP</span><span class="num">08</span></div>
+  </div>
+</section>
+
+<!-- 09 PRE-D -->
+<section class="slide" id="pre-d" data-label="Pre-D단계">
+  <div class="frame">
+    <div class="head"><p class="eyebrow">Pre-D단계</p><h2>Pre-D는 D단계를 준비하는 다리입니다</h2><p class="lede">「오페라의 유령」의 네 주제를 인문·사회·과학 개념으로 넓혀 읽으며, 생각의 깊이와 글의 구조를 단단히 다집니다.</p></div>
+    <div class="pred-grid">
+      <div class="themes">
+        <div class="theme"><span class="code">C-38-1</span><h3>외모와 본질</h3><p class="to"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M2 8h11M9 4l4 4-4 4"/></svg>디지털 가면과 AI 편향</p></div>
+        <div class="theme"><span class="code">C-38-2</span><h3>사랑과 소유</h3><p class="to"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M2 8h11M9 4l4 4-4 4"/></svg>프롬의 소유양식·존재양식</p></div>
+        <div class="theme"><span class="code">C-38-3</span><h3>편견과 고립</h3><p class="to"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M2 8h11M9 4l4 4-4 4"/></svg>낙인 이론과 사회적 배제</p></div>
+        <div class="theme"><span class="code">C-38-4</span><h3>두려움과 용기</h3><p class="to"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M2 8h11M9 4l4 4-4 4"/></svg>편도체·전두엽과 용기</p></div>
+      </div>
+      <img class="pred-img" src="img/opera.jpg" alt="펼친 책 위에 놓인 흰 가면과 보라색 리본" width="900" height="1125" loading="lazy">
+    </div>
+    <p class="src">C-38-1~C-38-4 교재 사례 · 작품 속 문제(왼쪽)를 개념(오른쪽)으로 확장합니다.</p>
+    <div class="foot"><span>공부 그릇을 키우는 사고력 논술 | DEEP</span><span class="num">09</span></div>
+  </div>
+</section>
+
+<!-- 10 HAVRUTA -->
+<section class="slide alt" id="havruta" data-label="하브루타 수업">
+  <div class="frame">
+    <div class="head"><p class="eyebrow">Pre-D 수업 방식</p><h2>질문과 대화로 생각을 꺼냅니다</h2><p class="lede">하브루타는 짝과 질문을 주고받으며 생각을 넓히는 대화식 수업입니다.</p></div>
+    <ol class="flow" id="pFlow" role="tablist" aria-label="Pre-D 수업의 흐름" style="--n:5"></ol>
+    <div class="flow-detail" id="pFlowDetail" role="tabpanel" aria-live="polite"></div>
+    <div class="foot"><span>공부 그릇을 키우는 사고력 논술 | DEEP</span><span class="num">10</span></div>
+  </div>
+</section>
+
+<!-- 11 COMPARE -->
+<section class="slide" id="compare" data-label="Pre-D와 D 비교">
+  <div class="frame">
+    <div class="head"><p class="eyebrow">한눈에 비교</p><h2>Pre-D와 D, 무엇이 다른가요</h2><p class="lede">두 교재에서 확인한 수업 구성입니다.</p></div>
+    <div class="compare" role="table" aria-label="Pre-D와 D 비교">
+      <div class="cmp-row cmp-head" role="row"><div class="lab" role="columnheader">비교 항목</div><div role="columnheader">Pre-D</div><div class="d" role="columnheader">D</div></div>
+      <div class="cmp-row" role="row"><div class="lab" role="rowheader">읽는 자료</div><div role="cell">세계 고전과 개념 제시문</div><div class="d" role="cell">한국 근현대 문학과 시사 비문학·근현대사</div></div>
+      <div class="cmp-row" role="row"><div class="lab" role="rowheader">주요 활동</div><div role="cell">하브루타, 구조화와 요약</div><div class="d" role="cell">구조화·복원·논제 분석, 논술·구술면접·1분 스피치</div></div>
+      <div class="cmp-row" role="row"><div class="lab" role="rowheader">기르는 힘</div><div role="cell">개념으로 생각을 넓히고 글의 뼈대를 세우기</div><div class="d" role="cell">여러 제시문을 엮어 자기 논지를 글과 말로 설명하기</div></div>
+    </div>
+    <p class="cmp-note">Pre-D에서도 논제를 탐구하며, D에서는 복원과 구술 훈련까지 연결합니다.</p>
+    <div class="foot"><span>공부 그릇을 키우는 사고력 논술 | DEEP</span><span class="num">11</span></div>
+  </div>
+</section>
+
+<!-- 12 PATHS -->
+<section class="slide alt" id="paths" data-label="시험 이후의 길">
+  <div class="frame">
+    <div class="head"><p class="eyebrow">이번 시험 이후의 길</p><h2>어느 단계에서 시작하든 다음 배움을 이어 갑니다</h2></div>
+    <div class="paths">
+      <div class="paths-head"><span>시험 결과</span><span>2027년 1월부터</span><span>그다음</span><span>도착</span></div>
+      <div class="path p-d">
+        <div class="who"><b><span class="chip">D</span>D단계 승급</b><p>축하드립니다. 마지막 단계의 도전을 함께 응원합니다.</p></div>
+        <div class="legs"><div class="leg"><small>시작</small>D단계 수업</div><div class="leg"><small>배움</small>마지막 단계의 배움</div></div>
+      </div>
+      <div class="path">
+        <div class="who"><b><span class="chip">Pre-D</span>Pre-D단계 배정</b><p>D단계를 위한 준비 기간입니다. Pre-D 수료 후 다음 해 승급합니다.</p></div>
+        <div class="legs"><div class="leg"><small>1년</small>훈련과 Pre-D 수료</div><div class="leg"><small>다음 해</small>D단계 승급</div></div>
+      </div>
+      <div class="path">
+        <div class="who"><b><span class="chip">C</span>C단계 통합반</b><p>아이의 속도에 맞춰 기초를 다집니다. 다음 승급을 준비합니다.</p></div>
+        <div class="legs"><div class="leg"><small>시작</small>기초 다지기 훈련</div><div class="leg"><small>다음 승급 준비</small>Pre-D → D</div></div>
+      </div>
+      <div class="finish"><span>모든 길이 모이는 곳</span><b>D단계 수료</b><span>딥독 과정 수료</span></div>
+    </div>
+    <p class="src">C단계 통합반의 승급 시기는 여기에서 확정하지 않으며, 개별 결과는 각 가정에 따로 안내드립니다.</p>
+    <div class="foot"><span>공부 그릇을 키우는 사고력 논술 | DEEP</span><span class="num">12</span></div>
+  </div>
+</section>
+
+<!-- 13 SCORING -->
+<section class="slide" id="scoring" data-label="채점 기준">
+  <div class="frame">
+    <div class="head"><p class="eyebrow">2027 A형 · 교권과 학생권의 갈등 / 시 「매듭」</p><h2>승급시험은 무엇을 보았나요</h2></div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div class="score-split"><div class="t"><b class="num">80점</b><span>논제 글쓰기</span></div><div class="t poem"><b class="num">20점</b><span>시 해석</span></div></div>
+      <div class="score-bar" id="scoreBar" role="img" aria-label="100점 만점 구성: 논제 글쓰기 80점, 시 해석 20점"></div>
+    </div>
+    <div class="score-cols">
+      <div><p class="crit-title"><span>논제 글쓰기 · 7개 영역</span><span class="num">80</span></p><ul class="crit" id="critW"></ul></div>
+      <div><p class="crit-title"><span>시 해석 · 4개 영역</span><span class="num">20</span></p><ul class="crit poem" id="critP"></ul>
+        <div class="extra"><b>D단계를 들어야 하는 이유와 각오</b><span>점수 미반영 · 학습 의지 확인</span></div>
+      </div>
+    </div>
+    <p class="cmp-note">논제 이해, 근거 활용, 생각의 연결과 표현을 함께 살폈습니다.</p>
+    <div class="foot"><span>공부 그릇을 키우는 사고력 논술 | DEEP</span><span class="num">13</span></div>
+  </div>
+</section>
+
+<!-- 14 EXAM -->
+<section class="slide alt" id="exam" data-label="시험 문제 (A형)">
+  <div class="frame">
+    <div class="head"><p class="eyebrow">2027년 딥독융합논술학원 D단계 승급시험 (A형)</p><h2>아이가 실제로 받은 시험지</h2><p class="lede">제시문 두 편을 읽고 1,200자 내외로 논술하고, 시 한 편을 해석했습니다.</p></div>
+    <div class="tabs" role="tablist" aria-label="시험지 보기" id="examTabs">
+      <button role="tab" aria-selected="true" aria-controls="ex-ga" id="t-ga">제시문 (가)</button>
+      <button role="tab" aria-selected="false" aria-controls="ex-na" id="t-na">제시문 (나)</button>
+      <button role="tab" aria-selected="false" aria-controls="ex-q" id="t-q">논제 · 80점</button>
+      <button role="tab" aria-selected="false" aria-controls="ex-poem" id="t-poem">시 「매듭」 · 20점</button>
+      <button role="tab" aria-selected="false" aria-controls="ex-orig" id="t-orig">원본 시험지</button>
+    </div>
+    <div class="paper">
+      <div class="paper-scroll" tabindex="0">
+        <div id="ex-ga" role="tabpanel" aria-labelledby="t-ga">
+          <p class="ptitle">(가) <span>아래 제시문 (가), (나)를 읽고 문제에 답하시오. [80점]</span></p>
+          <div class="prose">
+            <p>넷플릭스 드라마 《참교육》은 무너진 교육 현장에 가상의 국가기관인 ‘교권보호국’이 개입한다는 설정을 내세운다. 학생뿐 아니라 학부모와 교사도 개입의 대상이 된다. 작품 속 강력한 응징에 대한 호응에는 학교가 해결하지 못하는 폭력과 부당한 요구를 누군가 대신 해결해 주기를 바라는 마음이 담겨 있다고 볼 수 있다. 그러나 응징의 통쾌함이 현실의 교육 문제를 해결하는 기준이 될 수 있는지는 별개의 문제이다. 무엇을 바로잡아야 하는지뿐 아니라, 어떤 권한과 방법으로 바로잡을 것인지도 판단해야 하기 때문이다.</p>
+            <p>교권과 학생의 권리가 충돌하는 상황을 생각해 보자. 한 학생이 수업 중 다른 학생의 발표를 반복적으로 방해하고 교사의 제지에도 따르지 않는다. 교사는 수업을 계속하기 위해 그 학생을 잠시 다른 공간에서 지도하려 하지만, 학생은 수업을 들을 권리를 침해당했다고 주장한다. 보호자 역시 자녀를 교실에서 내보내는 조치에 항의한다. 반면 다른 학생들과 보호자들은 반복되는 수업 중단을 막지 못하는 학교에 불만을 제기한다. 이 상황에서 교사가 개입하면 한 학생의 권리를 제한한다는 비판을 받고, 개입하지 않으면 다른 학생들의 학습권을 보호하지 못한다는 비판을 받는다.</p>
+            <p>이러한 갈등을 두고 학생의 권리가 강조되면서 교사의 지도 권한이 약해졌다는 주장이 제기된다. 이 관점에서는 교사에게 교육의 책임을 지우면서도 학생의 행동을 바로잡을 실질적인 권한을 인정하지 않는 것이 문제이다. 모든 지도에 학생이나 보호자의 동의가 필요하다면, 지도가 가장 필요한 순간에 오히려 개입하기 어려워질 수 있다. 부당한 항의와 정당한 문제 제기를 가려 줄 장치마저 부족하다면 교사는 갈등을 감수하기보다 지도를 포기하려 할 것이다. 그 결과는 교사의 어려움에 그치지 않고, 학교의 보호가 필요한 학생들에게도 돌아갈 수 있다.</p>
+            <p>그러나 여기서 학생의 권리 보장 자체가 교권 약화의 원인이라는 결론이 곧바로 도출되지는 않는다. 유엔 아동권리협약 제12조 제1항은 자신의 견해를 형성할 능력이 있는 아동이 자신에게 영향을 미치는 문제에 자유롭게 의견을 표현할 권리를 보장하며, 그 의견을 연령과 성숙도에 따라 비중 있게 고려하도록 한다. 또한 제28조 제1항은 아동의 교육받을 권리를 인정하고, 같은 조 제2항은 학교의 규율이 아동의 인간적 존엄에 부합하는 방식으로 운영되어야 한다고 규정한다. 이러한 원칙에 비추어 보면, 학생의 의견을 듣는 일과 그 요구를 모두 받아들이는 일은 구별된다. 한 학생의 행동을 무조건 허용하여 다른 학생들의 배움을 방해하는 상황도, 질서를 유지한다는 이유로 학생에게 모욕을 주는 상황도 함께 검토해야 한다.</p>
+            <p>협약은 교육이 지향해야 할 목적도 제시한다. 제29조 제1항 (가)는 아동의 인격과 재능, 정신적·신체적 능력의 최대한의 계발을, (나)는 인권과 기본적 자유에 대한 존중의 발달을 교육의 목적으로 규정한다. (라)는 이해와 평화, 관용 등의 정신에 따라 자유로운 사회에서 책임 있는 삶을 살아가도록 준비시키는 것을 제시한다. 이를 학교생활에 적용하면, 학생의 권리 보장과 타인의 권리를 존중하도록 가르치는 일은 함께 고려되어야 한다. 교사의 지도 역시 학생의 행동을 멈추게 했는지만으로 평가하기보다, 그 목적과 방법이 학생의 성장과 공동생활에 어떤 영향을 주는지를 살펴야 한다.</p>
+            <p>교권이라는 말 역시 여러 의미를 포함한다. 교사가 폭언과 폭력으로부터 보호받을 권리, 전문성을 바탕으로 수업하고 지도할 권한, 학생에게 존중받는 권위는 서로 관련되지만 완전히 같지는 않다. 교사의 모든 요구를 교권으로 인정하면 부당한 지시를 비판하기 어려워진다. 반대로 학생의 모든 거부를 권리 행사로 인정하면 공동의 교육활동을 유지하기 어려워진다. 결국 갈등을 판단하려면 누구의 주장인가에 앞서, 그 요구가 어떤 교육적 목적을 가지며 다른 구성원에게 어떤 영향을 미치는지를 살펴야 한다.</p>
+            <p>이 문제에는 교사와 학생 밖의 주체들도 관여한다. 학교와 교육행정기관이 분쟁을 조정하고 필요한 지원을 제공하지 않는다면, 교사 개인이 교육과 갈등 해결의 책임을 떠안게 된다. 국가인권위원회는 2026년 학교 정책 권고에서 학생의 권리 보장과 함께 교사에게 집중된 책임의 경감, 학생 통합지원 전문인력의 배치, 대안적 갈등 중재 제도의 마련을 제안했다. 교권과 학생권의 관계를 이해하려면 교실 안에서 드러난 충돌뿐 아니라, 그 충돌을 조정할 책임이 누구에게 있으며 실제로 이행되고 있는지도 살펴야 한다.</p>
+          </div>
+        </div>
+        <div id="ex-na" role="tabpanel" aria-labelledby="t-na" hidden>
+          <p class="ptitle">(나)</p>
+          <div class="prose">
+            <p>한나 아렌트는 교육을 이미 존재하는 세계와 그 세계에 새롭게 들어오는 아이 사이의 관계에서 이해했다. 여기서 세계란 자연환경만을 뜻하지 않는다. 사람들이 함께 살아가며 만들어 온 언어와 지식, 제도와 문화, 생활의 질서까지 포함한다. 아이는 자신이 태어나기 전부터 존재했던 세계에서 살아가는 법을 배워야 한다. 그러나 기존의 삶을 그대로 반복할 존재만은 아니다. 각자는 새로운 가능성을 가지고 태어나며, 훗날 자신이 물려받은 세계를 변화시킬 수도 있다. 교육은 이러한 새로운 존재를 공동의 세계에 맞이하는 활동이다.</p>
+            <p>아렌트에 따르면 학교는 가정과 공적인 세계 사이를 이어 주는 공간이다. 교사는 아이에게 세계를 소개하는 어른으로서 그 세계에 대한 책임을 맡는다. 이때 교사의 전문적 자격과 교육적 권위는 구별된다. 전문적 자격이 세계를 알고 가르칠 수 있는 능력에 관계한다면, 권위는 자신이 소개하는 세계에 책임을 지는 태도와 관계한다. 따라서 지식이 풍부하고 설명을 잘한다는 사실만으로 교육적 권위가 충분히 성립하지는 않는다. 아렌트는 어른이 교육적 권위를 내려놓는 일을 아이의 자유가 확대되는 것으로만 보지 않았다. 그것은 아이가 들어온 세계에 대해 어른이 책임지기를 거부하는 일이 될 수도 있다고 보았다.</p>
+            <p>이러한 관점은 교육에서 자유와 책임의 관계를 다시 생각하게 한다. 자신의 선택이 어떤 결과를 가져올지 충분히 알지 못하는 아이에게 모든 결정을 맡긴다면, 선택의 범위는 넓어져도 그 결과를 감당할 준비까지 갖추어지는 것은 아니다. 반대로 어른이 모든 판단을 대신하고 정해진 행동만 요구한다면, 아이는 스스로 판단하는 능력을 기를 기회를 잃을 수 있다. 따라서 교육적 개입은 그것이 아이가 세계를 이해하고 자신의 판단을 형성하는 데 어떤 역할을 하는지를 살펴 평가해야 한다. 당장의 선택을 대신해 주는 일과 앞으로 스스로 선택할 능력을 길러 주는 일은 구별된다.</p>
+            <p>아렌트의 교육철학을 연구한 클루흐와 노르데흐라프텔렌스는 교육자가 맡는 책임의 이중성에 주목한다. 교육자는 아이의 생명과 성장을 보호해야 하며, 사람들이 함께 살아가는 세계의 지속에도 책임져야 한다. 그러나 두 책임은 언제나 일치하지 않는다. 아이의 요구를 모두 허용하면 공동생활에 필요한 조건을 유지하기 어려울 수 있고, 기존 질서만을 강조하면 아이의 고유한 가능성을 억누를 수 있다. 두 연구자는 교육적 책임을 어느 한쪽을 선택하면 끝나는 문제로 보지 않는다. 교육자는 충돌하는 책무 사이에서 무엇을 지키고 어떻게 조정할 것인지 판단해야 한다. 규칙을 적용했다는 사실만으로 책임을 다했다고 여길 수 없는 이유도 여기에 있다. 그 판단이 아이의 성장과 공동의 삶에 각각 어떤 결과를 가져오는지도 살펴야 한다.</p>
+            <p>이러한 책임은 모든 상황에 똑같이 대응하는 것과도 구별된다. 같은 행동이라도 그 이유와 주변에 미치는 영향은 다를 수 있으며, 아이가 이해하고 감당할 수 있는 범위도 다르다. 그렇다고 각자의 사정을 고려한다는 이유로 공동의 기준을 없앨 수도 없다. 다른 구성원 역시 보호와 배움이 필요한 존재이기 때문이다. 교육자는 개별적인 필요와 공동생활의 조건을 함께 살피며, 자신의 판단이 누구의 필요를 놓치고 있지는 않은지 돌아보아야 한다. 교육적 권한을 갖는다는 것은 판단할 수 있는 위치를 얻는 일이면서, 그 결과에 응답해야 하는 위치에 서는 일이기도 하다.</p>
+            <p>한편 세계에 책임진다는 것은 현재의 질서를 모두 옳다고 인정하거나 과거의 질서를 복원한다는 뜻이 아니다. 아렌트의 교육관을 해석한 클루흐는 교육자가 자신이 바라는 미래를 아이에게 미리 새겨 넣으려 해서는 안 된다고 강조한다. 어른이 더 나은 사회를 꿈꾸더라도 다음 세대의 삶을 자신의 계획대로 결정할 수는 없다. 아이가 세계를 충분히 알아야 훗날 무엇을 이어받고 무엇을 바꿀지 스스로 판단할 수 있기 때문이다. 교육은 기존 세계를 전달하면서도 다음 세대가 그것을 새롭게 만들 가능성을 남겨 두는 활동이다. 세계를 소개하지 않은 채 모든 판단을 아이에게 맡기는 경우에도, 아이의 미래를 어른이 미리 결정하는 경우에도 교육의 한쪽 책임은 사라진다.</p>
+          </div>
+        </div>
+        <div id="ex-q" role="tabpanel" aria-labelledby="t-q" hidden>
+          <div class="task" style="display:flex;flex-direction:column;gap:14px">
+            <p class="ptitle">[문제] <span>논제 글쓰기 · 80점 · 1,200자 내외</span></p>
+            <p class="quote">(가)에 나타난 교권과 학생권의 갈등을 분석하고, (나)를 바탕으로 오늘날 학교에서 회복해야 할 교사의 권위가 무엇인지 설명하시오. 이를 토대로 학생의 권리를 존중하면서 교사의 지도 권한을 확보할 방안을 제시하시오. (1,200자 내외)</p>
+          </div>
+          <div class="grid-2" style="margin-top:24px">
+            <div class="card"><b style="color:var(--plum)">1. 분석</b><p style="color:var(--ink-2);font-size:.95rem">(가)의 교권과 학생권 갈등</p><p class="src" style="margin-top:6px">논제 분석 · 자료 활용 · 비판적 사고와 분석력</p></div>
+            <div class="card"><b style="color:var(--plum)">2. 설명</b><p style="color:var(--ink-2);font-size:.95rem">(나)를 바탕으로 회복해야 할 교사의 권위</p><p class="src" style="margin-top:6px">자료 활용 · 비판적 사고와 분석력</p></div>
+            <div class="card"><b style="color:var(--plum)">3. 제시</b><p style="color:var(--ink-2);font-size:.95rem">학생의 권리를 존중하며 지도 권한을 확보할 방안</p><p class="src" style="margin-top:6px">해결 방안 제안 · 창의성과 독창성</p></div>
+            <div class="card"><b style="color:var(--plum)">글 전체</b><p style="color:var(--ink-2);font-size:.95rem">1,200자 내외의 완성된 글</p><p class="src" style="margin-top:6px">짜임새 · 표현과 전달력</p></div>
+          </div>
+          <p class="src" style="margin-top:12px">문제의 세 요구를 채점 영역과 나란히 놓아 본 학부모용 정리입니다.</p>
+        </div>
+        <div id="ex-poem" role="tabpanel" aria-labelledby="t-poem" hidden>
+          <div class="task" style="margin-bottom:22px"><p class="ptitle">[문제] <span>시 해석 · 20점</span></p><p class="quote">나무, 말뚝, 밧줄의 관계가 시의 전개에 따라 어떻게 달라지는지 설명하고, 이를 바라보는 화자의 생각을 시의 구체적인 표현을 근거로 해석하시오.</p></div>
+          <div class="poem-head"><b>매듭</b><span>오길비</span></div>
+          <p class="poem-text">운동장 끝에 쥐똥나무가 한 그루 서 있다
+그 곁에 나무가 아닌 나무가 한 개 서 있다
+
+하나는 자라고
+하나는 자라지 않는다
+둘의 허리둘레는 한 개의 매듭으로 계산된다
+
+아저씨의 손등에는 흙이 말라 있다
+나는 매듭의 바깥에서 그것을 본다
+바깥이라는 말은 아직 배우지 않았다
+
+① 바람이 불면 나무가 기운다
+② 말뚝은 나무가 기울지 않도록 한다
+③ 그러므로 나무는 기울지 않은 채 기운다
+
+교실에서는 자주색 벨벳 커튼이
+커다랗게 부풀었다가 가라앉는다
+잠깐 생겼던 방 하나가 없어진다
+그 방에는 아무도 들어가지 못한다
+
+나는 받아쓴다
+들은 것과 쓴 것이 같으면 맞는 것이다
+
+나무는 굵어졌다
+매듭은 그대로였다
+매듭이 작아졌다고 쓰면 틀린 것일까
+
+아저씨가 칼을 넣는다
+나무와 밧줄 사이에는 칼이 들어갈 만한 사이가 없다
+칼이 들어간다
+
+끊어진 밧줄은 주머니 속에서 다시 둥글어진다
+말뚝은 남는다
+이제 나무를 붙들고 있는 것은 무엇인가
+
+종이 울렸다
+배 한 척이 울타리 위를 지나갔다
+배에는 운동장이 없는데
+나는 배가 운동장을 떠난다고 생각하였다
+
+교실로 돌아오니 창틀 아래로 나무가 없어졌다
+나무가 없어진 자리에 창틀이 있다
+
+바다가 조금 보인다
+보이지 않는 쪽이 더 넓다</p>
+        </div>
+        <div id="ex-orig" role="tabpanel" aria-labelledby="t-orig" hidden>
+          <p class="src" style="margin-bottom:12px">이미지를 누르면 크게 볼 수 있습니다.</p>
+          <div class="thumbs">
+            <button type="button" data-full="img/exam-1.png" aria-label="원본 시험지 1쪽 크게 보기"><img src="img/exam-1.png" alt="시험지 1쪽: 제시문 (가)" width="720" height="1040" loading="lazy"></button>
+            <button type="button" data-full="img/exam-2.png" aria-label="원본 시험지 2쪽 크게 보기"><img src="img/exam-2.png" alt="시험지 2쪽: 제시문 (나)와 문제" width="720" height="1040" loading="lazy"></button>
+            <button type="button" data-full="img/exam-3.png" aria-label="원본 시험지 3쪽 크게 보기"><img src="img/exam-3.png" alt="시험지 3쪽: 시 「매듭」과 문제" width="720" height="1040" loading="lazy"></button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="foot"><span>공부 그릇을 키우는 사고력 논술 | DEEP</span><span class="num">14</span></div>
+  </div>
+</section>
+
+<!-- 15 CLOSING -->
+<section class="slide band" id="closing" data-label="신청 안내">
+  <div class="frame">
+    <div class="closing">
+      <div class="head" style="gap:18px">
+        <p class="eyebrow">원활한 반 배정을 위해</p>
+        <h2>기한 내에 꼭 회신 부탁드립니다</h2>
+        <p class="lede">11월 30일(월)까지 희망 수업 시간대를 알려 주시면, 12월 1일(화)에 최종 승급 결과와 반별 수업 스케줄을 안내드립니다.</p>
+        <div class="cta-row">
+          <a class="btn btn-primary" href="https://forms.gle/zKKTpTcoSN8FB8Zr9" target="_blank" rel="noopener">희망 시간대 신청하기 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8"/></svg></a>
+          <button class="btn btn-ghost" type="button" data-go="0">처음으로</button>
+        </div>
+        <p class="src">마지막 페이지까지 작성하신 후 반드시 제출 버튼을 눌러 주셔야 신청이 완료됩니다.</p>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-start;gap:12px">
+        <div class="qr" style="width:180px;height:180px;padding:12px" role="img" aria-label="신청 설문 링크 QR 코드"><svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 29 29" class="segno"><path class="qrline" stroke="#000" d="M0 0.5h7m2 0h1m2 0h3m1 0h1m2 0h1m2 0h7m-29 1h1m5 0h1m1 0h1m1 0h1m1 0h1m1 0h2m1 0h1m1 0h1m2 0h1m5 0h1m-29 1h1m1 0h3m1 0h1m2 0h1m3 0h2m1 0h1m1 0h1m3 0h1m1 0h3m1 0h1m-29 1h1m1 0h3m1 0h1m2 0h1m3 0h3m1 0h4m1 0h1m1 0h3m1 0h1m-29 1h1m1 0h3m1 0h1m1 0h1m2 0h2m1 0h1m1 0h1m5 0h1m1 0h3m1 0h1m-29 1h1m5 0h1m2 0h1m1 0h1m1 0h1m1 0h6m1 0h1m5 0h1m-29 1h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7m-20 1h2m1 0h4m1 0h1m-18 1h1m1 0h1m1 0h1m1 0h1m4 0h2m1 0h2m1 0h1m1 0h2m3 0h1m2 0h1m-27 1h5m2 0h1m2 0h2m1 0h1m2 0h1m1 0h2m1 0h1m2 0h1m2 0h1m-29 1h1m1 0h1m1 0h3m2 0h3m1 0h1m2 0h3m3 0h3m1 0h3m-27 1h2m5 0h2m1 0h1m4 0h2m3 0h1m1 0h1m2 0h1m-25 1h1m2 0h2m2 0h3m4 0h1m1 0h2m1 0h1m2 0h1m1 0h2m-21 1h2m1 0h1m1 0h1m2 0h1m2 0h4m2 0h1m2 0h1m-29 1h3m1 0h1m1 0h1m1 0h1m3 0h1m1 0h1m1 0h2m2 0h2m3 0h1m1 0h2m-29 1h6m3 0h2m1 0h3m2 0h2m2 0h3m1 0h1m1 0h1m-28 1h1m1 0h2m1 0h2m1 0h1m5 0h2m3 0h1m1 0h3m1 0h1m1 0h2m-24 1h1m2 0h4m2 0h5m1 0h3m2 0h2m1 0h1m-29 1h1m1 0h1m1 0h4m4 0h2m2 0h3m2 0h3m3 0h2m-28 1h1m2 0h2m1 0h2m2 0h2m2 0h1m1 0h2m1 0h1m1 0h1m1 0h2m1 0h1m-28 1h1m2 0h1m2 0h2m1 0h3m3 0h1m3 0h6m-17 1h1m4 0h1m5 0h2m3 0h1m1 0h3m-29 1h7m2 0h2m3 0h1m1 0h2m1 0h2m1 0h1m1 0h2m1 0h2m-29 1h1m5 0h1m3 0h5m2 0h1m1 0h2m3 0h2m2 0h1m-29 1h1m1 0h3m1 0h1m1 0h3m3 0h1m1 0h3m1 0h5m3 0h1m-29 1h1m1 0h3m1 0h1m2 0h1m1 0h2m1 0h3m1 0h1m4 0h2m1 0h3m-29 1h1m1 0h3m1 0h1m1 0h1m3 0h2m2 0h1m1 0h3m2 0h3m2 0h1m-29 1h1m5 0h1m5 0h1m1 0h1m1 0h2m1 0h2m1 0h3m2 0h1m-28 1h7m1 0h1m1 0h1m1 0h3m1 0h1m2 0h2m1 0h3m2 0h2"/></svg></div>
+        <p class="src">휴대폰 카메라로 비추어 신청하기</p>
+        <p style="font-family:var(--f-display);font-size:var(--step-1)">감사합니다.<br>딥독융합논술학원</p>
+      </div>
+    </div>
+    <div class="foot"><span>공부 그릇을 키우는 사고력 논술 | DEEP</span><span class="num">15</span></div>
+  </div>
+</section>
+</main>
+
+<div class="dock" role="navigation" aria-label="슬라이드 이동">
+  <button type="button" id="prevBtn" aria-label="이전 슬라이드"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 6l-6 6 6 6"/></svg></button>
+  <span class="count num" id="counter" aria-live="polite">1 / 15</span>
+  <button type="button" id="nextBtn" aria-label="다음 슬라이드"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></button>
+  <button type="button" id="tocBtn" aria-label="목차 열기" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/></svg></button>
+  <button type="button" id="fsBtn" aria-label="전체 화면" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+</div>
+
+<div class="toc" id="toc" hidden>
+  <div class="toc-panel" role="dialog" aria-modal="true" aria-label="목차">
+    <header><b>목차</b><button class="icon-btn" type="button" id="tocClose" aria-label="목차 닫기">✕</button></header>
+    <ol id="tocList"></ol>
+  </div>
+</div>
+
+<div class="lightbox" id="lightbox" hidden>
+  <button class="close" type="button" id="lbClose" aria-label="닫기">✕</button>
+  <img id="lbImg" src="" alt="원본 시험지 확대">
+</div>
+
+<script>
+(function(){
+  const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+  const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const slides=$$('section.slide');
+  let cur=0;
+
+  /* ---------- navigation ---------- */
+  const rail=$('#rail'), tocList=$('#tocList');
+  slides.forEach((s,i)=>{
+    const label=s.dataset.label;
+    const a=document.createElement('a'); a.href='#'+s.id; a.innerHTML='<span>'+label+'</span>'; a.setAttribute('aria-label',(i+1)+'. '+label);
+    a.addEventListener('click',e=>{e.preventDefault();go(i)}); rail.appendChild(a);
+    const li=document.createElement('li'); const b=document.createElement('a'); b.href='#'+s.id;
+    b.innerHTML='<small>'+String(i+1).padStart(2,'0')+'</small><span>'+label+'</span>';
+    b.addEventListener('click',e=>{e.preventDefault();closeToc();go(i)}); li.appendChild(b); tocList.appendChild(li);
+  });
+  function go(i){
+    i=Math.max(0,Math.min(slides.length-1,i));
+    slides[i].scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'});
+  }
+  function setCur(i){
+    cur=i;
+    $('#counter').textContent=(i+1)+' / '+slides.length;
+    $$('a',rail).forEach((a,k)=>a.setAttribute('aria-current',k===i?'true':'false'));
+    $$('a',tocList).forEach((a,k)=>a.setAttribute('aria-current',k===i?'true':'false'));
+    try{ if(location.hash!=='#'+slides[i].id) history.replaceState(null,'','#'+slides[i].id);}catch(e){}
+  }
+  function onScroll(){
+    const y=window.scrollY, h=document.documentElement.scrollHeight-innerHeight;
+    $('#progressBar').style.width=(h>0?Math.min(100,y/h*100):0)+'%';
+    const mid=innerHeight*0.35; let idx=0;
+    slides.forEach((s,k)=>{ if(s.getBoundingClientRect().top<=mid) idx=k; });
+    if(h-y<4) idx=slides.length-1;
+    if(idx!==cur) setCur(idx);
+  }
+  addEventListener('scroll',onScroll,{passive:true}); addEventListener('resize',onScroll);
+  $('#prevBtn').onclick=()=>go(cur-1); $('#nextBtn').onclick=()=>go(cur+1);
+  $$('[data-go]').forEach(b=>b.onclick=()=>go(+b.dataset.go));
+  document.addEventListener('keydown',e=>{
+    if(e.altKey||e.ctrlKey||e.metaKey) return;
+    if(!$('#lightbox').hidden){ if(e.key==='Escape') closeLb(); return; }
+    if(!$('#toc').hidden){ if(e.key==='Escape') closeToc(); return; }
+    const t=e.target; if(t.closest&&t.closest('[role="tablist"],input,textarea,.paper-scroll')) return;
+    if(['ArrowDown','ArrowRight','PageDown'].includes(e.key)||(e.key===' '&&!e.shiftKey)){e.preventDefault();go(cur+1)}
+    else if(['ArrowUp','ArrowLeft','PageUp'].includes(e.key)||(e.key===' '&&e.shiftKey)){e.preventDefault();go(cur-1)}
+    else if(e.key==='Home'){e.preventDefault();go(0)} else if(e.key==='End'){e.preventDefault();go(slides.length-1)}
+  });
+  const toc=$('#toc');
+  function openToc(){toc.hidden=false;$('#tocBtn').setAttribute('aria-expanded','true');$('#tocClose').focus()}
+  function closeToc(){toc.hidden=true;$('#tocBtn').setAttribute('aria-expanded','false');$('#tocBtn').focus()}
+  $('#tocBtn').onclick=openToc; $('#tocClose').onclick=closeToc; toc.addEventListener('click',e=>{if(e.target===toc)closeToc()});
+  const fs=$('#fsBtn');
+  if(document.documentElement.requestFullscreen){ fs.hidden=false; fs.onclick=()=>{
+    if(document.fullscreenElement){document.exitFullscreen().catch(()=>{})}else{document.documentElement.requestFullscreen().catch(()=>{fs.hidden=true})}
+  };}
+  const startIdx=slides.findIndex(s=>'#'+s.id===location.hash);
+  if(startIdx>0) requestAnimationFrame(()=>slides[startIdx].scrollIntoView({block:'start'}));
+  addEventListener('hashchange',()=>{const k=slides.findIndex(s=>'#'+s.id===location.hash); if(k>=0&&k!==cur) go(k)});
+  setCur(0); onScroll();
+
+  /* ---------- dates (KST) ---------- */
+  const DAY=864e5;
+  const kstNow=new Date(Date.now()+9*36e5);
+  const today=Date.UTC(kstNow.getUTCFullYear(),kstNow.getUTCMonth(),kstNow.getUTCDate());
+  const deadline=Date.UTC(2026,10,30), result=Date.UTC(2026,11,1), start=Date.UTC(2027,0,1);
+  const dl=Math.round((deadline-today)/DAY), rs=Math.round((result-today)/DAY);
+  const ddLabel=(n,zero,past)=>n>0?'D-'+n:(n===0?zero:past);
+  $$('[data-dday]').forEach(el=>{
+    el.textContent=el.dataset.dday==='deadline'?ddLabel(dl,'오늘 마감','마감되었습니다'):ddLabel(rs,'오늘 안내','안내 완료');
+  });
+  const big=$('#ddayBig'), txt=$('#ddayText');
+  if(dl>0){big.textContent='D-'+dl; txt.textContent='신청 마감 11월 30일(월)까지';}
+  else if(dl===0){big.textContent='오늘 마감'; txt.textContent='11월 30일(월) 오늘까지 제출해 주세요';}
+  else {big.textContent='마감'; txt.textContent='신청이 마감되었습니다. 문의는 학원으로 부탁드립니다.';}
+  const state={exam:'done',survey:dl>=0?'now':'done',result:rs>0?'next':(rs===0?'now':'done'),start:today>=start?'now':'next'};
+  const stateText={done:'완료',now:'진행 중',next:'예정'};
+  if(rs===0) state.survey='done';
+  $$('.tl-step').forEach(li=>{const s=state[li.dataset.step]; li.classList.add(s); $('.state',li).textContent=s==='now'&&li.dataset.step==='result'?'오늘':stateText[s];});
+
+  /* ---------- copy link ---------- */
+  $('#copyLink').addEventListener('click',function(){
+    const url='https://forms.gle/zKKTpTcoSN8FB8Zr9', btn=this;
+    const done=()=>{btn.textContent='복사했습니다'; setTimeout(()=>btn.textContent='링크 복사',1800)};
+    const fallback=()=>{const r=document.createRange(); r.selectNodeContents($('#formLink')); const s=getSelection(); s.removeAllRanges(); s.addRange(r); btn.textContent='선택됨 · 복사해 주세요';};
+    try{ navigator.clipboard.writeText(url).then(done,fallback);}catch(e){fallback()}
+  });
+
+  /* ---------- tabs helper ---------- */
+  function tabs(list,onSelect){
+    const btns=$$('[role="tab"]',list);
+    btns.forEach((b,i)=>{
+      b.addEventListener('click',()=>sel(i,false));
+      b.addEventListener('keydown',e=>{
+        let k=null; if(e.key==='ArrowRight'||e.key==='ArrowDown')k=(i+1)%btns.length; else if(e.key==='ArrowLeft'||e.key==='ArrowUp')k=(i-1+btns.length)%btns.length; else if(e.key==='Home')k=0; else if(e.key==='End')k=btns.length-1;
+        if(k!==null){e.preventDefault();sel(k,true)}
+      });
+    });
+    function sel(i,focus){btns.forEach((b,k)=>{b.setAttribute('aria-selected',k===i?'true':'false');b.tabIndex=k===i?0:-1}); if(focus)btns[i].focus(); onSelect(i);}
+    sel(Math.max(0,btns.findIndex(b=>b.getAttribute('aria-selected')==='true')),false);
+  }
+
+  /* ---------- lenses ---------- */
+  const lensData=[
+    {kind:'D-1-1 구술면접 질문',topic:'전문직 윤리 · 공적 책임과 개인의 이익',q:'“의사의 파업은 공공의 생명권보다 우선할 수 있는가?”',ref:'D-1-1 구술면접'},
+    {kind:'D-1-2 논제',topic:'언어와 정체성 · 사피어-워프 가설과 모국어의 의미',q:'“사피어-워프 가설과 《꺼삐딴 리》의 내용을 적절히 활용하여 국어(모국어)는 국가와 나에게 어떤 의미를 가지며, 그것이 사고방식과 정체성에 어떻게 영향을 미치는지에 대해 논하시오.”',ref:'D-1-2 논제 분석'},
+    {kind:'D-1-3 구술면접 질문',topic:'문화재 반환 · 문화재 유출과 반환, 소유권과 보존·활용',q:'“개인이 소장한 문화재에 대해 국가가 반환을 요구할 수 있는가?”',ref:'D-1-3 구술면접'},
+    {kind:'D-1-4 구술면접 질문',topic:'시간의 발명 · 시계와 인간의 삶',q:'“시계는 단순한 도구를 넘어 인간의 사고방식과 생활 패턴을 어떻게 변화시켰는가?”',ref:'D-1-4 구술면접'}
+  ];
+  tabs($('.lens-map'),i=>{
+    const d=lensData[i];
+    $('#lensDetail').innerHTML='<p class="kind">'+d.kind+'</p><h3>'+d.topic+'</h3><p class="quote">'+d.q+'</p><p class="qref">교재 문장 그대로 · '+d.ref+'</p>';
+    $$('.lens-lines line').forEach(l=>l.classList.toggle('on',+l.dataset.l===i+1));
+  });
+
+  /* ---------- step flows ---------- */
+  function buildFlow(listSel,detailSel,steps){
+    const ol=$(listSel), det=$(detailSel);
+    steps.forEach((s,i)=>{
+      const li=document.createElement('li');
+      li.innerHTML='<button role="tab" aria-selected="'+(i===0)+'" aria-controls="'+det.id+'"><small>STEP '+(i+1)+'</small><b>'+s.t+'</b></button>';
+      ol.appendChild(li);
+    });
+    tabs(ol,i=>{
+      const s=steps[i];
+      det.innerHTML='<div class="what"><p class="eyebrow">STEP '+(i+1)+' / '+steps.length+'</p><h3>'+s.t+'</h3><p>'+s.d+'</p></div>'+
+        (s.q?'<div class="exemplar"><p class="kind">'+s.k+'</p><p class="quote">'+s.q+'</p><p class="qref">'+s.r+'</p></div>':'<div class="exemplar"><p class="kind">'+s.k+'</p><p>'+s.x+'</p></div>');
+    });
+  }
+  buildFlow('#dFlow','#dFlowDetail',[
+    {t:'제시문 읽기',d:'문학 제시문과 비문학 제시문을 읽고 어휘를 정리한 뒤, 내용 확인 질문 다섯 개로 이해를 점검합니다.',k:'이 단계에서 하는 일',x:'어휘 정리 → 내용 확인 질문 5개'},
+    {t:'구조화 · 복원',d:'핵심어와 소주제, 관점·개념·논증을 구조화하고 서론·본론·결론의 구조도와 4~5문장 요약으로 내용을 복원합니다.',k:'구조화와 복원',x:'구조화는 글의 뼈대를 그리는 연습, 복원은 내용을 자기 말로 되살리는 연습입니다.'},
+    {t:'근현대사 배경',d:'작품과 연결된 근현대사 배경을 익혀 인물과 사건을 시대 속에서 이해합니다.',k:'연결',x:'문학 작품 ↔ 역사적 배경'},
+    {t:'논제 분석',d:'관점 확인, 이해 확인, 논리 체계 확인의 순서로 논제를 분석하고 제시문 분석으로 이어 갑니다.',k:'실제 논제 · D-1-2',q:'“사피어-워프 가설과 《꺼삐딴 리》의 내용을 적절히 활용하여 국어(모국어)는 국가와 나에게 어떤 의미를 가지며, 그것이 사고방식과 정체성에 어떻게 영향을 미치는지에 대해 논하시오.”',r:'D-1-2 논제 분석'},
+    {t:'논술 쓰기',d:'제시문 분석을 바탕으로 자기 관점을 세워 한 편의 논술을 씁니다.',k:'완성',x:'여러 제시문을 엮어 근거 있는 주장을 글로 완성합니다.'},
+    {t:'구술면접 · 1분 스피치',d:'차시마다 제시된 구술면접·1분 스피치 질문 세 개로 생각을 말로 정리합니다.',k:'구술면접 질문 · D-1-1',q:'“의사의 파업은 공공의 생명권보다 우선할 수 있는가?”',r:'D-1-1 구술면접'}
+  ]);
+  buildFlow('#pFlow','#pFlowDetail',[
+    {t:'작품 하브루타',d:'인물의 선택과 사건의 이유를 짝과 질문하며 수업을 시작합니다.',k:'교재의 하브루타 질문 · C-38-1',q:'“&lt;오페라의 유령&gt;에서 유령, 에릭은 왜 오페라 하우스 아래에 숨어 살고 있었을까? 자유롭게 생각해보자.”',r:'C-38-1 작품 하브루타'},
+    {t:'논제 · 개념 제시문',d:'논제를 확인하고 인문·사회·과학 개념 제시문을 읽습니다.',k:'예시 개념',x:'프롬의 소유양식·존재양식, 낙인 이론, 편도체·전두엽'},
+    {t:'내용 확인 질문',d:'내용 확인 질문에 답하며 제시문을 정확히 이해했는지 점검합니다.',k:'목표',x:'정확하게 읽기'},
+    {t:'구조화 · 요약',d:'핵심어와 소주제를 찾고, 4~5문장으로 요약하며 글의 뼈대를 세웁니다.',k:'목표',x:'생각의 중심 잡기'},
+    {t:'시 감상 · 원문 읽기',d:'같은 주제를 다른 표현과 장면으로 다시 만납니다.',k:'교재에 실린 시',x:'「야생 거위」 · 「흙덩이와 자갈」 · 「내가 꿈꾸던 세계」 · 「인빅투스」'}
+  ]);
+
+  /* ---------- scoring ---------- */
+  const W=[['논제 분석',15],['자료 활용',10],['비판적 사고와 분석력',15],['해결 방안 제안',10],['짜임새',10],['표현과 전달력',10],['창의성과 독창성',10]];
+  const P=[['제목 분석',2],['화자 분석',4],['표현 분석',4],['통합적 해석',10]];
+  const bar=$('#scoreBar'), cw=$('#critW'), cp=$('#critP'); const segs=[], rows=[];
+  [[W,cw,''],[P,cp,'poem']].forEach(([arr,ul,cls])=>arr.forEach(([name,p])=>{
+    const k=segs.length;
+    const s=document.createElement('div'); s.className='seg '+cls; s.style.setProperty('--p',p); s.textContent=p>=4?p:''; s.title=name+' '+p+'점'; bar.appendChild(s); segs.push(s);
+    const li=document.createElement('li'); li.tabIndex=0; li.style.setProperty('--p',p);
+    li.innerHTML='<span>'+name+'</span><span class="bar"><i></i></span><span class="pt">'+p+'</span>'; ul.appendChild(li); rows.push(li);
+    const on=()=>{bar.classList.add('hl');segs.forEach((x,j)=>x.classList.toggle('on',j===k));rows.forEach((x,j)=>x.classList.toggle('on',j===k))};
+    const off=()=>{bar.classList.remove('hl');segs.forEach(x=>x.classList.remove('on'));rows.forEach(x=>x.classList.remove('on'))};
+    [s,li].forEach(el=>{el.addEventListener('mouseenter',on);el.addEventListener('mouseleave',off)});
+    li.addEventListener('focus',on); li.addEventListener('blur',off);
+  }));
+
+  /* ---------- exam tabs + lightbox ---------- */
+  const panels=['ex-ga','ex-na','ex-q','ex-poem','ex-orig'];
+  tabs($('#examTabs'),i=>{panels.forEach((id,k)=>$('#'+id).hidden=k!==i); const sc=$('.paper-scroll'); if(sc) sc.scrollTop=0;});
+  const lb=$('#lightbox'); let lbFrom=null;
+  $$('.thumbs button').forEach(b=>b.addEventListener('click',()=>{lbFrom=b;$('#lbImg').src=b.dataset.full;lb.hidden=false;$('#lbClose').focus()}));
+  function closeLb(){lb.hidden=true; if(lbFrom)lbFrom.focus()}
+  $('#lbClose').onclick=closeLb; lb.addEventListener('click',e=>{if(e.target===lb)closeLb()});
+})();
+</script>
